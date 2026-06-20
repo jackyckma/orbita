@@ -49,6 +49,8 @@ Shared methodologies live in `.agents/instructions/` (from [ai-dev-methodologies
 
 Workflow: branch from `main` → PR → `main`.
 
+**Auto commit/push:** Jacky prefers agents to commit and push after each meaningful wave without asking, unless a critical irreversible decision is pending.
+
 ## Deploy
 
 | Item | Value |

@@ -12,8 +12,13 @@
   "dependencies": {
     "@hono/node-server": "^1.14.4",
     "@hono/zod-openapi": "^0.19.6",
+    "@orbita/agent": "workspace:*",
     "@orbita/auth": "workspace:*",
+    "@orbita/memory": "workspace:*",
     "@orbita/platform": "workspace:*",
+    "@orbita/scheduler": "workspace:*",
+    "@orbita/sessions": "workspace:*",
+    "@orbita/trajectory": "workspace:*",
     "hono": "^4.7.11",
     "zod": "^3.25.56"
   },

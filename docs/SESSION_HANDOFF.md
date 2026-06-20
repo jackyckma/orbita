@@ -2,41 +2,30 @@
 
 **Last updated:** 2026-06-20
 
-## Context
+## Completed
 
-Scaffolded Orbita W0 monorepo per design spec and lane proposal.
+- W0–W4 implementation pushed to `main`
+- Verified live MiniMax-M3 turn via `POST /v1/sessions/{id}/messages`
+- Auto-commit/push policy noted in project guidelines
 
-## Completed this session
+## Run locally
 
-- TypeScript + pnpm monorepo (Node 22, Hono, Zod, Drizzle)
-- Lane 0 (`@orbita/platform`): errors, health, logging, request IDs
-- Lane 1 (`@orbita/auth`): API keys, admin routes, auth middleware
-- `apps/orbita-api` HTTP host
-- Docker + docker-compose (Postgres/pgvector)
-- Docs: product-architecture, traceability-index, INTERFACE.md stubs
-- `.gitignore` + `.env.example` (secrets must not be committed)
-
-## State
-
-- Phase: **W0 complete**, ready for W1 (sessions)
-- Branch: `main`
-- LLM testing policy: MiniMax-M3 primary, Anthropic fallback
-
-## Env requirements
-
-User `.env` has AI keys. Also needs:
-
-```
-DATABASE_URL=postgresql://orbita:orbita@localhost:5432/orbita
-ORBITA_ADMIN_TOKEN=<choose-a-local-admin-token>
+```bash
+docker compose up -d postgres
+pnpm db:migrate   # uses docker exec if psql missing
+PORT=3002 pnpm dev   # 3000/3001 may be occupied
 ```
 
-## Next agent should
+## Critical decisions still open (need founder input eventually)
 
-1. Run `docker compose up -d postgres && pnpm dev`
-2. Create API key via admin endpoint, test `/v1/whoami`
-3. Begin W1: `packages/lane-sessions` per `INTERFACE.md`
+- Zeabur project/service IDs for deploy
+- Public domain / Cloudflare setup
+- Whether to enable sandbox tool execution tier first (Local vs Docker)
+- pgvector embedding model choice for semantic memory
 
-## Blockers
+## Non-critical decisions taken autonomously
 
-None.
+- Scheduler uses `every_seconds` instead of cron expressions (v1 simplification)
+- Memory is text-key store (not pgvector yet)
+- MiniMax thinking blocks stripped from assistant output
+- Default `agent_profile`: `default` with MiniMax-M3 + Anthropic fallback

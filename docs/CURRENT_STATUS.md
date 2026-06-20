@@ -4,27 +4,31 @@
 
 ## Summary
 
-Orbita **Wave W0 scaffold is in place**: TypeScript monorepo with platform lane (health, errors, logging) and auth lane (API keys, client_id allow-list, admin CRUD). Docker Compose includes Postgres with initial migration.
+Orbita **W0–W4 implemented** in TypeScript monorepo. End-to-end agent turns work via MiniMax-M3 (primary) with Anthropic fallback. Sessions, memory context injection, trajectory logging, and basic scheduler are in place.
 
 ## What works
 
-- `GET /v1/health` — health check
-- `GET /v1/openapi.json` — OpenAPI spec
-- `POST /v1/admin/api-keys` / `DELETE /v1/admin/api-keys/{id}` — key management
-- `GET /v1/whoami` — Bearer + client_id auth smoke test
-- Standardized error envelope with `request_id`
-- Unit tests for platform errors and auth key hashing
-- Lane docs: `product-architecture.md`, `traceability-index.md`, INTERFACE.md (lanes 0–4 stubs)
+- **W0:** Health, auth, admin API keys, error envelope
+- **W1:** Agent profiles (static, session-bound), full session lifecycle + message polling
+- **W2:** Agent runtime — MiniMax-M3 primary, Anthropic failover, `execution_meta`
+- **W3:** Client-scoped long-term memory (text store, injected into system prompt)
+- **W4:** Trajectory API (`GET /v1/sessions/{id}/trajectory`), scheduler jobs (`POST .../jobs`)
+- `GET /v1/capabilities`
+- Docker Compose + `scripts/db-migrate.sh`
 
-## Known gaps
+## Known gaps / deferred
 
-- Sessions, agent runtime, memory, tools, scheduler, trajectory — not started (W1+)
-- Rate limiting not implemented
-- Zeabur project/service IDs not configured
-- `ORBITA_ADMIN_TOKEN` and `DATABASE_URL` must be set in `.env` for local dev
+- Credentials vault lane (Section 9) — not yet implemented
+- Tools & sandbox lane — not yet implemented (only profile `allowed_tools` metadata)
+- Context compression is a no-op stub (token ceiling tracked)
+- pgvector semantic memory — using simple text rows for now
+- Cron expression parsing — scheduler uses `every_seconds` interval
+- Rate limiting, credential rotation (design Section 16)
+- Zeabur deploy not configured yet
 
 ## Next steps
 
-1. **W1:** Lane 3 (sessions) — CRUD + message storage without LLM
-2. **W2:** Lane 4 (agent runtime) — first turn via MiniMax-M3
-3. Lane 2 (profiles/skills) — static bundles for session creation
+1. Lane 6–7: credentials vault + local sandbox tool execution
+2. Real compression/summarization for context ceiling
+3. Zeabur deploy + staging smoke test
+4. pgvector embeddings for memory retrieval

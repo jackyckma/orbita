@@ -23,3 +23,16 @@ export {
   REQUEST_ID_HEADER,
 } from "./middleware/request-id.js";
 export { createHealthRoutes } from "./routes/health.js";
+export {
+  ExecutionMetaSchema,
+  MessageInputSchema,
+  MessageOutputSchema,
+  StructuredInputSchema,
+  TextInputSchema,
+  inputToPromptText,
+} from "./types/io.js";
+export type {
+  ExecutionMeta,
+  MessageInput,
+  MessageOutput,
+} from "./types/io.js";

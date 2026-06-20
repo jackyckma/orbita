@@ -7,11 +7,10 @@
   },
   "scripts": {
     "dev": "pnpm --filter @orbita/api dev",
-    "build": "pnpm --filter @orbita/platform build && pnpm --filter @orbita/auth build && pnpm --filter @orbita/api build",
-    "typecheck": "pnpm --filter @orbita/platform build && pnpm --filter @orbita/auth build && pnpm -r typecheck",
+    "build": "pnpm --filter @orbita/platform build && pnpm --filter @orbita/profiles build && pnpm --filter @orbita/auth build && pnpm --filter @orbita/sessions build && pnpm --filter @orbita/agent build && pnpm --filter @orbita/memory build && pnpm --filter @orbita/trajectory build && pnpm --filter @orbita/scheduler build && pnpm --filter @orbita/api build",
+    "typecheck": "pnpm --filter @orbita/platform build && pnpm --filter @orbita/profiles build && pnpm --filter @orbita/auth build && pnpm --filter @orbita/sessions build && pnpm --filter @orbita/agent build && pnpm --filter @orbita/memory build && pnpm --filter @orbita/trajectory build && pnpm --filter @orbita/scheduler build && pnpm -r typecheck",
     "test": "pnpm -r test",
-    "db:generate": "pnpm --filter @orbita/auth db:generate",
-    "db:migrate": "pnpm --filter @orbita/auth db:migrate"
+    "db:migrate": "bash scripts/db-migrate.sh"
   },
   "devDependencies": {
     "@types/node": "^22.15.30",

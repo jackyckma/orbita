@@ -26,12 +26,27 @@ importers:
       '@hono/zod-openapi':
         specifier: ^0.19.6
         version: 0.19.10(hono@4.12.26)(zod@3.25.76)
+      '@orbita/agent':
+        specifier: workspace:*
+        version: link:../../packages/lane-agent
       '@orbita/auth':
         specifier: workspace:*
         version: link:../../packages/lane-auth
+      '@orbita/memory':
+        specifier: workspace:*
+        version: link:../../packages/lane-memory
       '@orbita/platform':
         specifier: workspace:*
         version: link:../../packages/lane-platform
+      '@orbita/scheduler':
+        specifier: workspace:*
+        version: link:../../packages/lane-scheduler
+      '@orbita/sessions':
+        specifier: workspace:*
+        version: link:../../packages/lane-sessions
+      '@orbita/trajectory':
+        specifier: workspace:*
+        version: link:../../packages/lane-trajectory
       hono:
         specifier: ^4.7.11
         version: 4.12.26
@@ -42,6 +57,31 @@ importers:
       tsx:
         specifier: ^4.19.4
         version: 4.22.4
+
+  packages/lane-agent:
+    dependencies:
+      '@anthropic-ai/sdk':
+        specifier: ^0.54.0
+        version: 0.54.0
+      '@orbita/platform':
+        specifier: workspace:*
+        version: link:../lane-platform
+      '@orbita/profiles':
+        specifier: workspace:*
+        version: link:../lane-profiles
+      '@orbita/sessions':
+        specifier: workspace:*
+        version: link:../lane-sessions
+      openai:
+        specifier: ^5.3.0
+        version: 5.23.2(zod@3.25.76)
+      zod:
+        specifier: ^3.25.56
+        version: 3.25.76
+    devDependencies:
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.6(@types/node@22.19.21)(tsx@4.22.4)(yaml@2.9.0)
 
   packages/lane-auth:
     dependencies:
@@ -71,6 +111,19 @@ importers:
         specifier: ^3.2.4
         version: 3.2.6(@types/node@22.19.21)(tsx@4.22.4)(yaml@2.9.0)
 
+  packages/lane-memory:
+    dependencies:
+      drizzle-orm:
+        specifier: ^0.44.2
+        version: 0.44.7(postgres@3.4.9)
+      postgres:
+        specifier: ^3.4.7
+        version: 3.4.9
+    devDependencies:
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.6(@types/node@22.19.21)(tsx@4.22.4)(yaml@2.9.0)
+
   packages/lane-platform:
     dependencies:
       '@hono/zod-openapi':
@@ -90,7 +143,103 @@ importers:
         specifier: ^3.2.4
         version: 3.2.6(@types/node@22.19.21)(tsx@4.22.4)(yaml@2.9.0)
 
+  packages/lane-profiles:
+    dependencies:
+      '@orbita/platform':
+        specifier: workspace:*
+        version: link:../lane-platform
+      zod:
+        specifier: ^3.25.56
+        version: 3.25.76
+    devDependencies:
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.6(@types/node@22.19.21)(tsx@4.22.4)(yaml@2.9.0)
+
+  packages/lane-scheduler:
+    dependencies:
+      '@hono/zod-openapi':
+        specifier: ^0.19.6
+        version: 0.19.10(hono@4.12.26)(zod@3.25.76)
+      '@orbita/auth':
+        specifier: workspace:*
+        version: link:../lane-auth
+      '@orbita/platform':
+        specifier: workspace:*
+        version: link:../lane-platform
+      drizzle-orm:
+        specifier: ^0.44.2
+        version: 0.44.7(postgres@3.4.9)
+      hono:
+        specifier: ^4.7.11
+        version: 4.12.26
+      postgres:
+        specifier: ^3.4.7
+        version: 3.4.9
+      zod:
+        specifier: ^3.25.56
+        version: 3.25.76
+
+  packages/lane-sessions:
+    dependencies:
+      '@hono/zod-openapi':
+        specifier: ^0.19.6
+        version: 0.19.10(hono@4.12.26)(zod@3.25.76)
+      '@orbita/auth':
+        specifier: workspace:*
+        version: link:../lane-auth
+      '@orbita/platform':
+        specifier: workspace:*
+        version: link:../lane-platform
+      '@orbita/profiles':
+        specifier: workspace:*
+        version: link:../lane-profiles
+      drizzle-orm:
+        specifier: ^0.44.2
+        version: 0.44.7(postgres@3.4.9)
+      hono:
+        specifier: ^4.7.11
+        version: 4.12.26
+      postgres:
+        specifier: ^3.4.7
+        version: 3.4.9
+      zod:
+        specifier: ^3.25.56
+        version: 3.25.76
+    devDependencies:
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.6(@types/node@22.19.21)(tsx@4.22.4)(yaml@2.9.0)
+
+  packages/lane-trajectory:
+    dependencies:
+      '@hono/zod-openapi':
+        specifier: ^0.19.6
+        version: 0.19.10(hono@4.12.26)(zod@3.25.76)
+      '@orbita/auth':
+        specifier: workspace:*
+        version: link:../lane-auth
+      '@orbita/platform':
+        specifier: workspace:*
+        version: link:../lane-platform
+      drizzle-orm:
+        specifier: ^0.44.2
+        version: 0.44.7(postgres@3.4.9)
+      hono:
+        specifier: ^4.7.11
+        version: 4.12.26
+      postgres:
+        specifier: ^3.4.7
+        version: 3.4.9
+      zod:
+        specifier: ^3.25.56
+        version: 3.25.76
+
 packages:
+
+  '@anthropic-ai/sdk@0.54.0':
+    resolution: {integrity: sha512-xyoCtHJnt/qg5GG6IgK+UJEndz8h8ljzt/caKXmq3LfBF81nC/BW6E4x2rOWCZcvsLyVW+e8U5mtIr6UCE/kJw==}
+    hasBin: true
 
   '@asteasolutions/zod-to-openapi@7.3.4':
     resolution: {integrity: sha512-/2rThQ5zPi9OzVwes6U7lK1+Yvug0iXu25olp7S0XsYmOqnyMfxH7gdSQjn/+DSOHRg7wnotwGJSyL+fBKdnEA==}
@@ -1116,6 +1265,18 @@ packages:
     resolution: {integrity: sha512-0eJJY6hXLGf1udHwfNftBqH+g73EU4B504nZeKpz1sYRKafAghwxEJunB2O7rDZkL4PGfsMVnTXZ2EjibbqcsA==}
     engines: {node: '>=14.0.0'}
 
+  openai@5.23.2:
+    resolution: {integrity: sha512-MQBzmTulj+MM5O8SKEk/gL8a7s5mktS9zUtAkU257WjvobGc9nKcBuVwjyEEcb9SI8a8Y2G/mzn3vm9n1Jlleg==}
+    hasBin: true
+    peerDependencies:
+      ws: ^8.18.0
+      zod: ^3.23.8
+    peerDependenciesMeta:
+      ws:
+        optional: true
+      zod:
+        optional: true
+
   openapi3-ts@4.6.0:
     resolution: {integrity: sha512-a4sfn6L2sIShhtzJqmjGrARvxAW/3F2BJDdyRVvNF9VhAsZSh5hSyI3a9TNvmzBxXmq66nY5LNT5bQcBxYAZZg==}
 
@@ -1328,6 +1489,8 @@ packages:
     resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
 
 snapshots:
+
+  '@anthropic-ai/sdk@0.54.0': {}
 
   '@asteasolutions/zod-to-openapi@7.3.4(zod@3.25.76)':
     dependencies:
@@ -1978,6 +2141,10 @@ snapshots:
   nanoid@3.3.13: {}
 
   on-exit-leak-free@2.1.2: {}
+
+  openai@5.23.2(zod@3.25.76):
+    optionalDependencies:
+      zod: 3.25.76
 
   openapi3-ts@4.6.0:
     dependencies:

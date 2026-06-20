@@ -9,7 +9,11 @@ services:
       - "5432:5432"
     volumes:
       - orbita_pg:/var/lib/postgresql/data
-      - ./packages/lane-auth/drizzle/0000_init.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
+      - ./packages/lane-auth/drizzle/0000_init.sql:/docker-entrypoint-initdb.d/001_auth.sql:ro
+      - ./packages/lane-sessions/drizzle/0001_sessions.sql:/docker-entrypoint-initdb.d/002_sessions.sql:ro
+      - ./packages/lane-memory/drizzle/0001_memory.sql:/docker-entrypoint-initdb.d/003_memory.sql:ro
+      - ./packages/lane-trajectory/drizzle/0001_trajectory.sql:/docker-entrypoint-initdb.d/004_trajectory.sql:ro
+      - ./packages/lane-scheduler/drizzle/0001_scheduler.sql:/docker-entrypoint-initdb.d/005_scheduler.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U orbita -d orbita"]
       interval: 5s

@@ -14,48 +14,52 @@ Agent-native, API-first agent system. Foundation spec: `usr/ORBITA_DESIGN.md`.
 
 | Layer | Choice |
 |-------|--------|
-| Language | TypeScript (strict), Node 22 |
+| Language | TypeScript (strict), Node 20+ |
 | HTTP | Hono + @hono/zod-openapi |
 | Validation | Zod |
-| Database | Postgres + pgvector (Drizzle ORM) |
+| Database | Postgres (pgvector image; semantic search deferred) |
 | Monorepo | pnpm workspaces |
-| Primary LLM (testing) | MiniMax-M3 (`MINIMAX_API_KEY`) |
+| Primary LLM | MiniMax-M3 (`MINIMAX_API_KEY`) |
 | Fallback LLM | Anthropic (`ANTHROPIC_API_KEY`) |
 
 ## Lane status
 
 | Lane | Name | Package | Status | Last shipped | Next up |
 |------|------|---------|--------|--------------|---------|
-| 0 | Platform | `@orbita/platform` | 🔄 In progress | Error envelope, health, logging | Rate limiting hooks |
-| 1 | Auth | `@orbita/auth` | 🔄 In progress | API keys, client_id allow-list, admin CRUD | Scope enforcement on session routes |
-| 2 | Profiles & Skills | `@orbita/profiles` | ⏳ Planned | — | Static agent_profile bundles |
-| 3 | Sessions | `@orbita/sessions` | ⏳ Planned | — | Session CRUD + message history |
-| 4 | Agent Runtime | `@orbita/agent` | ⏳ Planned | — | Turn loop, MiniMax provider, failover |
-| 5 | Memory | `@orbita/memory` | ⏳ Planned | — | Client-scoped pgvector memory |
+| 0 | Platform | `@orbita/platform` | ✅ Shipped | Errors, health, I/O types, logging | Rate limiting |
+| 1 | Auth | `@orbita/auth` | ✅ Shipped | API keys, client_id allow-list | Rate limits per key |
+| 2 | Profiles & Skills | `@orbita/profiles` | ✅ Shipped | Static profiles, session-bound snapshot | Additional profiles |
+| 3 | Sessions | `@orbita/sessions` | ✅ Shipped | Full session API + polling | Real compression |
+| 4 | Agent Runtime | `@orbita/agent` | ✅ Shipped | MiniMax + Anthropic failover | Tool loop |
+| 5 | Memory | `@orbita/memory` | 🔄 Partial | Text memory per client_id | pgvector embeddings |
 | 6 | Credentials | `@orbita/credentials` | ⏳ Planned | — | Write-once vault |
-| 7 | Tools & Sandbox | `@orbita/tools` | ⏳ Planned | — | Local/Docker sandbox tier |
-| 8 | Scheduler | `@orbita/scheduler` | ⏳ Planned | — | Cron jobs |
-| 9 | Trajectory | `@orbita/trajectory` | ⏳ Planned | — | Structured audit API |
+| 7 | Tools & Sandbox | `@orbita/tools` | ⏳ Planned | — | Local sandbox tier |
+| 8 | Scheduler | `@orbita/scheduler` | 🔄 Partial | `every_seconds` jobs | Cron expressions |
+| 9 | Trajectory | `@orbita/trajectory` | ✅ Shipped | API + turn logging | Replay tooling |
 
 ## Build waves
 
-| Wave | Lanes | Goal |
-|------|-------|------|
-| **W0** (current) | 0, 1 | Docker, `GET /v1/health`, admin API keys, auth middleware |
-| **W1** | 2, 3 | Sessions without LLM — create, poll messages |
-| **W2** | 4, 6, 7 | First agent turn via MiniMax-M3 |
-| **W3** | 5 + failover | Memory + Anthropic fallback |
-| **W4** | 8, 9 | Scheduler + trajectory |
+| Wave | Lanes | Status |
+|------|-------|--------|
+| **W0** | 0, 1 | ✅ Done |
+| **W1** | 2, 3 | ✅ Done |
+| **W2** | 4 | ✅ Done (MiniMax verified) |
+| **W3** | 5 + failover | 🔄 Memory text store; failover ✅ |
+| **W4** | 8, 9 | 🔄 Trajectory ✅; scheduler partial |
 
-## HTTP surface (W0)
+## HTTP surface
 
-| Method | Path | Auth | Lane |
-|--------|------|------|------|
-| GET | `/v1/health` | none | 0 |
-| GET | `/v1/openapi.json` | none | 0 |
-| POST | `/v1/admin/api-keys` | admin token | 1 |
-| DELETE | `/v1/admin/api-keys/{id}` | admin token | 1 |
-| GET | `/v1/whoami` | Bearer + client_id | 1 |
+| Method | Path | Lane |
+|--------|------|------|
+| GET | `/v1/health` | 0 |
+| GET | `/v1/openapi.json` | 0 |
+| GET | `/v1/capabilities` | 4 |
+| POST/DELETE | `/v1/admin/api-keys` | 1 |
+| POST/GET/DELETE | `/v1/sessions` | 3 |
+| GET/POST | `/v1/sessions/{id}/messages` | 3 + 4 |
+| POST | `/v1/sessions/{id}/compress` | 3 |
+| GET | `/v1/sessions/{id}/trajectory` | 9 |
+| POST | `/v1/sessions/{id}/jobs` | 8 |
 
 ## Identity flow
 
@@ -63,15 +67,11 @@ Agent-native, API-first agent system. Foundation spec: `usr/ORBITA_DESIGN.md`.
 Authorization: Bearer <api_key>
 x-orbita-client-id: <client_id>
 
-api_key → allowed_client_ids[] → client_id → (future) session → memory
+api_key → allowed_client_ids[] → client_id → session → memory
 ```
-
-## Dependency rule
-
-Lanes communicate via **HTTP contracts and JSON schemas only**. No cross-import of another lane's `src/`.
 
 ## Deployment
 
-1. Docker (local + home server)
-2. Zeabur (GitHub-linked)
-3. Localhost CLI (deferred)
+1. Docker (local + home server) — `docker compose up`
+2. Zeabur — **not configured yet** (needs project/service IDs)
+3. Localhost CLI — deferred

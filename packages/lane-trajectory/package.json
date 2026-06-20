@@ -1,0 +1,21 @@
+{
+  "name": "@orbita/trajectory",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./dist/index.js" },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@hono/zod-openapi": "^0.19.6",
+    "@orbita/auth": "workspace:*",
+    "@orbita/platform": "workspace:*",
+    "drizzle-orm": "^0.44.2",
+    "hono": "^4.7.11",
+    "postgres": "^3.4.7",
+    "zod": "^3.25.56"
+  }
+}
