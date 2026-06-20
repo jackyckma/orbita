@@ -1,0 +1,21 @@
+{
+  "name": "orbita",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @orbita/api dev",
+    "build": "pnpm --filter @orbita/platform build && pnpm --filter @orbita/auth build && pnpm --filter @orbita/api build",
+    "typecheck": "pnpm --filter @orbita/platform build && pnpm --filter @orbita/auth build && pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "db:generate": "pnpm --filter @orbita/auth db:generate",
+    "db:migrate": "pnpm --filter @orbita/auth db:migrate"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.30",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}

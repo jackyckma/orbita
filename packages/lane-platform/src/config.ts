@@ -1,0 +1,19 @@
+import { z } from "zod";
+
+export const PlatformEnvSchema = z.object({
+  PORT: z.coerce.number().int().positive().default(3000),
+  HOST: z.string().default("127.0.0.1"),
+  NODE_ENV: z
+    .enum(["development", "test", "production"])
+    .default("development"),
+  DATABASE_URL: z.string().url().optional(),
+  ORBITA_ADMIN_TOKEN: z.string().min(1).optional(),
+});
+
+export type PlatformEnv = z.infer<typeof PlatformEnvSchema>;
+
+export function loadPlatformEnv(
+  source: NodeJS.ProcessEnv = process.env,
+): PlatformEnv {
+  return PlatformEnvSchema.parse(source);
+}

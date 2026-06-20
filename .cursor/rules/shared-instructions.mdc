@@ -1,0 +1,25 @@
+---
+description: Shared agent instructions — coding discipline, docs process, handoff
+alwaysApply: true
+---
+
+# Shared agent instructions
+
+Do **not** duplicate full policy here. Read `.agents/instructions/` before non-trivial work:
+
+1. `.agents/instructions/karpathy-guidelines.md` — coding behavior
+2. `.agents/instructions/project-guidelines.md` — language, git, deploy, stack
+3. `.agents/instructions/agent-tooling-guardrails.md` — MCP-first browser; no silent Playwright
+4. `.agents/instructions/session-handoff.md` — when updating `docs/SESSION_HANDOFF.md`
+5. `.agents/instructions/lane-based-development.md` — when using lanes (optional)
+
+When **resuming**, read `docs/SESSION_HANDOFF.md` first.
+
+## Quick rules
+
+- Respond in **Traditional Chinese (繁體中文)** unless the user asks for another language (customize in project-guidelines).
+- Read `docs/CURRENT_STATUS.md` and roadmap docs before large changes.
+- Do not add Playwright or similar to `package.json` without explicit user approval.
+- For Zeabur ops: load Zeabur skills when configured in project-guidelines.
+
+See `.agents/README.md` if present.

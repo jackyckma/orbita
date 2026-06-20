@@ -1,0 +1,12 @@
+# Methodology bundle pin — update only after a manual sync (see framework-adoption.md).
+
+source: https://github.com/jackyckma/ai-dev-methodologies
+version: "1.1.0"
+source_commit: 61f94d4
+synced_at: 2026-06-20
+synced_by: bootstrap
+customized_files:
+  - .agents/instructions/project-guidelines.md
+  - docs/AGENT_ENV.md
+  - scripts/agent-verify.sh
+notes: Initial bootstrap. Customize project-owned files before serious agent work.
