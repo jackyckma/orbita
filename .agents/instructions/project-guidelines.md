@@ -62,6 +62,7 @@ Workflow: branch from `main` → PR → `main`.
 | PostgreSQL service ID | `6a37d40b6d107f2b42717135` |
 | Region / Server | Ocean (`server-69ea44a68736baad13c7c617`) |
 | Dashboard | https://zeabur.com/projects/6a37d39a6d107f2b4271712f |
+| Public URL | https://orbita-api.zeabur.app (dedicated server — may use self-signed TLS) |
 | Deploy branch | `main` (GitHub: `jackyckma/orbita`) |
 | Health check | `GET /v1/health` (required in v1) |
 
