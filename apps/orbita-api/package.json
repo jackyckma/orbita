@@ -20,6 +20,7 @@
     "@orbita/sessions": "workspace:*",
     "@orbita/trajectory": "workspace:*",
     "hono": "^4.7.11",
+    "postgres": "^3.4.7",
     "zod": "^3.25.56"
   },
   "devDependencies": {

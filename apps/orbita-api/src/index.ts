@@ -33,6 +33,7 @@ import {
   createTrajectoryDb,
   logTrajectoryEvent,
 } from "@orbita/trajectory";
+import { runMigrations } from "./migrate.js";
 
 const VERSION = "0.0.1-w4";
 const env = loadPlatformEnv();
@@ -48,6 +49,8 @@ if (!env.ORBITA_ADMIN_TOKEN) {
   logger.error("ORBITA_ADMIN_TOKEN is required for admin routes");
   process.exit(1);
 }
+
+await runMigrations(env.DATABASE_URL, logger);
 
 const authDb = createAuthDb(env.DATABASE_URL);
 const sessionsDb = createSessionsDb(env.DATABASE_URL);

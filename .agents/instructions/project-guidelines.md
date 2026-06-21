@@ -57,10 +57,12 @@ Workflow: branch from `main` → PR → `main`.
 |------|-------|
 | Platform | Zeabur (GitHub-linked) — preferred target |
 | Also supported | Localhost, remote server (Cloudflare Tunnel) |
-| Zeabur project ID | Ask founder if missing |
-| Service ID | Ask founder if missing |
-| Public URL | TBD |
-| Deploy branch | `main` |
+| Zeabur project ID | `6a37d39a6d107f2b4271712f` |
+| Service ID (orbita-api) | `6a37d3a09f5fe35a4aa63552` |
+| PostgreSQL service ID | `6a37d40b6d107f2b42717135` |
+| Region / Server | Ocean (`server-69ea44a68736baad13c7c617`) |
+| Dashboard | https://zeabur.com/projects/6a37d39a6d107f2b4271712f |
+| Deploy branch | `main` (GitHub: `jackyckma/orbita`) |
 | Health check | `GET /v1/health` (required in v1) |
 
 Load Zeabur agent skills when doing deploy/log/env operations. Ask for IDs — do not guess.

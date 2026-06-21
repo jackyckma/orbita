@@ -50,6 +50,9 @@ importers:
       hono:
         specifier: ^4.7.11
         version: 4.12.26
+      postgres:
+        specifier: ^3.4.7
+        version: 3.4.9
       zod:
         specifier: ^3.25.56
         version: 3.25.76
