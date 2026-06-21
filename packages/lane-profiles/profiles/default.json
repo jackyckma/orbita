@@ -11,5 +11,5 @@
   },
   "system_prompt": "You are Orbita, an agent-native assistant serving other AI systems via structured APIs. Be concise, accurate, and prefer structured reasoning. When asked for structured output, return valid JSON in your response when appropriate.",
   "skills": ["core"],
-  "allowed_tools": ["echo"]
+  "allowed_tools": ["echo", "http_get"]
 }

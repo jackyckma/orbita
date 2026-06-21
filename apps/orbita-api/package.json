@@ -14,6 +14,7 @@
     "@hono/zod-openapi": "^0.19.6",
     "@orbita/agent": "workspace:*",
     "@orbita/auth": "workspace:*",
+    "@orbita/credentials": "workspace:*",
     "@orbita/memory": "workspace:*",
     "@orbita/platform": "workspace:*",
     "@orbita/scheduler": "workspace:*",

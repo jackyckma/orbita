@@ -32,6 +32,9 @@ importers:
       '@orbita/auth':
         specifier: workspace:*
         version: link:../../packages/lane-auth
+      '@orbita/credentials':
+        specifier: workspace:*
+        version: link:../../packages/lane-credentials
       '@orbita/memory':
         specifier: workspace:*
         version: link:../../packages/lane-memory
@@ -75,6 +78,9 @@ importers:
       '@orbita/sessions':
         specifier: workspace:*
         version: link:../lane-sessions
+      '@orbita/tools':
+        specifier: workspace:*
+        version: link:../lane-tools
       openai:
         specifier: ^5.3.0
         version: 5.23.2(zod@3.25.76)
@@ -110,6 +116,34 @@ importers:
       drizzle-kit:
         specifier: ^0.31.1
         version: 0.31.10
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.6(@types/node@22.19.21)(tsx@4.22.4)(yaml@2.9.0)
+
+  packages/lane-credentials:
+    dependencies:
+      '@hono/zod-openapi':
+        specifier: ^0.19.6
+        version: 0.19.10(hono@4.12.26)(zod@3.25.76)
+      '@orbita/auth':
+        specifier: workspace:*
+        version: link:../lane-auth
+      '@orbita/platform':
+        specifier: workspace:*
+        version: link:../lane-platform
+      drizzle-orm:
+        specifier: ^0.44.2
+        version: 0.44.7(postgres@3.4.9)
+      hono:
+        specifier: ^4.7.11
+        version: 4.12.26
+      postgres:
+        specifier: ^3.4.7
+        version: 3.4.9
+      zod:
+        specifier: ^3.25.56
+        version: 3.25.76
+    devDependencies:
       vitest:
         specifier: ^3.2.4
         version: 3.2.6(@types/node@22.19.21)(tsx@4.22.4)(yaml@2.9.0)
@@ -209,6 +243,16 @@ importers:
       zod:
         specifier: ^3.25.56
         version: 3.25.76
+    devDependencies:
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.6(@types/node@22.19.21)(tsx@4.22.4)(yaml@2.9.0)
+
+  packages/lane-tools:
+    dependencies:
+      openai:
+        specifier: ^5.3.0
+        version: 5.23.2(zod@3.25.76)
     devDependencies:
       vitest:
         specifier: ^3.2.4

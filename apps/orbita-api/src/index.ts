@@ -12,6 +12,12 @@ import {
   createAuthMiddleware,
   getAuth,
 } from "@orbita/auth";
+import {
+  createCredentialAdminRoutes,
+  createCredentialListRoutes,
+  createCredentialsDb,
+  resolveCredentialSecret,
+} from "@orbita/credentials";
 import { getMemoryContext, createMemoryDb } from "@orbita/memory";
 import {
   createErrorHandler,
@@ -35,7 +41,7 @@ import {
 } from "@orbita/trajectory";
 import { runMigrations } from "./migrate.js";
 
-const VERSION = "0.0.1-w4";
+const VERSION = "0.0.1-w5";
 const env = loadPlatformEnv();
 const agentEnv = loadAgentEnv();
 const logger = createLogger(env.NODE_ENV);
@@ -50,6 +56,11 @@ if (!env.ORBITA_ADMIN_TOKEN) {
   process.exit(1);
 }
 
+if (!env.ORBITA_SECRETS_KEY) {
+  logger.error("ORBITA_SECRETS_KEY is required for credential vault");
+  process.exit(1);
+}
+
 await runMigrations(env.DATABASE_URL, logger);
 
 const authDb = createAuthDb(env.DATABASE_URL);
@@ -57,6 +68,7 @@ const sessionsDb = createSessionsDb(env.DATABASE_URL);
 const memoryDb = createMemoryDb(env.DATABASE_URL);
 const trajectoryDb = createTrajectoryDb(env.DATABASE_URL);
 const schedulerDb = createSchedulerDb(env.DATABASE_URL);
+const credentialsDb = createCredentialsDb(env.DATABASE_URL);
 
 const authMiddleware = createAuthMiddleware(authDb);
 const adminGuard = createAdminAuthGuard(env.ORBITA_ADMIN_TOKEN);
@@ -64,7 +76,10 @@ const adminGuard = createAdminAuthGuard(env.ORBITA_ADMIN_TOKEN);
 const assertSessionOwner = (sessionId: string, clientId: string) =>
   getSessionForClient(sessionsDb, sessionId, clientId).then(() => undefined);
 
-const baseTurnRunner = createAgentTurnRunner(agentEnv);
+const baseTurnRunner = createAgentTurnRunner(agentEnv, {
+  resolveCredential: (clientId, name) =>
+    resolveCredentialSecret(credentialsDb, env.ORBITA_SECRETS_KEY!, clientId, name),
+});
 const runTurn: AgentTurnRunner = async (args) => {
   const memoryContext = await getMemoryContext(memoryDb, args.session.clientId);
   const result = await baseTurnRunner({ ...args, memoryContext });
@@ -90,6 +105,10 @@ app.use("*", async (c, next) => {
 });
 
 app.route("/v1", createHealthRoutes(VERSION));
+app.route(
+  "/v1/admin",
+  createCredentialAdminRoutes(credentialsDb, env.ORBITA_SECRETS_KEY!, adminGuard),
+);
 app.route("/v1/admin", createAdminRoutes(authDb, adminGuard));
 
 const protectedApp = new OpenAPIHono();
@@ -109,6 +128,7 @@ protectedApp.get("/capabilities", (c) => c.json(createCapabilitiesResponse(), 20
 protectedApp.route("/", createSessionRoutes(sessionsDb, runTurn));
 protectedApp.route("/", createTrajectoryRoutes(trajectoryDb, assertSessionOwner));
 protectedApp.route("/", createSchedulerRoutes(schedulerDb, assertSessionOwner));
+protectedApp.route("/", createCredentialListRoutes(credentialsDb));
 
 app.route("/v1", protectedApp);
 

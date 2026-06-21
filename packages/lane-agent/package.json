@@ -16,6 +16,7 @@
     "@orbita/platform": "workspace:*",
     "@orbita/profiles": "workspace:*",
     "@orbita/sessions": "workspace:*",
+    "@orbita/tools": "workspace:*",
     "openai": "^5.3.0",
     "zod": "^3.25.56"
   },

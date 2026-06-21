@@ -68,3 +68,15 @@ CREATE TABLE IF NOT EXISTS "session_jobs" (
   "last_run_at" timestamp with time zone,
   "created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS "credentials" (
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+  "client_id" text NOT NULL,
+  "name" text NOT NULL,
+  "secret_ciphertext" text NOT NULL,
+  "scopes" jsonb DEFAULT '[]'::jsonb NOT NULL,
+  "created_at" timestamp with time zone DEFAULT now() NOT NULL,
+  CONSTRAINT "credentials_client_name_unique" UNIQUE("client_id", "name")
+);
+
+CREATE INDEX IF NOT EXISTS "credentials_client_idx" ON "credentials" ("client_id");

@@ -25,6 +25,7 @@ export const ExecutionMetaSchema = z.object({
   primary_provider_error: z.string().optional(),
   cache_break: z.boolean().optional(),
   token_count_estimate: z.number().int().nonnegative().optional(),
+  tool_calls_made: z.number().int().nonnegative().optional(),
 });
 
 export type ExecutionMeta = z.infer<typeof ExecutionMetaSchema>;

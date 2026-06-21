@@ -8,7 +8,15 @@ import {
   type AgentTurnRunner,
   type LlmChatMessage,
 } from "@orbita/sessions";
+import {
+  executeToolCall,
+  getToolDefinitions,
+  listRegisteredTools,
+  type ToolExecutionContext,
+} from "@orbita/tools";
 import type { AgentEnv } from "./config.js";
+
+const MAX_TOOL_ITERATIONS = 8;
 
 export type ProviderErrorKind =
   | "rate_limit_exceeded"
@@ -26,6 +34,15 @@ export class ProviderCallError extends Error {
   }
 }
 
+export type CredentialResolver = (
+  clientId: string,
+  name: string,
+) => Promise<string>;
+
+export type AgentTurnRunnerDeps = {
+  resolveCredential?: CredentialResolver;
+};
+
 function classifyError(provider: string, err: unknown): ProviderCallError {
   const message = err instanceof Error ? err.message : String(err);
   const lower = message.toLowerCase();
@@ -36,29 +53,6 @@ function classifyError(provider: string, err: unknown): ProviderCallError {
     return new ProviderCallError(provider, "quota_exhausted", message);
   }
   return new ProviderCallError(provider, "provider_error", message);
-}
-
-async function callMinimax(
-  env: AgentEnv,
-  model: string,
-  chatMessages: LlmChatMessage[],
-): Promise<string> {
-  if (!env.MINIMAX_API_KEY) {
-    throw new ProviderCallError("minimax", "provider_error", "MINIMAX_API_KEY not set");
-  }
-  const client = new OpenAI({
-    apiKey: env.MINIMAX_API_KEY,
-    baseURL: env.MINIMAX_BASE_URL,
-  });
-  try {
-    const response = await client.chat.completions.create({
-      model,
-      messages: chatMessages,
-    });
-    return stripThinkingContent(response.choices[0]?.message?.content ?? "");
-  } catch (err) {
-    throw classifyError("minimax", err);
-  }
 }
 
 async function callAnthropic(
@@ -89,11 +83,95 @@ async function callAnthropic(
   }
 }
 
-export function createAgentTurnRunner(env: AgentEnv): AgentTurnRunner {
+async function callMinimaxWithTools(
+  env: AgentEnv,
+  model: string,
+  chatMessages: LlmChatMessage[],
+  allowedTools: string[],
+  toolCtx: ToolExecutionContext,
+): Promise<{ text: string; tool_calls_made: number }> {
+  if (!env.MINIMAX_API_KEY) {
+    throw new ProviderCallError("minimax", "provider_error", "MINIMAX_API_KEY not set");
+  }
+  const client = new OpenAI({
+    apiKey: env.MINIMAX_API_KEY,
+    baseURL: env.MINIMAX_BASE_URL,
+  });
+  const tools = getToolDefinitions(allowedTools);
+  const messages: OpenAI.ChatCompletionMessageParam[] = chatMessages.map((m) => ({
+    role: m.role,
+    content: m.content,
+  }));
+
+  let toolCallsMade = 0;
+
+  try {
+    for (let i = 0; i < MAX_TOOL_ITERATIONS; i++) {
+      const response = await client.chat.completions.create({
+        model,
+        messages,
+        ...(tools.length > 0 ? { tools } : {}),
+      });
+      const choice = response.choices[0]?.message;
+      if (!choice) {
+        return { text: "", tool_calls_made: toolCallsMade };
+      }
+
+      const toolCalls = choice.tool_calls ?? [];
+      if (toolCalls.length === 0) {
+        return {
+          text: stripThinkingContent(choice.content ?? ""),
+          tool_calls_made: toolCallsMade,
+        };
+      }
+
+      messages.push(choice);
+      for (const toolCall of toolCalls) {
+        if (toolCall.type !== "function") continue;
+        const outcome = await executeToolCall(
+          toolCall.function.name,
+          toolCall.function.arguments,
+          allowedTools,
+          toolCtx,
+        );
+        toolCallsMade++;
+        messages.push({
+          role: "tool",
+          tool_call_id: toolCall.id,
+          content: JSON.stringify(outcome),
+        });
+      }
+    }
+
+    return { text: "", tool_calls_made: toolCallsMade };
+  } catch (err) {
+    throw classifyError("minimax", err);
+  }
+}
+
+async function callMinimaxPlain(
+  env: AgentEnv,
+  model: string,
+  chatMessages: LlmChatMessage[],
+): Promise<string> {
+  const { text } = await callMinimaxWithTools(env, model, chatMessages, [], {
+    clientId: "",
+    resolveCredential: async () => {
+      throw new Error("credentials unavailable");
+    },
+  });
+  return text;
+}
+
+export function createAgentTurnRunner(
+  env: AgentEnv,
+  deps: AgentTurnRunnerDeps = {},
+): AgentTurnRunner {
   return async ({ session, history, memoryContext }) => {
     const profile = session.profileSnapshot;
     const chatMessages = serializeHistoryForLlm(profile, history, memoryContext);
     const includeNl = true;
+    const allowedTools = profile.allowed_tools ?? [];
 
     const primary = profile.model;
     const fallback = profile.fallback_model ?? {
@@ -101,7 +179,18 @@ export function createAgentTurnRunner(env: AgentEnv): AgentTurnRunner {
       model: env.ANTHROPIC_MODEL,
     };
 
+    const toolCtx: ToolExecutionContext = {
+      clientId: session.clientId,
+      resolveCredential: async (name) => {
+        if (!deps.resolveCredential) {
+          throw new Error("Credential resolver not configured");
+        }
+        return deps.resolveCredential(session.clientId, name);
+      },
+    };
+
     let assistantText = "";
+    let toolCallsMade = 0;
     let execution_meta: ExecutionMeta = {
       model_used: primary.model,
       provider: primary.provider,
@@ -109,7 +198,19 @@ export function createAgentTurnRunner(env: AgentEnv): AgentTurnRunner {
     };
 
     try {
-      assistantText = await dispatch(env, primary.provider, primary.model, chatMessages);
+      if (primary.provider === "minimax" && allowedTools.length > 0) {
+        const result = await callMinimaxWithTools(
+          env,
+          primary.model,
+          chatMessages,
+          allowedTools,
+          toolCtx,
+        );
+        assistantText = result.text;
+        toolCallsMade = result.tool_calls_made;
+      } else {
+        assistantText = await dispatch(env, primary.provider, primary.model, chatMessages);
+      }
     } catch (primaryErr) {
       if (!(primaryErr instanceof ProviderCallError)) {
         throw primaryErr;
@@ -121,6 +222,10 @@ export function createAgentTurnRunner(env: AgentEnv): AgentTurnRunner {
         failover_occurred: true,
         primary_provider_error: primaryErr.kind,
       };
+    }
+
+    if (toolCallsMade > 0) {
+      execution_meta = { ...execution_meta, tool_calls_made: toolCallsMade };
     }
 
     return {
@@ -138,7 +243,7 @@ async function dispatch(
   chatMessages: LlmChatMessage[],
 ): Promise<string> {
   if (provider === "minimax") {
-    return callMinimax(env, model, chatMessages);
+    return callMinimaxPlain(env, model, chatMessages);
   }
   if (provider === "anthropic") {
     return callAnthropic(env, model, chatMessages);
@@ -163,5 +268,6 @@ export function createCapabilitiesResponse() {
     ],
     input_modes: ["structured", "text"],
     output_modes: ["structured", "natural_language"],
+    tools: listRegisteredTools(),
   };
 }

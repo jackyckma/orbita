@@ -5,4 +5,4 @@ export {
   createCapabilitiesResponse,
   ProviderCallError,
 } from "./runtime.js";
-export type { ProviderErrorKind } from "./runtime.js";
+export type { ProviderErrorKind, AgentTurnRunnerDeps, CredentialResolver } from "./runtime.js";

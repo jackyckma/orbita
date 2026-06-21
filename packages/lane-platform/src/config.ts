@@ -8,6 +8,7 @@ export const PlatformEnvSchema = z.object({
     .default("development"),
   DATABASE_URL: z.string().url().optional(),
   ORBITA_ADMIN_TOKEN: z.string().min(1).optional(),
+  ORBITA_SECRETS_KEY: z.string().min(16).optional(),
 });
 
 export type PlatformEnv = z.infer<typeof PlatformEnvSchema>;
