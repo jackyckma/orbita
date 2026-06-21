@@ -1,18 +1,24 @@
 #!/usr/bin/env bash
-# Tier A E2E: Docker Postgres + API with ORBITA_E2E_MOCK=1 (no live LLM).
+# Tier B E2E: Docker Postgres + API with live MiniMax (requires MINIMAX_API_KEY).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
+if [[ -z "${MINIMAX_API_KEY:-}" ]]; then
+  echo "MINIMAX_API_KEY is required for Tier B E2E"
+  exit 1
+fi
+
 export DATABASE_URL="${DATABASE_URL:-postgresql://orbita:orbita@localhost:5432/orbita}"
 export ORBITA_ADMIN_TOKEN="${ORBITA_ADMIN_TOKEN:-e2e-admin-token}"
 export ORBITA_SECRETS_KEY="${ORBITA_SECRETS_KEY:-e2e0123456789012345678901234567}"
-export ORBITA_E2E_MOCK=1
+export MINIMAX_BASE_URL="${MINIMAX_BASE_URL:-https://api.minimax.io/v1}"
+unset ORBITA_E2E_MOCK
 export HOST=127.0.0.1
-export PORT="${PORT:-3099}"
+export PORT="${PORT:-3100}"
 export E2E_API_URL="http://${HOST}:${PORT}"
-export E2E_TIER_A=1
+export E2E_LLM=1
 
 API_PID=""
 
@@ -45,7 +51,7 @@ done
 echo "==> building packages"
 pnpm build
 
-echo "==> starting API (mock LLM) on :$PORT"
+echo "==> starting API (live LLM) on :$PORT"
 free_port
 node apps/orbita-api/dist/index.js &
 API_PID=$!
@@ -63,7 +69,7 @@ if [[ "$ready" != "1" ]]; then
   exit 1
 fi
 
-echo "==> running tier A HTTP tests"
-pnpm exec vitest run --config tests/e2e/vitest.config.ts tests/e2e/tier-a-api.test.ts
+echo "==> running tier B HTTP tests"
+pnpm exec vitest run --config tests/e2e/vitest.config.ts tests/e2e/tier-b-llm.test.ts
 
-echo "==> tier A E2E OK"
+echo "==> tier B E2E OK"

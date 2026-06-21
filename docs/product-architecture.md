@@ -49,8 +49,8 @@ Agent-native, API-first agent system. Foundation spec: `usr/ORBITA_DESIGN.md`.
 | **W5** | 6, 7 + tool loop | ✅ Done |
 | **W6** | 3 compression + 5 pgvector | ✅ Done |
 | **W7** | 8 cron/webhook + 0/1 rate limiting | ✅ Done |
-| **W8** | E2E harness + prod smoke automation | 🔄 Started |
-| **W9** | 2 skills library + 7 practical tools + tool trajectory | ⏳ Planned — **elevated priority** |
+| **W8** | E2E harness + prod smoke automation | ✅ Done |
+| **W9** | 2 skills library + 7 practical tools + tool trajectory | ⏳ Next — **elevated priority** |
 | **W10** | 9 replay/eval + multi-replica ops | ⏳ Planned |
 
 ### W8 — E2E harness (elevated)

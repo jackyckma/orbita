@@ -1,0 +1,39 @@
+name: E2E nightly
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+jobs:
+  tier-b-live-llm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Tier B E2E (live MiniMax)
+        env:
+          MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
+        run: bash scripts/e2e-tier-b.sh
+
+  smoke-prod:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Production smoke
+        env:
+          ORBITA_ADMIN_TOKEN: ${{ secrets.ORBITA_ADMIN_TOKEN }}
+        run: bash scripts/smoke-prod.sh

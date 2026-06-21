@@ -29,9 +29,17 @@ fi
 if [[ -n "$VERIFY_L2" ]]; then
   echo "==> L2: $VERIFY_L2"
   eval "$VERIFY_L2"
+elif [[ "${RUN_E2E_TIER_B:-}" == "1" ]] || [[ "${E2E_LLM:-}" == "1" ]]; then
+  echo "==> L2: scripts/e2e-tier-b.sh"
+  bash "$ROOT/scripts/e2e-tier-b.sh"
 elif [[ "${RUN_E2E_TIER_A:-}" == "1" ]]; then
   echo "==> L2: scripts/e2e-tier-a.sh"
   bash "$ROOT/scripts/e2e-tier-a.sh"
+fi
+
+if [[ "${RUN_SMOKE_PROD:-}" == "1" ]]; then
+  echo "==> L3: scripts/smoke-prod.sh"
+  bash "$ROOT/scripts/smoke-prod.sh"
 fi
 
 echo "==> agent-verify OK"
