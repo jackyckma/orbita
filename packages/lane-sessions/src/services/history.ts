@@ -12,6 +12,7 @@ export function serializeHistoryForLlm(
   profileSnapshot: AgentProfileSnapshot,
   rows: MessageRow[],
   memoryContext?: string,
+  contextSummary?: string | null,
 ): LlmChatMessage[] {
   const skillBlock = Object.entries(profileSnapshot.skill_contents)
     .sort(([a], [b]) => a.localeCompare(b))
@@ -20,6 +21,7 @@ export function serializeHistoryForLlm(
 
   const system = [
     profileSnapshot.system_prompt,
+    contextSummary ? `## Compressed conversation history\n${contextSummary}` : null,
     memoryContext ? `## Long-term memory\n${memoryContext}` : null,
     skillBlock.length > 0 ? skillBlock : null,
   ]
@@ -118,3 +120,29 @@ export type AgentTurnRunner = (args: {
   userInput: MessageInput;
   memoryContext?: string;
 }) => Promise<TurnResult>;
+
+export type SessionSummarizer = (args: {
+  existingSummary: string | null;
+  messages: MessageRow[];
+  profileSnapshot: AgentProfileSnapshot;
+}) => Promise<string>;
+
+export function computeSessionTokenEstimate(
+  profileSnapshot: AgentProfileSnapshot,
+  contextSummary: string | null | undefined,
+  rows: MessageRow[],
+): number {
+  let total = estimateTokens(profileSnapshot.system_prompt);
+  if (contextSummary) {
+    total += estimateTokens(contextSummary);
+  }
+  for (const row of rows) {
+    if (row.input) {
+      total += estimateTokens(JSON.stringify(row.input));
+    }
+    if (row.output) {
+      total += estimateTokens(JSON.stringify(row.output));
+    }
+  }
+  return total;
+}

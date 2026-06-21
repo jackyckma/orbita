@@ -19,6 +19,7 @@ export const sessions = pgTable("sessions", {
     .notNull(),
   status: text("status").$type<"active" | "ended">().notNull().default("active"),
   tokenCountEstimate: integer("token_count_estimate").notNull().default(0),
+  contextSummary: text("context_summary"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

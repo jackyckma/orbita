@@ -169,7 +169,12 @@ export function createAgentTurnRunner(
 ): AgentTurnRunner {
   return async ({ session, history, memoryContext }) => {
     const profile = session.profileSnapshot;
-    const chatMessages = serializeHistoryForLlm(profile, history, memoryContext);
+    const chatMessages = serializeHistoryForLlm(
+      profile,
+      history,
+      memoryContext,
+      session.contextSummary,
+    );
     const includeNl = true;
     const allowedTools = profile.allowed_tools ?? [];
 

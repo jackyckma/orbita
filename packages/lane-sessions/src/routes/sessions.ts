@@ -17,12 +17,13 @@ import {
   postMessage,
   sessionToJson,
 } from "../services/sessions.js";
-import type { AgentTurnRunner } from "../services/history.js";
+import type { AgentTurnRunner, SessionSummarizer } from "../services/history.js";
 import type { SessionsDb } from "../db/client.js";
 
 export function createSessionRoutes(
   sessionsDb: SessionsDb,
   runTurn?: AgentTurnRunner,
+  summarizer?: SessionSummarizer,
 ): OpenAPIHono {
   const app = new OpenAPIHono();
 
@@ -165,6 +166,7 @@ export function createSessionRoutes(
       body.input,
       body.include_natural_language,
       runTurn,
+      summarizer,
     );
     return c.json(result, 200);
   };
@@ -195,7 +197,12 @@ export function createSessionRoutes(
   app.openapi(compressRoute, async (c) => {
     const auth = getAuth(c);
     const { session_id } = c.req.valid("param");
-    const result = await compressSession(sessionsDb, session_id, auth.clientId);
+    const result = await compressSession(
+      sessionsDb,
+      session_id,
+      auth.clientId,
+      summarizer,
+    );
     return c.json(result, 200);
   });
 

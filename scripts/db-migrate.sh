@@ -20,7 +20,9 @@ run_sql() {
 for f in \
   "$ROOT/packages/lane-auth/drizzle/0000_init.sql" \
   "$ROOT/packages/lane-sessions/drizzle/0001_sessions.sql" \
+  "$ROOT/packages/lane-sessions/drizzle/0002_compression.sql" \
   "$ROOT/packages/lane-memory/drizzle/0001_memory.sql" \
+  "$ROOT/packages/lane-memory/drizzle/0002_vectors.sql" \
   "$ROOT/packages/lane-trajectory/drizzle/0001_trajectory.sql" \
   "$ROOT/packages/lane-scheduler/drizzle/0001_scheduler.sql"; do
   run_sql "$f"

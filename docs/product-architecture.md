@@ -29,9 +29,9 @@ Agent-native, API-first agent system. Foundation spec: `usr/ORBITA_DESIGN.md`.
 | 0 | Platform | `@orbita/platform` | ✅ Shipped | Errors, health, I/O types, logging | Rate limiting |
 | 1 | Auth | `@orbita/auth` | ✅ Shipped | API keys, client_id allow-list | Rate limits per key |
 | 2 | Profiles & Skills | `@orbita/profiles` | ✅ Shipped | Static profiles, session-bound snapshot | Additional profiles |
-| 3 | Sessions | `@orbita/sessions` | ✅ Shipped | Full session API + polling | Real compression |
-| 4 | Agent Runtime | `@orbita/agent` | ✅ Shipped | MiniMax + Anthropic failover, tool loop | Anthropic tool loop |
-| 5 | Memory | `@orbita/memory` | 🔄 Partial | Text memory per client_id | pgvector embeddings |
+| 3 | Sessions | `@orbita/sessions` | ✅ Shipped | Full session API + LLM compression | Tune keep-recent count |
+| 4 | Agent Runtime | `@orbita/agent` | ✅ Shipped | MiniMax + Anthropic failover, tool loop, summarizer | Anthropic tool loop |
+| 5 | Memory | `@orbita/memory` | ✅ Shipped | pgvector retrieval + memory API | Embedding model options |
 | 6 | Credentials | `@orbita/credentials` | ✅ Shipped | AES-256-GCM vault, admin + list API | Rotation |
 | 7 | Tools & Sandbox | `@orbita/tools` | ✅ Shipped | `echo`, `http_get` local sandbox | More tools |
 | 8 | Scheduler | `@orbita/scheduler` | 🔄 Partial | `every_seconds` jobs | Cron expressions |
@@ -47,6 +47,7 @@ Agent-native, API-first agent system. Foundation spec: `usr/ORBITA_DESIGN.md`.
 | **W3** | 5 + failover | 🔄 Memory text store; failover ✅ |
 | **W4** | 8, 9 | 🔄 Trajectory ✅; scheduler partial |
 | **W5** | 6, 7 + tool loop | ✅ Done |
+| **W6** | 3 compression + 5 pgvector | ✅ Done |
 
 ## HTTP surface
 
@@ -61,6 +62,8 @@ Agent-native, API-first agent system. Foundation spec: `usr/ORBITA_DESIGN.md`.
 | POST/GET/DELETE | `/v1/sessions` | 3 |
 | GET/POST | `/v1/sessions/{id}/messages` | 3 + 4 |
 | POST | `/v1/sessions/{id}/compress` | 3 |
+| PUT | `/v1/memories/{key}` | 5 |
+| GET | `/v1/memories` | 5 |
 | GET | `/v1/sessions/{id}/trajectory` | 9 |
 | POST | `/v1/sessions/{id}/jobs` | 8 |
 

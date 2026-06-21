@@ -3,6 +3,7 @@ import { OpenAPIHono } from "@hono/zod-openapi";
 import {
   createAgentTurnRunner,
   createCapabilitiesResponse,
+  createSessionSummarizer,
   loadAgentEnv,
 } from "@orbita/agent";
 import {
@@ -18,11 +19,17 @@ import {
   createCredentialsDb,
   resolveCredentialSecret,
 } from "@orbita/credentials";
-import { getMemoryContext, createMemoryDb } from "@orbita/memory";
+import {
+  createMemoryDb,
+  createMemoryRoutes,
+  getMemoryContext,
+  loadMemoryEnv,
+} from "@orbita/memory";
 import {
   createErrorHandler,
   createHealthRoutes,
   createLogger,
+  inputToPromptText,
   loadPlatformEnv,
   logRequest,
   requestIdMiddleware,
@@ -41,9 +48,10 @@ import {
 } from "@orbita/trajectory";
 import { runMigrations } from "./migrate.js";
 
-const VERSION = "0.0.1-w5";
+const VERSION = "0.0.1-w6";
 const env = loadPlatformEnv();
 const agentEnv = loadAgentEnv();
+const memoryEnv = loadMemoryEnv();
 const logger = createLogger(env.NODE_ENV);
 
 if (!env.DATABASE_URL) {
@@ -72,6 +80,7 @@ const credentialsDb = createCredentialsDb(env.DATABASE_URL);
 
 const authMiddleware = createAuthMiddleware(authDb);
 const adminGuard = createAdminAuthGuard(env.ORBITA_ADMIN_TOKEN);
+const sessionSummarizer = createSessionSummarizer(agentEnv);
 
 const assertSessionOwner = (sessionId: string, clientId: string) =>
   getSessionForClient(sessionsDb, sessionId, clientId).then(() => undefined);
@@ -81,7 +90,10 @@ const baseTurnRunner = createAgentTurnRunner(agentEnv, {
     resolveCredentialSecret(credentialsDb, env.ORBITA_SECRETS_KEY!, clientId, name),
 });
 const runTurn: AgentTurnRunner = async (args) => {
-  const memoryContext = await getMemoryContext(memoryDb, args.session.clientId);
+  const memoryContext = await getMemoryContext(memoryDb, args.session.clientId, {
+    queryText: inputToPromptText(args.userInput),
+    env: memoryEnv,
+  });
   const result = await baseTurnRunner({ ...args, memoryContext });
   await logTrajectoryEvent(trajectoryDb, {
     sessionId: args.session.id,
@@ -125,7 +137,8 @@ protectedApp.get("/whoami", (c) => {
 
 protectedApp.get("/capabilities", (c) => c.json(createCapabilitiesResponse(), 200));
 
-protectedApp.route("/", createSessionRoutes(sessionsDb, runTurn));
+protectedApp.route("/", createSessionRoutes(sessionsDb, runTurn, sessionSummarizer));
+protectedApp.route("/", createMemoryRoutes(memoryDb, memoryEnv));
 protectedApp.route("/", createTrajectoryRoutes(trajectoryDb, assertSessionOwner));
 protectedApp.route("/", createSchedulerRoutes(schedulerDb, assertSessionOwner));
 protectedApp.route("/", createCredentialListRoutes(credentialsDb));

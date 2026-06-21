@@ -1,4 +1,4 @@
-import { and, asc, eq, gt } from "drizzle-orm";
+import { and, asc, eq, gt, inArray } from "drizzle-orm";
 import { bindProfileSnapshot } from "@orbita/profiles";
 import {
   badRequest,
@@ -10,13 +10,23 @@ import type { SessionsDb } from "../db/client.js";
 import { messages, sessions, type SessionRow } from "../db/schema.js";
 import {
   buildAssistantOutput,
+  computeSessionTokenEstimate,
   estimateTokens,
   messageToJson,
   sessionToJson,
   type AgentTurnRunner,
+  type SessionSummarizer,
 } from "./history.js";
 
 const TOKEN_CEILING = 120_000;
+const RECENT_MESSAGES_TO_KEEP = 8;
+
+export type CompressResult = {
+  compressed: boolean;
+  token_count_estimate: number;
+  cache_break: boolean;
+  message?: string;
+};
 
 export async function createSession(
   db: SessionsDb,
@@ -88,17 +98,68 @@ export async function compressSession(
   db: SessionsDb,
   sessionId: string,
   clientId: string,
-) {
+  summarizer?: SessionSummarizer,
+): Promise<CompressResult> {
   const row = await getSessionForClient(db, sessionId, clientId);
   if (row.status !== "active") {
     throw conflict("Session is not active");
   }
-  // v1: record intent only; full summarization comes later
+
+  const allMessages = await listMessages(db, sessionId);
+  if (allMessages.length <= RECENT_MESSAGES_TO_KEEP) {
+    return {
+      compressed: false,
+      token_count_estimate: row.tokenCountEstimate,
+      cache_break: false,
+      message: "Not enough messages to compress yet",
+    };
+  }
+
+  if (!summarizer) {
+    return {
+      compressed: false,
+      token_count_estimate: row.tokenCountEstimate,
+      cache_break: false,
+      message: "Summarizer not configured",
+    };
+  }
+
+  const keepFromSequence =
+    allMessages[allMessages.length - RECENT_MESSAGES_TO_KEEP]!.sequence;
+  const toCompress = allMessages.filter((m) => m.sequence < keepFromSequence);
+  const kept = allMessages.filter((m) => m.sequence >= keepFromSequence);
+
+  const summary = await summarizer({
+    existingSummary: row.contextSummary,
+    messages: toCompress,
+    profileSnapshot: row.profileSnapshot,
+  });
+
+  const idsToDelete = toCompress.map((m) => m.id);
+  if (idsToDelete.length > 0) {
+    await db.db.delete(messages).where(inArray(messages.id, idsToDelete));
+  }
+
+  const tokenCount = computeSessionTokenEstimate(
+    row.profileSnapshot,
+    summary,
+    kept,
+  );
+
+  await db.db
+    .update(sessions)
+    .set({
+      contextSummary: summary,
+      tokenCountEstimate: tokenCount,
+      updatedAt: new Date(),
+    })
+    .where(eq(sessions.id, sessionId));
+
   return {
-    compressed: false,
-    token_count_estimate: row.tokenCountEstimate,
-    cache_break: false,
-    message: "Compression recorded; no-op in W1 (summarization deferred)",
+    compressed: true,
+    token_count_estimate: tokenCount,
+    cache_break: true,
+    message: `Compressed ${toCompress.length} messages; kept ${kept.length} recent messages`,
   };
 }
 
@@ -119,6 +180,7 @@ export async function postMessage(
   input: MessageInput,
   includeNaturalLanguage: boolean,
   runTurn?: AgentTurnRunner,
+  summarizer?: SessionSummarizer,
 ) {
   const session = await getSessionForClient(db, sessionId, clientId);
   if (session.status !== "active") {
@@ -174,18 +236,26 @@ export async function postMessage(
   const tokenDelta =
     estimateTokens(JSON.stringify(input)) +
     estimateTokens(turnResult.assistantText);
-  const newTokenCount = session.tokenCountEstimate + tokenDelta;
+  let newTokenCount = session.tokenCountEstimate + tokenDelta;
   let cacheBreak = false;
 
   if (newTokenCount >= TOKEN_CEILING) {
-    await compressSession(db, sessionId, clientId);
-    cacheBreak = true;
+    const compression = await compressSession(db, sessionId, clientId, summarizer);
+    if (compression.compressed) {
+      cacheBreak = true;
+      newTokenCount = compression.token_count_estimate;
+    } else {
+      await db.db
+        .update(sessions)
+        .set({ tokenCountEstimate: newTokenCount, updatedAt: new Date() })
+        .where(eq(sessions.id, sessionId));
+    }
+  } else {
+    await db.db
+      .update(sessions)
+      .set({ tokenCountEstimate: newTokenCount, updatedAt: new Date() })
+      .where(eq(sessions.id, sessionId));
   }
-
-  await db.db
-    .update(sessions)
-    .set({ tokenCountEstimate: newTokenCount, updatedAt: new Date() })
-    .where(eq(sessions.id, sessionId));
 
   return {
     user_message: messageToJson(userMessage),

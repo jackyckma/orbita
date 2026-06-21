@@ -6,3 +6,4 @@ export {
   ProviderCallError,
 } from "./runtime.js";
 export type { ProviderErrorKind, AgentTurnRunnerDeps, CredentialResolver } from "./runtime.js";
+export { createSessionSummarizer } from "./summarizer.js";

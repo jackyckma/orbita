@@ -10,8 +10,14 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@hono/zod-openapi": "^0.19.6",
+    "@orbita/auth": "workspace:*",
+    "@orbita/platform": "workspace:*",
     "drizzle-orm": "^0.44.2",
-    "postgres": "^3.4.7"
+    "hono": "^4.7.11",
+    "openai": "^5.3.0",
+    "postgres": "^3.4.7",
+    "zod": "^3.25.56"
   },
   "devDependencies": { "vitest": "^3.2.4" }
 }
