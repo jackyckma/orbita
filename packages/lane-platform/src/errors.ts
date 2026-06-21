@@ -29,6 +29,7 @@ export class OrbitaError extends Error {
     message: string,
     public readonly status: number,
     public readonly details?: Record<string, unknown>,
+    public readonly headers?: Record<string, string>,
   ) {
     super(message);
     this.name = "OrbitaError";
@@ -74,4 +75,12 @@ export function conflict(message: string): OrbitaError {
 
 export function internalError(message = "Internal server error"): OrbitaError {
   return new OrbitaError("internal_error", message, 500);
+}
+
+export function tooManyRequests(
+  message = "Rate limit exceeded",
+  details?: Record<string, unknown>,
+  headers?: Record<string, string>,
+): OrbitaError {
+  return new OrbitaError("rate_limited", message, 429, details, headers);
 }

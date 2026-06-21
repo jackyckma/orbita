@@ -14,6 +14,7 @@ export {
   getAuth,
   requireScope,
 } from "./middleware/auth.js";
+export { createRateLimitMiddleware } from "./middleware/rate-limit.js";
 export type { AuthContext } from "./middleware/auth.js";
 export {
   createAdminAuthGuard,

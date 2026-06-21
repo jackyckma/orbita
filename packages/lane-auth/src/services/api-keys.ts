@@ -9,6 +9,7 @@ export type CreateApiKeyInput = {
   allowedClientIds: string[];
   scopes: string[];
   expiresAt?: Date | null;
+  rateLimitPerMinute?: number | null;
 };
 
 export type CreateApiKeyResult = {
@@ -18,6 +19,7 @@ export type CreateApiKeyResult = {
   allowedClientIds: string[];
   scopes: string[];
   expiresAt: string | null;
+  rateLimitPerMinute: number | null;
   createdAt: string;
 };
 
@@ -45,6 +47,7 @@ export async function createApiKey(
       allowedClientIds: input.allowedClientIds,
       scopes: input.scopes,
       expiresAt: input.expiresAt ?? null,
+      rateLimitPerMinute: input.rateLimitPerMinute ?? null,
     })
     .returning();
 
@@ -108,6 +111,7 @@ function toCreateResult(
     allowedClientIds: row.allowedClientIds,
     scopes: row.scopes,
     expiresAt: row.expiresAt?.toISOString() ?? null,
+    rateLimitPerMinute: row.rateLimitPerMinute,
     createdAt: row.createdAt.toISOString(),
   };
 }

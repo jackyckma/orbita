@@ -8,6 +8,7 @@ export {
   internalError,
   notFound,
   toApiErrorBody,
+  tooManyRequests,
   unauthorized,
 } from "./errors.js";
 export type { ApiErrorBody, ErrorCode } from "./errors.js";

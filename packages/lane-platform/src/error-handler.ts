@@ -13,6 +13,11 @@ export function createErrorHandler(logger: Logger): ErrorHandler {
       if (err.status >= 500) {
         logger.error({ err, request_id: requestId }, err.message);
       }
+      if (err.headers) {
+        for (const [key, value] of Object.entries(err.headers)) {
+          c.header(key, value);
+        }
+      }
       return c.json(
         toApiErrorBody(err, requestId),
         err.status as ContentfulStatusCode,

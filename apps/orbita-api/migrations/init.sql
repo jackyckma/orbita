@@ -90,3 +90,17 @@ ALTER TABLE "client_memories" ADD COLUMN IF NOT EXISTS "embedding" vector(1024);
 
 CREATE UNIQUE INDEX IF NOT EXISTS "client_memories_client_key_unique"
   ON "client_memories" ("client_id", "key");
+
+-- W7: scheduler cron + rate limiting
+ALTER TABLE "session_jobs" ALTER COLUMN "every_seconds" DROP NOT NULL;
+ALTER TABLE "session_jobs" ADD COLUMN IF NOT EXISTS "cron" text;
+ALTER TABLE "session_jobs" ADD COLUMN IF NOT EXISTS "next_run_at" timestamp with time zone;
+
+ALTER TABLE "api_keys" ADD COLUMN IF NOT EXISTS "rate_limit_per_minute" integer;
+
+CREATE TABLE IF NOT EXISTS "rate_limit_counters" (
+  "key_id" uuid NOT NULL,
+  "window_start" timestamp with time zone NOT NULL,
+  "count" integer DEFAULT 0 NOT NULL,
+  PRIMARY KEY ("key_id", "window_start")
+);

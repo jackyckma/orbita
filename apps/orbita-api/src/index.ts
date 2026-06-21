@@ -11,6 +11,7 @@ import {
   createAdminRoutes,
   createAuthDb,
   createAuthMiddleware,
+  createRateLimitMiddleware,
   getAuth,
 } from "@orbita/auth";
 import {
@@ -48,7 +49,7 @@ import {
 } from "@orbita/trajectory";
 import { runMigrations } from "./migrate.js";
 
-const VERSION = "0.0.1-w6";
+const VERSION = "0.0.1-w7";
 const env = loadPlatformEnv();
 const agentEnv = loadAgentEnv();
 const memoryEnv = loadMemoryEnv();
@@ -79,6 +80,10 @@ const schedulerDb = createSchedulerDb(env.DATABASE_URL);
 const credentialsDb = createCredentialsDb(env.DATABASE_URL);
 
 const authMiddleware = createAuthMiddleware(authDb);
+const rateLimitMiddleware = createRateLimitMiddleware(
+  authDb,
+  env.RATE_LIMIT_PER_MINUTE,
+);
 const adminGuard = createAdminAuthGuard(env.ORBITA_ADMIN_TOKEN);
 const sessionSummarizer = createSessionSummarizer(agentEnv);
 
@@ -125,6 +130,7 @@ app.route("/v1/admin", createAdminRoutes(authDb, adminGuard));
 
 const protectedApp = new OpenAPIHono();
 protectedApp.use("*", authMiddleware);
+protectedApp.use("*", rateLimitMiddleware);
 
 protectedApp.get("/whoami", (c) => {
   const auth = getAuth(c);
@@ -154,15 +160,19 @@ app.doc("/v1/openapi.json", {
   },
 });
 
-startSchedulerTick(schedulerDb, async (job) => {
-  logger.info({ job_id: job.id, session_id: job.sessionId }, "scheduler tick (poll mode)");
-  await logTrajectoryEvent(trajectoryDb, {
-    sessionId: job.sessionId,
-    clientId: job.clientId,
-    eventType: "scheduled_job_tick",
-    payload: { task: job.task, output_routing: job.outputRouting },
-  });
-});
+startSchedulerTick(
+  schedulerDb,
+  async (job) => {
+    logger.info({ job_id: job.id, session_id: job.sessionId }, "scheduler tick");
+    await logTrajectoryEvent(trajectoryDb, {
+      sessionId: job.sessionId,
+      clientId: job.clientId,
+      eventType: "scheduled_job_tick",
+      payload: { task: job.task, output_routing: job.outputRouting },
+    });
+  },
+  logger,
+);
 
 logger.info(
   { host: env.HOST, port: env.PORT, version: VERSION },
