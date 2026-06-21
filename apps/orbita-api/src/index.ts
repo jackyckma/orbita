@@ -48,6 +48,9 @@ import {
   logTrajectoryEvent,
 } from "@orbita/trajectory";
 import { runMigrations } from "./migrate.js";
+import { createE2eMockTurnRunner } from "./e2e-mock.js";
+
+const E2E_MOCK = process.env.ORBITA_E2E_MOCK === "1";
 
 const VERSION = "0.0.1-w7";
 const env = loadPlatformEnv();
@@ -90,10 +93,12 @@ const sessionSummarizer = createSessionSummarizer(agentEnv);
 const assertSessionOwner = (sessionId: string, clientId: string) =>
   getSessionForClient(sessionsDb, sessionId, clientId).then(() => undefined);
 
-const baseTurnRunner = createAgentTurnRunner(agentEnv, {
-  resolveCredential: (clientId, name) =>
-    resolveCredentialSecret(credentialsDb, env.ORBITA_SECRETS_KEY!, clientId, name),
-});
+const baseTurnRunner = E2E_MOCK
+  ? createE2eMockTurnRunner()
+  : createAgentTurnRunner(agentEnv, {
+      resolveCredential: (clientId, name) =>
+        resolveCredentialSecret(credentialsDb, env.ORBITA_SECRETS_KEY!, clientId, name),
+    });
 const runTurn: AgentTurnRunner = async (args) => {
   const memoryContext = await getMemoryContext(memoryDb, args.session.clientId, {
     queryText: inputToPromptText(args.userInput),

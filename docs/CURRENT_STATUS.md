@@ -32,7 +32,7 @@ Orbita **W0–W7 implemented** in TypeScript monorepo. End-to-end agent turns wo
 | Wave | Focus | Lanes | Status |
 |------|-------|-------|--------|
 | **W7** | Scheduler cron + webhook output routing; per-key rate limiting | 8, 0, 1 | ✅ Implemented locally |
-| **W8** | E2E test harness (Tier A mock-LLM + Tier B live keys); `scripts/smoke-prod.sh`; prod smoke in verify flow | cross-cutting | 🔄 Started |
+| **W8** | E2E test harness (Tier A mock-LLM + Tier B live keys); `scripts/smoke-prod.sh`; prod smoke in verify flow | cross-cutting | 🔄 In progress |
 | **W9** | Practical tools expansion + skill/profile library | 2, 7, 4 | ⏳ Planned |
 | **W10** | Ops hardening: trajectory replay, multi-replica notes, eval tooling | 9, 0 | ⏳ Planned |
 

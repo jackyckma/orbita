@@ -8,6 +8,7 @@ cd "$ROOT"
 
 VERIFY_L0="${VERIFY_L0:-pnpm typecheck}"
 VERIFY_L1="${VERIFY_L1:-pnpm test}"
+VERIFY_L2="${VERIFY_L2:-}"
 
 echo "==> agent-verify (project: $ROOT)"
 
@@ -23,6 +24,14 @@ if [[ -n "$VERIFY_L1" ]]; then
   eval "$VERIFY_L1"
 else
   echo "WARN: VERIFY_L1 not set — skipping unit tests"
+fi
+
+if [[ -n "$VERIFY_L2" ]]; then
+  echo "==> L2: $VERIFY_L2"
+  eval "$VERIFY_L2"
+elif [[ "${RUN_E2E_TIER_A:-}" == "1" ]]; then
+  echo "==> L2: scripts/e2e-tier-a.sh"
+  bash "$ROOT/scripts/e2e-tier-a.sh"
 fi
 
 echo "==> agent-verify OK"
