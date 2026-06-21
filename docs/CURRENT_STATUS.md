@@ -4,15 +4,23 @@
 
 ## Summary
 
-Orbita **W0–W9 implemented**. Seven tools with HTTPS domain allow-list; `research` / `coding` profiles + skill library; per-tool trajectory events; Anthropic failover tool loop.
+Orbita **W0–W10 implemented**. Trajectory replay API + eval helpers; multi-replica ops documented.
 
-**Production:** redeploy pending for `0.0.1-w9`.
+**Production:** redeploy pending for `0.0.1-w10`.
 
-## Wave roadmap
+## Waves
 
 | Wave | Status |
 |------|--------|
-| **W9** | ✅ Done — tools, skills, tool trajectory |
-| **W10** | ⏳ Next — trajectory replay, ops hardening |
+| W0–W9 | ✅ Shipped |
+| **W10** | ✅ Trajectory replay, eval scripts, ops docs |
 
-See `docs/product-architecture.md`, `docs/skills-authoring.md`, `docs/e2e-testing.md`.
+**Zeabur:** https://orbita-api.zeabur.app — Git deploy from `main`
+
+## Key docs
+
+- `docs/product-architecture.md` — lane map
+- `docs/e2e-testing.md` — test harness
+- `docs/eval-tooling.md` — trajectory eval
+- `docs/ops-multi-replica.md` — scaling notes
+- `docs/skills-authoring.md` — profiles/skills

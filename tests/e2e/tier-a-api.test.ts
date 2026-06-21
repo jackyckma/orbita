@@ -44,6 +44,16 @@ describe.skipIf(!runTierAHttp)("e2e tier A — HTTP contracts (mock LLM)", () =>
     expect(trajRes.status).toBe(200);
     const traj = (await trajRes.json()) as { events: { event_type: string }[] };
     expect(traj.events.some((e) => e.event_type === "turn_complete")).toBe(true);
+
+    const replayRes = await fetch(`${BASE}/v1/sessions/${session.id}/trajectory/replay`, {
+      headers: auth,
+    });
+    expect(replayRes.status).toBe(200);
+    const { replay } = (await replayRes.json()) as {
+      replay: { turn_count: number; timeline_text: string };
+    };
+    expect(replay.turn_count).toBe(1);
+    expect(replay.timeline_text).toContain("Turn complete");
   });
 
   it("memory upsert without embedding keys", async () => {

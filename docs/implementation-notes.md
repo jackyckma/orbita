@@ -22,3 +22,9 @@
 - Trajectory emits `tool_call_start` / `tool_call_complete` per invocation (args redacted).
 - Profiles: `default`, `research`, `coding` with skill markdown in `profiles/skills/`.
 - Anthropic failover runs the same tool loop as MiniMax when `allowed_tools` is non-empty.
+
+## W10 — Trajectory replay & ops
+
+- Replay: `buildTrajectoryReplay`, `GET .../trajectory/replay`
+- Eval: `evaluateTrajectory`, `scripts/eval-session.sh`
+- Ops: `docs/ops-multi-replica.md` (scheduler duplicate tick on N replicas)

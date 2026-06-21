@@ -35,7 +35,7 @@ Agent-native, API-first agent system. Foundation spec: `usr/ORBITA_DESIGN.md`.
 | 6 | Credentials | `@orbita/credentials` | ✅ Shipped | AES vault, admin + list | Rotation; E2E credential+http_get (W8) |
 | 7 | Tools & Sandbox | `@orbita/tools` | ✅ Shipped | 7 tools + HTTP domain policy | Docker sandbox (roadmap) |
 | 8 | Scheduler | `@orbita/scheduler` | ✅ Shipped | `every_seconds`, cron, webhook | W8 cron E2E scenarios |
-| 9 | Trajectory | `@orbita/trajectory` | ✅ Shipped | turn + `tool_call_*` events | **W10:** replay tooling |
+| 9 | Trajectory | `@orbita/trajectory` | ✅ Shipped | replay API + eval helpers | Future LLM judge eval |
 
 ## Build waves
 
@@ -51,7 +51,14 @@ Agent-native, API-first agent system. Foundation spec: `usr/ORBITA_DESIGN.md`.
 | **W7** | 8 cron/webhook + 0/1 rate limiting | ✅ Done |
 | **W8** | E2E harness + prod smoke automation | ✅ Done |
 | **W9** | 2 skills library + 7 practical tools + tool trajectory | ✅ Done |
-| **W10** | 9 replay/eval + multi-replica ops | ⏳ Next |
+| **W10** | 9 replay/eval + multi-replica ops | ✅ Done |
+
+### W10 — Ops & trajectory replay (shipped)
+
+- `GET /v1/sessions/{id}/trajectory/replay` — audit timeline + counts
+- `buildTrajectoryReplay`, `evaluateTrajectory` in `@orbita/trajectory`
+- `scripts/replay-trajectory.sh`, `scripts/eval-session.sh`
+- `docs/ops-multi-replica.md`, `docs/eval-tooling.md`
 
 ### W8 — E2E harness (elevated)
 
@@ -85,6 +92,7 @@ Cross-cutting quality lane, not a product feature lane:
 | PUT | `/v1/memories/{key}` | 5 |
 | GET | `/v1/memories` | 5 |
 | GET | `/v1/sessions/{id}/trajectory` | 9 |
+| GET | `/v1/sessions/{id}/trajectory/replay` | 9 |
 | POST | `/v1/sessions/{id}/jobs` | 8 |
 
 ## Identity flow

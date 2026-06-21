@@ -63,4 +63,4 @@ cat /tmp/orbita-smoke-mem.json
 echo
 test "$MEM_CODE" = "200"
 
-echo "==> done"
+echo "==> done (session_id=$SID)"
