@@ -11,6 +11,7 @@ import {
   createAdminRoutes,
   createAuthDb,
   createAuthMiddleware,
+  createRateLimitMiddleware,
   getAuth,
 } from "@orbita/auth";
 import {
@@ -84,6 +85,10 @@ const schedulerDb = createSchedulerDb(env.DATABASE_URL);
 const credentialsDb = createCredentialsDb(env.DATABASE_URL);
 
 const authMiddleware = createAuthMiddleware(authDb);
+const rateLimitMiddleware = createRateLimitMiddleware({
+  authDb,
+  defaultRateLimitPerMinute: env.RATE_LIMIT_PER_MINUTE,
+});
 const adminGuard = createAdminAuthGuard(env.ORBITA_ADMIN_TOKEN);
 const sessionSummarizer = createSessionSummarizer(agentEnv);
 
@@ -130,6 +135,7 @@ app.route("/v1/admin", createAdminRoutes(authDb, adminGuard));
 
 const protectedApp = new OpenAPIHono();
 protectedApp.use("*", authMiddleware);
+protectedApp.use("*", rateLimitMiddleware);
 
 protectedApp.get("/whoami", (c) => {
   const auth = getAuth(c);

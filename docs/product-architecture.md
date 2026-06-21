@@ -26,8 +26,8 @@ Agent-native, API-first agent system. Foundation spec: `usr/ORBITA_DESIGN.md`.
 
 | Lane | Name | Package | Status | Last shipped | Next up (prioritized) |
 |------|------|---------|--------|--------------|------------------------|
-| 0 | Platform | `@orbita/platform` | ✅ Shipped | Errors, health, I/O types, logging | **W7:** rate-limit middleware |
-| 1 | Auth | `@orbita/auth` | ✅ Shipped | API keys, client_id allow-list | **W7:** per-key rate limits |
+| 0 | Platform | `@orbita/platform` | ✅ Shipped | Errors, health, I/O types, logging, `429 rate_limited` helper | Ops replay/eval hardening (W10) |
+| 1 | Auth | `@orbita/auth` | ✅ Shipped | API keys, client_id allow-list, per-key fixed-window rate limits | Key rotation workflow details |
 | 2 | Profiles & Skills | `@orbita/profiles` | ✅ Shipped | `default` + `core` skill | **W9:** profile library + richer skills |
 | 3 | Sessions | `@orbita/sessions` | ✅ Shipped | API + LLM compression | Tune keep-recent; E2E compress scenarios (W8) |
 | 4 | Agent Runtime | `@orbita/agent` | ✅ Shipped | MiniMax failover, tool loop, summarizer | **W9:** Anthropic tool loop; tool trajectory hooks |
@@ -48,7 +48,7 @@ Agent-native, API-first agent system. Foundation spec: `usr/ORBITA_DESIGN.md`.
 | **W4** | 8, 9 | ✅ Trajectory + scheduler foundation shipped |
 | **W5** | 6, 7 + tool loop | ✅ Done |
 | **W6** | 3 compression + 5 pgvector | ✅ Done (code on `main`; prod deploy may lag) |
-| **W7** | 8 cron/webhook + 0/1 rate limiting | 🔄 In progress (orchestrate) |
+| **W7** | 8 cron/webhook + 0/1 rate limiting | ✅ Done in feature branch (pending merge) |
 | **W8** | E2E harness + prod smoke automation | ⏳ Planned — **elevated priority** |
 | **W9** | 2 skills library + 7 practical tools + tool trajectory | ⏳ Planned — **elevated priority** |
 | **W10** | 9 replay/eval + multi-replica ops | ⏳ Planned |
@@ -93,6 +93,8 @@ Aligns with design §7 (static session-locked skills) and §8 (sandbox tools):
 | GET | `/v1/memories` | 5 |
 | GET | `/v1/sessions/{id}/trajectory` | 9 |
 | POST | `/v1/sessions/{id}/jobs` | 8 |
+
+Authenticated `/v1/*` routes (except `/v1/health` and `/v1/admin/*`) are server-side rate limited per API key using a fixed 1-minute window. Exceeded budgets return HTTP `429` with error code `rate_limited` and a `Retry-After` header.
 
 ## Identity flow
 

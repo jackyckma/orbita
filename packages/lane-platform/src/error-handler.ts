@@ -10,6 +10,15 @@ export function createErrorHandler(logger: Logger): ErrorHandler {
     const requestId = getRequestId(c);
 
     if (err instanceof OrbitaError) {
+      if (
+        err.code === "rate_limited" &&
+        typeof err.details?.retry_after_seconds === "number"
+      ) {
+        c.header(
+          "Retry-After",
+          String(Math.max(1, Math.ceil(err.details.retry_after_seconds))),
+        );
+      }
       if (err.status >= 500) {
         logger.error({ err, request_id: requestId }, err.message);
       }

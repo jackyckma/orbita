@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS "api_keys" (
   "scopes" jsonb DEFAULT '[]'::jsonb NOT NULL,
   "expires_at" timestamp with time zone,
   "revoked_at" timestamp with time zone,
+  "rate_limit_per_minute" integer,
   "created_at" timestamp with time zone DEFAULT now() NOT NULL,
   CONSTRAINT "api_keys_key_hash_unique" UNIQUE("key_hash")
 );
@@ -83,9 +84,20 @@ CREATE TABLE IF NOT EXISTS "credentials" (
 
 CREATE INDEX IF NOT EXISTS "credentials_client_idx" ON "credentials" ("client_id");
 
+CREATE TABLE IF NOT EXISTS "rate_limit_counters" (
+  "key_id" uuid NOT NULL REFERENCES "api_keys"("id") ON DELETE CASCADE,
+  "window_start" timestamp with time zone NOT NULL,
+  "count" integer DEFAULT 1 NOT NULL,
+  PRIMARY KEY("key_id", "window_start")
+);
+
+CREATE INDEX IF NOT EXISTS "rate_limit_counters_window_start_idx"
+  ON "rate_limit_counters" ("window_start");
+
 ALTER TABLE "session_jobs" ALTER COLUMN "every_seconds" DROP NOT NULL;
 ALTER TABLE "session_jobs" ADD COLUMN IF NOT EXISTS "cron" text;
 ALTER TABLE "session_jobs" ADD COLUMN IF NOT EXISTS "next_run_at" timestamp with time zone;
+ALTER TABLE "api_keys" ADD COLUMN IF NOT EXISTS "rate_limit_per_minute" integer;
 
 -- W6: context compression + pgvector memory
 ALTER TABLE "sessions" ADD COLUMN IF NOT EXISTS "context_summary" text;

@@ -7,6 +7,7 @@ export {
   forbidden,
   internalError,
   notFound,
+  tooManyRequests,
   toApiErrorBody,
   unauthorized,
 } from "./errors.js";

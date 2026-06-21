@@ -14,6 +14,18 @@ export {
   getAuth,
   requireScope,
 } from "./middleware/auth.js";
+export {
+  createRateLimitMiddleware,
+  evaluateFixedWindowRateLimit,
+  getFixedWindowStart,
+  getRetryAfterSeconds,
+  incrementRateLimitCounter,
+} from "./middleware/rate-limit.js";
+export type {
+  CreateRateLimitMiddlewareOptions,
+  FixedWindowDecision,
+  IncrementRateLimitCounter,
+} from "./middleware/rate-limit.js";
 export type { AuthContext } from "./middleware/auth.js";
 export {
   createAdminAuthGuard,

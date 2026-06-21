@@ -13,6 +13,7 @@ const CreateApiKeyBodySchema = z
     allowed_client_ids: z.array(z.string().min(1)).min(1),
     scopes: z.array(z.string().min(1)).default(["sessions:create", "sessions:use"]),
     expires_at: z.string().datetime().optional(),
+    rate_limit_per_minute: z.number().int().positive().optional(),
   })
   .openapi("CreateApiKeyBody");
 
@@ -24,6 +25,7 @@ const CreateApiKeyResponseSchema = z
     allowed_client_ids: z.array(z.string()),
     scopes: z.array(z.string()),
     expires_at: z.string().datetime().nullable(),
+    rate_limit_per_minute: z.number().int().positive().nullable(),
     created_at: z.string().datetime(),
   })
   .openapi("CreateApiKeyResponse");
@@ -101,6 +103,7 @@ export function createAdminRoutes(
       allowedClientIds: body.allowed_client_ids,
       scopes: body.scopes,
       expiresAt,
+      rateLimitPerMinute: body.rate_limit_per_minute ?? null,
     });
 
     return c.json(
@@ -111,6 +114,7 @@ export function createAdminRoutes(
         allowed_client_ids: result.allowedClientIds,
         scopes: result.scopes,
         expires_at: result.expiresAt,
+        rate_limit_per_minute: result.rateLimitPerMinute,
         created_at: result.createdAt,
       },
       201,

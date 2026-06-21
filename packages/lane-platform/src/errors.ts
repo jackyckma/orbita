@@ -72,6 +72,13 @@ export function conflict(message: string): OrbitaError {
   return new OrbitaError("conflict", message, 409);
 }
 
+export function tooManyRequests(
+  message: string,
+  details?: Record<string, unknown>,
+): OrbitaError {
+  return new OrbitaError("rate_limited", message, 429, details);
+}
+
 export function internalError(message = "Internal server error"): OrbitaError {
   return new OrbitaError("internal_error", message, 500);
 }

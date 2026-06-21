@@ -1,7 +1,9 @@
 import { relations } from "drizzle-orm";
 import {
+  integer,
   jsonb,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   uuid,
@@ -18,10 +20,25 @@ export const apiKeys = pgTable("api_keys", {
   scopes: jsonb("scopes").$type<string[]>().notNull().default([]),
   expiresAt: timestamp("expires_at", { withTimezone: true }),
   revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  rateLimitPerMinute: integer("rate_limit_per_minute"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
 });
+
+export const rateLimitCounters = pgTable(
+  "rate_limit_counters",
+  {
+    keyId: uuid("key_id")
+      .notNull()
+      .references(() => apiKeys.id, { onDelete: "cascade" }),
+    windowStart: timestamp("window_start", { withTimezone: true }).notNull(),
+    count: integer("count").notNull().default(1),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.keyId, table.windowStart] }),
+  }),
+);
 
 export const apiKeysRelations = relations(apiKeys, () => ({}));
 
