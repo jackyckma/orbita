@@ -1,10 +1,14 @@
 # Current status
 
-**Last updated:** 2026-06-20
+**Last updated:** 2026-06-21
 
 ## Summary
 
 Orbita **W0–W6 implemented** in TypeScript monorepo. End-to-end agent turns work via MiniMax-M3 (primary) with Anthropic fallback, tool-calling loop, LLM-backed context compression, and pgvector semantic memory retrieval.
+
+**Production (Zeabur):** still on `0.0.1-w5` as of last smoke — W6 not yet visible in prod health version; redeploy pending.
+
+**W7 in progress** via cloud orchestrate (scheduler cron/webhook + rate limiting).
 
 ## What works
 
@@ -19,11 +23,19 @@ Orbita **W0–W6 implemented** in TypeScript monorepo. End-to-end agent turns wo
 
 ## Known gaps / deferred
 
-- Cron expression parsing — scheduler uses `every_seconds` interval
+- Cron expression parsing — scheduler uses `every_seconds` interval (W7 target)
 - Anthropic failover path does not run tool loop (plain text only)
-- Rate limiting, credential rotation (design Section 16)
+- Rate limiting (W7 target), credential rotation
+- E2E harness not yet in repo (W8 target)
+- Skill library minimal (`core` only); tools registry small (W9 target)
 
-## Next steps
+## Wave roadmap (prioritized)
 
-1. **W7:** Scheduler cron/webhook + rate limiting
-2. **W8:** Ops hardening (multi-replica, eval/replay)
+| Wave | Focus | Lanes | Status |
+|------|-------|-------|--------|
+| **W7** | Scheduler cron + webhook output routing; per-key rate limiting | 8, 0, 1 | 🔄 Orchestrate running |
+| **W8** | E2E test harness (Tier A mock-LLM + Tier B live keys); `scripts/smoke-prod.sh`; prod smoke in verify flow | cross-cutting | ⏳ Planned |
+| **W9** | Practical tools expansion + skill/profile library | 2, 7, 4 | ⏳ Planned |
+| **W10** | Ops hardening: trajectory replay, multi-replica notes, eval tooling | 9, 0 | ⏳ Planned |
+
+See `docs/product-architecture.md` for per-lane next steps.

@@ -1,12 +1,17 @@
 # Session handoff
 
-**Last updated:** 2026-06-20
+**Last updated:** 2026-06-21
 
 ## Completed
 
-- W0–W4 implementation pushed to `main`
-- Verified live MiniMax-M3 turn via `POST /v1/sessions/{id}/messages`
-- Auto-commit/push policy noted in project guidelines
+- W0–W6 on `main` (W6 includes compression + pgvector memory API)
+- W5 production smoke: tool loop (`echo`), trajectory
+- Zeabur Ocean deploy live at https://orbita-api.zeabur.app (Git `main`)
+- W7 orchestrate kickoff: scheduler cron/webhook + rate limiting
+
+## Production note
+
+Zeabur health may still report `0.0.1-w5` until Git redeploy picks up W6/W7. Smoke after each deploy.
 
 ## Run locally
 
@@ -16,16 +21,29 @@ pnpm db:migrate   # uses docker exec if psql missing
 PORT=3002 pnpm dev   # 3000/3001 may be occupied
 ```
 
-## Critical decisions still open (need founder input eventually)
+## Wave roadmap (updated priorities)
 
-- Zeabur project/service IDs for deploy
-- Public domain / Cloudflare setup
-- Whether to enable sandbox tool execution tier first (Local vs Docker)
-- pgvector embedding model choice for semantic memory
+| Wave | Scope |
+|------|--------|
+| **W7** (active) | Lane 8: cron + webhook scheduler; Lanes 0/1: rate limiting |
+| **W8** | E2E harness Tier A+B, `scripts/smoke-prod.sh`, verify integration |
+| **W9** | Skill/profile library (Lane 2); practical tools + tool trajectory (Lane 7) |
+| **W10** | Trajectory replay, multi-replica ops hardening |
 
-## Non-critical decisions taken autonomously
+## Resolved (no longer open)
 
-- Scheduler uses `every_seconds` instead of cron expressions (v1 simplification)
-- Memory is text-key store (not pgvector yet)
+- Zeabur project/service IDs — documented in `project-guidelines.md`
+- pgvector embedding — MiniMax `embo-01`, 1024-dim (W6)
+- Sandbox v1 tier — local in-process (`echo`, `http_get`); Docker tier deferred
+
+## Still open (founder input eventually)
+
+- Public domain / Cloudflare TLS polish beyond Zeabur subdomain
+- Credential rotation policy
+- Whether Docker sandbox tier is required before more dangerous tools
+
+## Non-critical defaults (autonomous)
+
+- Scheduler `every_seconds` until W7 cron lands
 - MiniMax thinking blocks stripped from assistant output
-- Default `agent_profile`: `default` with MiniMax-M3 + Anthropic fallback
+- Default profile: `default` with MiniMax-M3 + Anthropic fallback
