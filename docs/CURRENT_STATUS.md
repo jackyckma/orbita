@@ -8,7 +8,7 @@ Orbita **W0–W6 implemented** in TypeScript monorepo. End-to-end agent turns wo
 
 **Production (Zeabur):** still on `0.0.1-w5` as of last smoke — W6 not yet visible in prod health version; redeploy pending.
 
-**W7 in progress** via cloud orchestrate (scheduler cron/webhook + rate limiting).
+**W7 in progress** via cloud orchestrate (rate limiting remains open).
 
 ## What works
 
@@ -16,14 +16,13 @@ Orbita **W0–W6 implemented** in TypeScript monorepo. End-to-end agent turns wo
 - **W1:** Agent profiles (static, session-bound), full session lifecycle + message polling
 - **W2:** Agent runtime — MiniMax-M3 primary, Anthropic failover, `execution_meta`
 - **W3:** Client-scoped long-term memory (text store, injected into system prompt)
-- **W4:** Trajectory API, scheduler jobs (`every_seconds`)
+- **W4:** Trajectory API, scheduler jobs (`every_seconds` + `cron`) with `poll`/`webhook`/`external_write` routing
 - **W5:** Credentials vault, tools (`echo`, `http_get`), MiniMax tool loop
 - **W6:** LLM session summarization + `context_summary`, semantic memory (MiniMax `embo-01` + pgvector), `PUT/GET /v1/memories`
 - **Zeabur (Ocean):** https://orbita-api.zeabur.app — Git deploy from `main`
 
 ## Known gaps / deferred
 
-- Cron expression parsing — scheduler uses `every_seconds` interval (W7 target)
 - Anthropic failover path does not run tool loop (plain text only)
 - Rate limiting (W7 target), credential rotation
 - E2E harness not yet in repo (W8 target)

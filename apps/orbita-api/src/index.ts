@@ -34,7 +34,12 @@ import {
   logRequest,
   requestIdMiddleware,
 } from "@orbita/platform";
-import { createSchedulerRoutes, createSchedulerDb, startSchedulerTick } from "@orbita/scheduler";
+import {
+  createSchedulerRoutes,
+  createSchedulerDb,
+  deliverJobOutput,
+  startSchedulerTick,
+} from "@orbita/scheduler";
 import {
   createSessionRoutes,
   createSessionsDb,
@@ -155,12 +160,29 @@ app.doc("/v1/openapi.json", {
 });
 
 startSchedulerTick(schedulerDb, async (job) => {
-  logger.info({ job_id: job.id, session_id: job.sessionId }, "scheduler tick (poll mode)");
+  logger.info({ job_id: job.id, session_id: job.sessionId }, "scheduler tick");
   await logTrajectoryEvent(trajectoryDb, {
     sessionId: job.sessionId,
     clientId: job.clientId,
     eventType: "scheduled_job_tick",
     payload: { task: job.task, output_routing: job.outputRouting },
+  });
+  const delivery = await deliverJobOutput(
+    job,
+    { task: job.task },
+    { logger: { info: logger.info.bind(logger), error: logger.error.bind(logger) } },
+  );
+  await logTrajectoryEvent(trajectoryDb, {
+    sessionId: job.sessionId,
+    clientId: job.clientId,
+    eventType: "scheduled_job_webhook",
+    payload: {
+      mode: delivery.mode,
+      delivered: delivery.delivered,
+      ok: delivery.ok,
+      status: delivery.status ?? null,
+      error: delivery.error ?? null,
+    },
   });
 });
 

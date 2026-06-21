@@ -34,7 +34,7 @@ Agent-native, API-first agent system. Foundation spec: `usr/ORBITA_DESIGN.md`.
 | 5 | Memory | `@orbita/memory` | ✅ Shipped | pgvector + memory API | E2E semantic retrieval (W8); embedding options |
 | 6 | Credentials | `@orbita/credentials` | ✅ Shipped | AES vault, admin + list | Rotation; E2E credential+http_get (W8) |
 | 7 | Tools & Sandbox | `@orbita/tools` | ✅ Shipped | `echo`, `http_get` (local) | **W9:** `http_post`, domain allow-list, more tools |
-| 8 | Scheduler | `@orbita/scheduler` | 🔄 Partial | `every_seconds` jobs | **W7:** cron + webhook modes |
+| 8 | Scheduler | `@orbita/scheduler` | ✅ Shipped | `every_seconds` + cron jobs, webhook delivery helper | Multi-replica execution coordination (W10) |
 | 9 | Trajectory | `@orbita/trajectory` | ✅ Shipped | API + turn logging | **W10:** replay tooling; per-tool events (W9) |
 
 ## Build waves
@@ -45,7 +45,7 @@ Agent-native, API-first agent system. Foundation spec: `usr/ORBITA_DESIGN.md`.
 | **W1** | 2, 3 | ✅ Done |
 | **W2** | 4 | ✅ Done |
 | **W3** | 5 + failover | ✅ Done (text memory → pgvector in W6) |
-| **W4** | 8, 9 | 🔄 Trajectory ✅; scheduler partial |
+| **W4** | 8, 9 | ✅ Trajectory + scheduler foundation shipped |
 | **W5** | 6, 7 + tool loop | ✅ Done |
 | **W6** | 3 compression + 5 pgvector | ✅ Done (code on `main`; prod deploy may lag) |
 | **W7** | 8 cron/webhook + 0/1 rate limiting | 🔄 In progress (orchestrate) |

@@ -61,7 +61,9 @@ CREATE TABLE IF NOT EXISTS "session_jobs" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
   "session_id" uuid NOT NULL,
   "client_id" text NOT NULL,
-  "every_seconds" integer NOT NULL,
+  "every_seconds" integer,
+  "cron" text,
+  "next_run_at" timestamp with time zone,
   "task" jsonb NOT NULL,
   "output_routing" jsonb NOT NULL,
   "enabled" boolean DEFAULT true NOT NULL,
@@ -80,6 +82,10 @@ CREATE TABLE IF NOT EXISTS "credentials" (
 );
 
 CREATE INDEX IF NOT EXISTS "credentials_client_idx" ON "credentials" ("client_id");
+
+ALTER TABLE "session_jobs" ALTER COLUMN "every_seconds" DROP NOT NULL;
+ALTER TABLE "session_jobs" ADD COLUMN IF NOT EXISTS "cron" text;
+ALTER TABLE "session_jobs" ADD COLUMN IF NOT EXISTS "next_run_at" timestamp with time zone;
 
 -- W6: context compression + pgvector memory
 ALTER TABLE "sessions" ADD COLUMN IF NOT EXISTS "context_summary" text;
