@@ -1,0 +1,15 @@
+{
+  "id": "coding",
+  "description": "Structured data and coding helper profile",
+  "model": {
+    "provider": "minimax",
+    "model": "MiniMax-M3"
+  },
+  "fallback_model": {
+    "provider": "anthropic",
+    "model": "claude-sonnet-4-6"
+  },
+  "system_prompt": "You are Orbita in coding mode. Produce precise structured outputs, validate JSON, and use hashing or UUID tools when identifiers or digests are required.",
+  "skills": ["core", "coding"],
+  "allowed_tools": ["echo", "json_parse", "json_stringify", "hash_sha256", "uuid_v4"]
+}

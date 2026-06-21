@@ -28,14 +28,14 @@ Agent-native, API-first agent system. Foundation spec: `usr/ORBITA_DESIGN.md`.
 |------|------|---------|--------|--------------|------------------------|
 | 0 | Platform | `@orbita/platform` | ✅ Shipped | Errors, health, 429 + Retry-After | W8 E2E; ops notes (W10) |
 | 1 | Auth | `@orbita/auth` | ✅ Shipped | API keys, per-key rate limits | W8 rate-limit E2E |
-| 2 | Profiles & Skills | `@orbita/profiles` | ✅ Shipped | `default` + `core` skill | **W9:** profile library + richer skills |
+| 2 | Profiles & Skills | `@orbita/profiles` | ✅ Shipped | `default`, `research`, `coding` + skills | W10 eval profiles |
 | 3 | Sessions | `@orbita/sessions` | ✅ Shipped | API + LLM compression | Tune keep-recent; E2E compress scenarios (W8) |
-| 4 | Agent Runtime | `@orbita/agent` | ✅ Shipped | MiniMax failover, tool loop, summarizer | **W9:** Anthropic tool loop; tool trajectory hooks |
+| 4 | Agent Runtime | `@orbita/agent` | ✅ Shipped | MiniMax + Anthropic tool loops | W10 replay hooks |
 | 5 | Memory | `@orbita/memory` | ✅ Shipped | pgvector + memory API | E2E semantic retrieval (W8); embedding options |
 | 6 | Credentials | `@orbita/credentials` | ✅ Shipped | AES vault, admin + list | Rotation; E2E credential+http_get (W8) |
-| 7 | Tools & Sandbox | `@orbita/tools` | ✅ Shipped | `echo`, `http_get` (local) | **W9:** `http_post`, domain allow-list, more tools |
+| 7 | Tools & Sandbox | `@orbita/tools` | ✅ Shipped | 7 tools + HTTP domain policy | Docker sandbox (roadmap) |
 | 8 | Scheduler | `@orbita/scheduler` | ✅ Shipped | `every_seconds`, cron, webhook | W8 cron E2E scenarios |
-| 9 | Trajectory | `@orbita/trajectory` | ✅ Shipped | API + turn logging | **W10:** replay tooling; per-tool events (W9) |
+| 9 | Trajectory | `@orbita/trajectory` | ✅ Shipped | turn + `tool_call_*` events | **W10:** replay tooling |
 
 ## Build waves
 
@@ -50,8 +50,8 @@ Agent-native, API-first agent system. Foundation spec: `usr/ORBITA_DESIGN.md`.
 | **W6** | 3 compression + 5 pgvector | ✅ Done |
 | **W7** | 8 cron/webhook + 0/1 rate limiting | ✅ Done |
 | **W8** | E2E harness + prod smoke automation | ✅ Done |
-| **W9** | 2 skills library + 7 practical tools + tool trajectory | ⏳ Next — **elevated priority** |
-| **W10** | 9 replay/eval + multi-replica ops | ⏳ Planned |
+| **W9** | 2 skills library + 7 practical tools + tool trajectory | ✅ Done |
+| **W10** | 9 replay/eval + multi-replica ops | ⏳ Next |
 
 ### W8 — E2E harness (elevated)
 
@@ -62,19 +62,12 @@ Cross-cutting quality lane, not a product feature lane:
 - **`scripts/smoke-prod.sh`:** Zeabur smoke (health → key → session → tool turn → memory → trajectory).
 - Wire into `scripts/agent-verify.sh` or CI nightly.
 
-### W9 — Skills & tools productization (elevated)
+## W9 — Tools & skills (shipped)
 
-Aligns with design §7 (static session-locked skills) and §8 (sandbox tools):
-
-**Skills (Lane 2):**
-- Additional profiles (`research`, `coding`, …) with dedicated skill markdown sets.
-- Expand `profiles/skills/` beyond `core.md`; document skill authoring conventions.
-- Still no hot-reload or third-party upload in v1.
-
-**Tools (Lane 7):**
-- `http_post`, structured JSON helpers, common integrations (credential_ref pattern).
-- HTTPS domain allow-list; timeouts; trajectory `tool_call_*` events.
-- Docker sandbox tier remains roadmap (design §8), not W9 blocker.
+- Tools: `echo`, `http_get`, `http_post`, `json_parse`, `json_stringify`, `hash_sha256`, `uuid_v4`
+- HTTP: `ORBITA_HTTP_ALLOWED_DOMAINS`, `ORBITA_HTTP_TIMEOUT_MS`
+- Profiles: `default`, `research`, `coding` — see `docs/skills-authoring.md`
+- Trajectory: `tool_call_start`, `tool_call_complete`
 
 ## HTTP surface
 

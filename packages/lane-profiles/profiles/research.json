@@ -1,0 +1,15 @@
+{
+  "id": "research",
+  "description": "Research and web-fetch oriented profile",
+  "model": {
+    "provider": "minimax",
+    "model": "MiniMax-M3"
+  },
+  "fallback_model": {
+    "provider": "anthropic",
+    "model": "claude-sonnet-4-6"
+  },
+  "system_prompt": "You are Orbita in research mode. Gather facts from allowed HTTPS endpoints, cite sources by URL, and summarize findings in structured bullets. Prefer tools over guessing when external data is needed.",
+  "skills": ["core", "research", "api_http"],
+  "allowed_tools": ["echo", "http_get", "http_post", "json_parse"]
+}

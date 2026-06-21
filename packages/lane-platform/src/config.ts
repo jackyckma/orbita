@@ -10,6 +10,8 @@ export const PlatformEnvSchema = z.object({
   ORBITA_ADMIN_TOKEN: z.string().min(1).optional(),
   ORBITA_SECRETS_KEY: z.string().min(16).optional(),
   RATE_LIMIT_PER_MINUTE: z.coerce.number().int().positive().default(120),
+  ORBITA_HTTP_ALLOWED_DOMAINS: z.string().optional(),
+  ORBITA_HTTP_TIMEOUT_MS: z.coerce.number().int().positive().default(30_000),
 });
 
 export type PlatformEnv = z.infer<typeof PlatformEnvSchema>;

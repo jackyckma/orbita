@@ -52,7 +52,7 @@ import { createE2eMockTurnRunner } from "./e2e-mock.js";
 
 const E2E_MOCK = process.env.ORBITA_E2E_MOCK === "1";
 
-const VERSION = "0.0.1-w8";
+const VERSION = "0.0.1-w9";
 const env = loadPlatformEnv();
 const agentEnv = loadAgentEnv();
 const memoryEnv = loadMemoryEnv();
@@ -98,6 +98,21 @@ const baseTurnRunner = E2E_MOCK
   : createAgentTurnRunner(agentEnv, {
       resolveCredential: (clientId, name) =>
         resolveCredentialSecret(credentialsDb, env.ORBITA_SECRETS_KEY!, clientId, name),
+      onToolTrace: (event) => {
+        logTrajectoryEvent(trajectoryDb, {
+          sessionId: event.sessionId,
+          clientId: event.clientId,
+          eventType:
+            event.phase === "start" ? "tool_call_start" : "tool_call_complete",
+          payload: {
+            tool_name: event.tool_name,
+            args: event.args,
+            success: event.success,
+            error: event.error,
+            duration_ms: event.duration_ms,
+          },
+        });
+      },
     });
 const runTurn: AgentTurnRunner = async (args) => {
   const memoryContext = await getMemoryContext(memoryDb, args.session.clientId, {

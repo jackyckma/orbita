@@ -10,9 +10,11 @@ import {
 } from "@orbita/sessions";
 import {
   executeToolCall,
+  getAnthropicToolDefinitions,
   getToolDefinitions,
   listRegisteredTools,
   type ToolExecutionContext,
+  type ToolTraceEvent,
 } from "@orbita/tools";
 import type { AgentEnv } from "./config.js";
 
@@ -39,8 +41,13 @@ export type CredentialResolver = (
   name: string,
 ) => Promise<string>;
 
+export type ToolTraceCallback = (
+  event: ToolTraceEvent & { sessionId: string; clientId: string },
+) => void;
+
 export type AgentTurnRunnerDeps = {
   resolveCredential?: CredentialResolver;
+  onToolTrace?: ToolTraceCallback;
 };
 
 function classifyError(provider: string, err: unknown): ProviderCallError {
@@ -55,7 +62,7 @@ function classifyError(provider: string, err: unknown): ProviderCallError {
   return new ProviderCallError(provider, "provider_error", message);
 }
 
-async function callAnthropic(
+async function callAnthropicPlain(
   env: AgentEnv,
   model: string,
   chatMessages: LlmChatMessage[],
@@ -78,6 +85,70 @@ async function callAnthropic(
     });
     const textBlock = response.content.find((b) => b.type === "text");
     return textBlock?.type === "text" ? textBlock.text : "";
+  } catch (err) {
+    throw classifyError("anthropic", err);
+  }
+}
+
+async function callAnthropicWithTools(
+  env: AgentEnv,
+  model: string,
+  chatMessages: LlmChatMessage[],
+  allowedTools: string[],
+  toolCtx: ToolExecutionContext,
+): Promise<{ text: string; tool_calls_made: number }> {
+  if (!env.ANTHROPIC_API_KEY) {
+    throw new ProviderCallError("anthropic", "provider_error", "ANTHROPIC_API_KEY not set");
+  }
+  const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
+  const system = chatMessages.find((m) => m.role === "system")?.content ?? "";
+  const tools = getAnthropicToolDefinitions(allowedTools);
+  const messages: Anthropic.MessageParam[] = chatMessages
+    .filter((m) => m.role !== "system")
+    .map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
+
+  let toolCallsMade = 0;
+
+  try {
+    for (let i = 0; i < MAX_TOOL_ITERATIONS; i++) {
+      const response = await client.messages.create({
+        model,
+        max_tokens: 4096,
+        system,
+        messages,
+        tools: tools.length > 0 ? (tools as Anthropic.Tool[]) : undefined,
+      });
+
+      const toolUses = response.content.filter((b) => b.type === "tool_use");
+      if (toolUses.length === 0) {
+        const text = response.content
+          .filter((b) => b.type === "text")
+          .map((b) => (b.type === "text" ? b.text : ""))
+          .join("");
+        return { text: stripThinkingContent(text), tool_calls_made: toolCallsMade };
+      }
+
+      messages.push({ role: "assistant", content: response.content });
+      const toolResults: Anthropic.ToolResultBlockParam[] = [];
+      for (const toolUse of toolUses) {
+        if (toolUse.type !== "tool_use") continue;
+        const outcome = await executeToolCall(
+          toolUse.name,
+          JSON.stringify(toolUse.input),
+          allowedTools,
+          toolCtx,
+        );
+        toolCallsMade++;
+        toolResults.push({
+          type: "tool_result",
+          tool_use_id: toolUse.id,
+          content: JSON.stringify(outcome),
+        });
+      }
+      messages.push({ role: "user", content: toolResults });
+    }
+
+    return { text: "", tool_calls_made: toolCallsMade };
   } catch (err) {
     throw classifyError("anthropic", err);
   }
@@ -163,6 +234,29 @@ async function callMinimaxPlain(
   return text;
 }
 
+async function dispatchWithTools(
+  env: AgentEnv,
+  provider: AgentProfileSnapshot["model"]["provider"],
+  model: string,
+  chatMessages: LlmChatMessage[],
+  allowedTools: string[],
+  toolCtx: ToolExecutionContext,
+): Promise<{ text: string; tool_calls_made: number }> {
+  if (provider === "minimax") {
+    if (allowedTools.length > 0) {
+      return callMinimaxWithTools(env, model, chatMessages, allowedTools, toolCtx);
+    }
+    return { text: await callMinimaxPlain(env, model, chatMessages), tool_calls_made: 0 };
+  }
+  if (provider === "anthropic") {
+    if (allowedTools.length > 0) {
+      return callAnthropicWithTools(env, model, chatMessages, allowedTools, toolCtx);
+    }
+    return { text: await callAnthropicPlain(env, model, chatMessages), tool_calls_made: 0 };
+  }
+  throw new ProviderCallError(provider, "provider_error", `Unsupported provider: ${provider}`);
+}
+
 export function createAgentTurnRunner(
   env: AgentEnv,
   deps: AgentTurnRunnerDeps = {},
@@ -192,6 +286,14 @@ export function createAgentTurnRunner(
         }
         return deps.resolveCredential(session.clientId, name);
       },
+      onToolTrace: deps.onToolTrace
+        ? (event) =>
+            deps.onToolTrace!({
+              ...event,
+              sessionId: session.id,
+              clientId: session.clientId,
+            })
+        : undefined,
     };
 
     let assistantText = "";
@@ -203,24 +305,30 @@ export function createAgentTurnRunner(
     };
 
     try {
-      if (primary.provider === "minimax" && allowedTools.length > 0) {
-        const result = await callMinimaxWithTools(
-          env,
-          primary.model,
-          chatMessages,
-          allowedTools,
-          toolCtx,
-        );
-        assistantText = result.text;
-        toolCallsMade = result.tool_calls_made;
-      } else {
-        assistantText = await dispatch(env, primary.provider, primary.model, chatMessages);
-      }
+      const result = await dispatchWithTools(
+        env,
+        primary.provider,
+        primary.model,
+        chatMessages,
+        allowedTools,
+        toolCtx,
+      );
+      assistantText = result.text;
+      toolCallsMade = result.tool_calls_made;
     } catch (primaryErr) {
       if (!(primaryErr instanceof ProviderCallError)) {
         throw primaryErr;
       }
-      assistantText = await dispatch(env, fallback.provider, fallback.model, chatMessages);
+      const result = await dispatchWithTools(
+        env,
+        fallback.provider,
+        fallback.model,
+        chatMessages,
+        allowedTools,
+        toolCtx,
+      );
+      assistantText = result.text;
+      toolCallsMade = result.tool_calls_made;
       execution_meta = {
         model_used: fallback.model,
         provider: fallback.provider,
@@ -239,21 +347,6 @@ export function createAgentTurnRunner(
       execution_meta,
     };
   };
-}
-
-async function dispatch(
-  env: AgentEnv,
-  provider: AgentProfileSnapshot["model"]["provider"],
-  model: string,
-  chatMessages: LlmChatMessage[],
-): Promise<string> {
-  if (provider === "minimax") {
-    return callMinimaxPlain(env, model, chatMessages);
-  }
-  if (provider === "anthropic") {
-    return callAnthropic(env, model, chatMessages);
-  }
-  throw new ProviderCallError(provider, "provider_error", `Unsupported provider: ${provider}`);
 }
 
 function stripThinkingContent(text: string): string {

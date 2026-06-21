@@ -48,7 +48,9 @@ import json,sys
 events=json.load(sys.stdin)['events']
 types=[e['event_type'] for e in events]
 assert 'turn_complete' in types, types
-print(f'turn_complete ok ({len(events)} events)')
+if 'tool_call_start' in types:
+    print('tool_call_start ok')
+print(f'trajectory ok ({len(events)} events)')
 " <<<"$TRAJ"
 
 echo "==> memory upsert"
