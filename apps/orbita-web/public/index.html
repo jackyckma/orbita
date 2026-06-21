@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Orbita is an agent-native, API-first system built for AI callers — sessions, memory, tools, and trajectory over HTTP."
+    />
+    <title>Orbita — Agent-native API for AI systems</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Syne:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header>
+      <div class="wrap nav">
+        <div class="logo">Orbit<span>a</span></div>
+        <nav class="nav-links">
+          <a href="#why">Why</a>
+          <a href="#start">Start</a>
+          <a href="#api">API</a>
+          <a href="https://github.com/jackyckma/orbita" rel="noopener">GitHub</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="wrap hero-grid">
+          <div>
+            <p class="eyebrow">Agent-native · API-first</p>
+            <h1>An agent runtime your other agents can call.</h1>
+            <p class="lead">
+              Orbita is not a chat app for humans. It is a session-based HTTP API
+              for AI orchestrators — structured turns, scoped memory, tools,
+              trajectory, and scheduling without WhatsApp bridges or desktop GUIs.
+            </p>
+            <div class="cta-row">
+              <a class="btn btn-primary" href="#start">Get started</a>
+              <a
+                class="btn btn-ghost"
+                href="https://orbita-api.zeabur.app/v1/health"
+                rel="noopener"
+                >Live API health</a
+              >
+            </div>
+          </div>
+          <div class="orbit-card">
+            <div class="orbit-card-inner">
+              <pre># Create session → send structured turn
+curl -X POST $API/v1/sessions \
+  -H "Authorization: Bearer $KEY" \
+  -H "x-orbita-client-id: my-project" \
+  -d '{"agent_profile":"default"}'
+
+curl -X POST $API/v1/sessions/$ID/messages \
+  -H "Authorization: Bearer $KEY" \
+  -H "x-orbita-client-id: my-project" \
+  -d '{"input":{"type":"text","text":"..."}}'</pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="why">
+        <div class="wrap">
+          <h2>Why another agent system?</h2>
+          <p class="section-intro">
+            Mature agent frameworks optimize for humans in chat channels. Orbita
+            optimizes for <strong>machines as clients</strong> — the same way you
+            would design an internal platform API, not a product landing page with
+            a text box.
+          </p>
+          <div class="compare">
+            <div class="compare-col yes">
+              <h3>Orbita is for</h3>
+              <ul>
+                <li>Cursor / Claude Code / custom orchestrators calling HTTP</li>
+                <li>Structured JSON intents and tool loops</li>
+                <li>Per-client memory, credentials vault, audit trajectory</li>
+                <li>Stateless replicas + Postgres/pgvector backend</li>
+              </ul>
+            </div>
+            <div class="compare-col no">
+              <h3>Orbita is not</h3>
+              <ul>
+                <li>A WhatsApp / Slack / Telegram gateway</li>
+                <li>A human chat UI or voice assistant shell</li>
+                <li>OpenClaw (Jacky's separate orchestration stack)</li>
+                <li>The public openclaw/openclaw personal-assistant repo</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="wrap">
+          <h2>What you get</h2>
+          <p class="section-intro">
+            TypeScript monorepo — lane packages composed into a single API host.
+            MiniMax-M3 primary, Anthropic failover, Zeabur deploy from
+            <code>main</code>.
+          </p>
+          <div class="cards">
+            <article class="card">
+              <h3>Sessions & profiles</h3>
+              <p>
+                Session-bound agent profiles with static skills. Create, message,
+                compress context, end — all over REST.
+              </p>
+            </article>
+            <article class="card">
+              <h3>Memory & tools</h3>
+              <p>
+                pgvector semantic memory per client_id. Tool registry (HTTP,
+                JSON helpers) with credential references, not inline secrets.
+              </p>
+            </article>
+            <article class="card">
+              <h3>Trajectory & jobs</h3>
+              <p>
+                Structured execution log per session, replay API, cron/webhook
+                scheduler, per-key rate limits.
+              </p>
+            </article>
+            <article class="card">
+              <h3>Identity model</h3>
+              <p>
+                API key + allowed <code>client_id</code> allow-list. Memory and
+                sessions scoped to the declared client, enforced server-side.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="start">
+        <div class="wrap">
+          <h2>Quick start</h2>
+          <p class="section-intro">
+            Clone the repo, run Postgres locally, set env vars, and hit
+            <code>/v1/health</code>. Production API:
+            <a href="https://orbita-api.zeabur.app/v1/health" rel="noopener"
+              >orbita-api.zeabur.app</a
+            >.
+          </p>
+          <ol class="steps">
+            <li>
+              <div>
+                <strong>Install & database</strong>
+                <span><code>pnpm install</code> · <code>docker compose up -d postgres</code></span>
+              </div>
+            </li>
+            <li>
+              <div>
+                <strong>Configure environment</strong>
+                <span>Copy <code>.env.example</code> — <code>DATABASE_URL</code>, <code>ORBITA_ADMIN_TOKEN</code>, <code>ORBITA_SECRETS_KEY</code>, LLM keys.</span>
+              </div>
+            </li>
+            <li>
+              <div>
+                <strong>Run API</strong>
+                <span><code>pnpm dev</code> → <code>http://127.0.0.1:3000/v1/health</code></span>
+              </div>
+            </li>
+            <li>
+              <div>
+                <strong>Create an API key</strong>
+                <span>POST <code>/v1/admin/api-keys</code> with admin token; bind <code>allowed_client_ids</code>.</span>
+              </div>
+            </li>
+            <li>
+              <div>
+                <strong>Verify</strong>
+                <span><code>./scripts/agent-verify.sh</code> · <code>./scripts/smoke-prod.sh</code> for production.</span>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <section id="api">
+        <div class="wrap">
+          <h2>HTTP surface (v1)</h2>
+          <p class="section-intro">
+            OpenAPI at <code>/v1/openapi.json</code>. Auth:
+            <code>Authorization: Bearer &lt;api_key&gt;</code> and
+            <code>x-orbita-client-id</code> on every request.
+          </p>
+          <div class="cards">
+            <article class="card">
+              <h3>Core</h3>
+              <p>
+                GET /v1/health · POST/GET /v1/sessions · POST
+                /v1/sessions/{id}/messages
+              </p>
+            </article>
+            <article class="card">
+              <h3>Memory & admin</h3>
+              <p>PUT/GET /v1/memories · POST /v1/admin/api-keys · credentials vault</p>
+            </article>
+            <article class="card">
+              <h3>Observability</h3>
+              <p>
+                GET /v1/sessions/{id}/trajectory · GET
+                /v1/sessions/{id}/trajectory/replay
+              </p>
+            </article>
+          </div>
+          <p class="section-intro" style="margin-top: 2rem">
+            Full design spec:
+            <a href="https://github.com/jackyckma/orbita/blob/main/usr/ORBITA_DESIGN.md" rel="noopener"
+              >ORBITA_DESIGN.md</a
+            >
+            · Architecture:
+            <a href="https://github.com/jackyckma/orbita/blob/main/docs/product-architecture.md" rel="noopener"
+              >product-architecture.md</a
+            >
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <span>Orbita — agent-native API</span>
+        <span>
+          <a href="https://github.com/jackyckma/orbita" rel="noopener">Source</a>
+          ·
+          <a href="https://orbita-api.zeabur.app/v1/health" rel="noopener">API</a>
+        </span>
+      </div>
+    </footer>
+  </body>
+</html>

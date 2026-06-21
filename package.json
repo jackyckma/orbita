@@ -10,7 +10,8 @@
     "build": "pnpm --filter @orbita/platform build && pnpm --filter @orbita/profiles build && pnpm --filter @orbita/auth build && pnpm --filter @orbita/sessions build && pnpm --filter @orbita/tools build && pnpm --filter @orbita/agent build && pnpm --filter @orbita/memory build && pnpm --filter @orbita/credentials build && pnpm --filter @orbita/trajectory build && pnpm --filter @orbita/scheduler build && pnpm --filter @orbita/api build",
     "typecheck": "pnpm --filter @orbita/platform build && pnpm --filter @orbita/profiles build && pnpm --filter @orbita/auth build && pnpm --filter @orbita/sessions build && pnpm --filter @orbita/tools build && pnpm --filter @orbita/agent build && pnpm --filter @orbita/memory build && pnpm --filter @orbita/credentials build && pnpm --filter @orbita/trajectory build && pnpm --filter @orbita/scheduler build && pnpm -r typecheck",
     "test": "pnpm -r test && vitest run --config tests/e2e/vitest.config.ts",
-    "db:migrate": "bash scripts/db-migrate.sh"
+    "db:migrate": "bash scripts/db-migrate.sh",
+    "deploy:web": "bash scripts/deploy-web.sh"
   },
   "devDependencies": {
     "@types/node": "^22.15.30",
