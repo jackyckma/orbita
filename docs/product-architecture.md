@@ -39,6 +39,16 @@ Agent-native, API-first agent system. Foundation spec: `usr/ORBITA_DESIGN.md`.
 
 **Lane 10 — Admin console:** `@orbita/admin` — ✅ W11 shipped (`/admin` UI, session cookie, deployment HTTP domains). See `docs/admin-ui-brainstorm.md`.
 
+## Application tracks (not lanes)
+
+Work that **uses** Orbita but is **not** platform code — no `packages/lane-*` entry; private notes in **`marketing-agent/`** (gitignored).
+
+| Track | Plan doc | Local workspace | Purpose |
+|-------|----------|-----------------|---------|
+| **Marketing Agent (MA)** | `docs/marketing-agent-plan.md` | `marketing-agent/` | Dogfood API as caller; gaps → `feedback-to-orbita.md` → may become **W** waves |
+
+Milestones: **MA0, MA1, …** (parallel to **W0–Wn**, not lane numbers).
+
 ## Build waves
 
 | Wave | Lanes / scope | Status |

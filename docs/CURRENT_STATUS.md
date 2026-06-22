@@ -6,7 +6,7 @@
 
 Orbita **W0–W14 shipped**. Marketing site at https://get-orbita.com. Production API at **https://api.get-orbita.com** (`0.0.1-w14`). Git deploy from `main` → Zeabur.
 
-**Next planned:** W15+ multi-user accounts, system admin; optional hosted SaaS (undecided).
+**Next planned:** W15+ multi-user accounts, system admin; MA track dogfooding in parallel (`docs/marketing-agent-plan.md`).
 
 ## Waves
 
@@ -32,5 +32,5 @@ Orbita **W0–W14 shipped**. Marketing site at https://get-orbita.com. Productio
 - `docs/product-architecture.md` — lane map + roadmap
 - `docs/self-host.md` — self-host guide
 - `docs/admin-ui-brainstorm.md` — admin UI & identity
-- `docs/use-cases/marketing-agent.md` — marketing agent idea (draft, not implemented)
+- `docs/marketing-agent-plan.md` — MA application track (parallel to W waves, not a lane)
 - `docs/api-as-product.md` — SaaS direction (undecided)

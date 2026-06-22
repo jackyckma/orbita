@@ -31,7 +31,7 @@ After each **shipped wave**, update the marketing site version log (`apps/orbita
 
 ## Marketing agent workspace
 
-Local folder **`marketing-agent/`** (gitignored except `README.md`) holds brand voice, runbooks, and Orbita **caller** setup — not platform code. For marketing tasks: read that folder and operate `api.get-orbita.com` as a user; do not modify `packages/*` unless fixing the platform. Template: `docs/templates/marketing-agent-workspace.md`.
+Local folder **`marketing-agent/`** (gitignored except `README.md`) holds brand voice, runbooks, and Orbita **caller** setup — not platform code. For marketing tasks: read that folder and operate `api.get-orbita.com` as a user; do not modify `packages/*` unless fixing the platform. Template: `docs/templates/marketing-agent-workspace.md`. Progress: `docs/marketing-agent-plan.md` (MA0–Mn); dogfooding feedback → `marketing-agent/feedback-to-orbita.md`.
 
 ## Learned User Preferences
 
