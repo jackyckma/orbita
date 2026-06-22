@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deploy static site to Cloudflare Workers (assets).
+# Deploy static marketing site to Cloudflare Pages (orbita-web).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -20,7 +20,11 @@ if [[ -z "${CLOUDFLARE_API_TOKEN:-}" ]]; then
 fi
 
 export CLOUDFLARE_API_TOKEN
-echo "==> deploying orbita-web to Cloudflare Workers"
-pnpm exec wrangler deploy
+echo "==> deploying orbita-web to Cloudflare Pages"
+# Token IP allowlist may block IPv6 egress; prefer IPv4 (see docs/website-cloudflare.md).
+NODE_OPTIONS='--dns-result-order=ipv4first' pnpm exec wrangler pages deploy public \
+  --project-name=orbita-web \
+  --branch=main \
+  --commit-dirty=true
 
-echo "==> done. Attach custom domain in Cloudflare dashboard or run scripts/cloudflare-dns-get-orbita.sh"
+echo "==> done. Custom domains: https://get-orbita.com (run scripts/cloudflare-dns-get-orbita.sh to verify DNS)"

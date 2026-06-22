@@ -51,6 +51,20 @@ Workflow: branch from `main` → PR → `main`.
 
 **Auto commit/push:** Jacky prefers agents to commit and push after each meaningful wave without asking, unless a critical irreversible decision is pending.
 
+## Wave completion checklist
+
+When a build wave (W0, W1, …) is **shipped** (implementation merged, wave marked done in docs):
+
+1. **Website version log (required)** — Update `apps/orbita-web/public/updates.html`:
+   - Add one or more `<li>` bullets under the ship date in `<article class="changelog-day">`, or add a new date section if this is the first entry for that day.
+   - Describe what the wave delivered (API routes, admin UX, infra, docs).
+   - If the API version string changed (e.g. `0.0.1-w15`), update the intro paragraph `<code>` version on the same page.
+2. **Status docs** — `docs/CURRENT_STATUS.md` and the wave table in `docs/product-architecture.md`.
+3. **Deploy marketing site** — `./scripts/deploy-web.sh` so https://get-orbita.com/updates reflects the log (API deploys from `main` → Zeabur separately).
+4. **Smoke** — `GET /v1/health` on production after API changes.
+
+Do not close a wave without updating the version log — it is the public record and prevents forgetting what shipped.
+
 ## Deploy
 
 | Item | Value |
@@ -62,7 +76,7 @@ Workflow: branch from `main` → PR → `main`.
 | PostgreSQL service ID | `6a37d40b6d107f2b42717135` |
 | Region / Server | Ocean (`server-69ea44a68736baad13c7c617`) |
 | Dashboard | https://zeabur.com/projects/6a37d39a6d107f2b4271712f |
-| Public URL | https://orbita-api.zeabur.app (dedicated server — may use self-signed TLS) |
+| Public URL | https://api.get-orbita.com (also `orbita-api.zeabur.app`) |
 | Deploy branch | `main` (GitHub: `jackyckma/orbita`) |
 | Health check | `GET /v1/health` (required in v1) |
 

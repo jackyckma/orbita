@@ -304,6 +304,7 @@ When shipping lane work:
 1. Update `lastShipped` / `nextUp` for affected lanes.
 2. Bump `deployRef` and `updatedAt` when deployed.
 3. Sync `project-progress.md` for waves and decisions — the short table is for quick founder reads; progress doc is for history.
+4. Update `apps/orbita-web/public/updates.html` (version log by date) and run `./scripts/deploy-web.sh` — see `project-guidelines.md` **Wave completion checklist**.
 
 ---
 
