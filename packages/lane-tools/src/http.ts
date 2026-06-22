@@ -1,5 +1,5 @@
 import type { HttpToolPolicy } from "./http-policy.js";
-import { loadHttpToolPolicy, validateHttpsUrl } from "./http-policy.js";
+import { getEffectiveHttpToolPolicy, loadHttpToolPolicy, validateHttpsUrl } from "./http-policy.js";
 
 export type HttpRequestOptions = {
   url: string;
@@ -16,7 +16,7 @@ export async function performHttpRequest(options: HttpRequestOptions): Promise<{
   ok: boolean;
   body_preview: string;
 }> {
-  const policy = options.policy ?? loadHttpToolPolicy();
+  const policy = options.policy ?? getEffectiveHttpToolPolicy();
   validateHttpsUrl(options.url, policy);
 
   const headers: Record<string, string> = { ...options.headers };

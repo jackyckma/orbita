@@ -30,13 +30,14 @@ TypeScript · Node 22 · Hono · Zod · Drizzle · Postgres/pgvector · pnpm mon
 ## Docs
 
 - [`docs/product-architecture.md`](docs/product-architecture.md) — lanes and build status
+- [`docs/admin-ui-brainstorm.md`](docs/admin-ui-brainstorm.md) — admin UI & identity (planned W11+)
 - [`docs/CURRENT_STATUS.md`](docs/CURRENT_STATUS.md) — what works today
 - [`docs/website-cloudflare.md`](docs/website-cloudflare.md) — marketing site & get-orbita.com
 - [`AGENTS.md`](AGENTS.md) — agent entry point
 
 ## Website
 
-Static site: [`apps/orbita-web`](apps/orbita-web) — deploy with `./scripts/deploy-web.sh` (Cloudflare Workers).
+Static site: [`apps/orbita-web`](apps/orbita-web) — deploy with `./scripts/deploy-web.sh` (Cloudflare Pages). Live at https://get-orbita.com.
 
 ## LLM providers (testing)
 

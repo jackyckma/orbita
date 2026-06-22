@@ -26,6 +26,9 @@ importers:
       '@hono/zod-openapi':
         specifier: ^0.19.6
         version: 0.19.10(hono@4.12.26)(zod@3.25.76)
+      '@orbita/admin':
+        specifier: workspace:*
+        version: link:../../packages/lane-admin
       '@orbita/agent':
         specifier: workspace:*
         version: link:../../packages/lane-agent
@@ -69,6 +72,40 @@ importers:
       wrangler:
         specifier: ^3.114.0
         version: 3.114.17
+
+  packages/lane-admin:
+    dependencies:
+      '@hono/zod-openapi':
+        specifier: ^0.19.6
+        version: 0.19.10(hono@4.12.26)(zod@3.25.76)
+      '@orbita/auth':
+        specifier: workspace:*
+        version: link:../lane-auth
+      '@orbita/credentials':
+        specifier: workspace:*
+        version: link:../lane-credentials
+      '@orbita/platform':
+        specifier: workspace:*
+        version: link:../lane-platform
+      '@orbita/tools':
+        specifier: workspace:*
+        version: link:../lane-tools
+      drizzle-orm:
+        specifier: ^0.44.2
+        version: 0.44.7(postgres@3.4.9)
+      hono:
+        specifier: ^4.7.11
+        version: 4.12.26
+      postgres:
+        specifier: ^3.4.7
+        version: 3.4.9
+      zod:
+        specifier: ^3.25.56
+        version: 3.25.76
+    devDependencies:
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.6(@types/node@22.19.21)(tsx@4.22.4)(yaml@2.9.0)
 
   packages/lane-agent:
     dependencies:

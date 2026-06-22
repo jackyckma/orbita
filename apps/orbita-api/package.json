@@ -12,6 +12,7 @@
   "dependencies": {
     "@hono/node-server": "^1.14.4",
     "@hono/zod-openapi": "^0.19.6",
+    "@orbita/admin": "workspace:*",
     "@orbita/agent": "workspace:*",
     "@orbita/auth": "workspace:*",
     "@orbita/credentials": "workspace:*",

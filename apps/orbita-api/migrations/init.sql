@@ -104,3 +104,10 @@ CREATE TABLE IF NOT EXISTS "rate_limit_counters" (
   "count" integer DEFAULT 0 NOT NULL,
   PRIMARY KEY ("key_id", "window_start")
 );
+
+-- W11: admin-editable deployment settings
+CREATE TABLE IF NOT EXISTS "deployment_settings" (
+  "key" text PRIMARY KEY NOT NULL,
+  "value" jsonb NOT NULL,
+  "updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);

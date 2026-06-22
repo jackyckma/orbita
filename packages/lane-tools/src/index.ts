@@ -9,4 +9,10 @@ export type {
   ToolExecutionContext,
   ToolTraceEvent,
 } from "./registry.js";
-export { loadHttpToolPolicy, isHostnameAllowed } from "./http-policy.js";
+export {
+  loadHttpToolPolicy,
+  getEffectiveHttpToolPolicy,
+  setHttpToolPolicyOverride,
+  isHostnameAllowed,
+} from "./http-policy.js";
+export type { HttpToolPolicy } from "./http-policy.js";

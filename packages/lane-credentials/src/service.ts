@@ -65,6 +65,18 @@ export async function listCredentials(
   }));
 }
 
+export async function listAllCredentials(
+  db: CredentialsDb,
+): Promise<Array<{ client_id: string; name: string; scopes: string[]; created_at: string }>> {
+  const rows = await db.db.select().from(credentials);
+  return rows.map((row) => ({
+    client_id: row.clientId,
+    name: row.name,
+    scopes: row.scopes,
+    created_at: row.createdAt.toISOString(),
+  }));
+}
+
 export async function resolveCredentialSecret(
   db: CredentialsDb,
   secretsKey: string,

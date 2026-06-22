@@ -3,12 +3,21 @@ import { ApiErrorBodySchema } from "@orbita/platform";
 import { getAuth } from "@orbita/auth";
 import type { AdminAuthGuard } from "@orbita/auth";
 import type { CredentialsDb } from "../db/client.js";
-import { createCredential, listCredentials } from "../service.js";
+import { createCredential, listAllCredentials, listCredentials } from "../service.js";
+
+function optionalAdminGuard(
+  guard: AdminAuthGuard | undefined,
+  headerToken: string | undefined,
+): void {
+  if (guard) {
+    guard(headerToken);
+  }
+}
 
 export function createCredentialAdminRoutes(
   db: CredentialsDb,
   secretsKey: string,
-  guard: AdminAuthGuard,
+  guard?: AdminAuthGuard,
 ): OpenAPIHono {
   const app = new OpenAPIHono();
 
@@ -52,7 +61,7 @@ export function createCredentialAdminRoutes(
   });
 
   app.openapi(createRouteDef, async (c) => {
-    guard(c.req.header("x-orbita-admin-token"));
+    optionalAdminGuard(guard, c.req.header("x-orbita-admin-token"));
     const body = c.req.valid("json");
     const row = await createCredential(db, secretsKey, {
       clientId: body.client_id,
@@ -69,6 +78,38 @@ export function createCredentialAdminRoutes(
       },
       201,
     );
+  });
+
+  const listAllRoute = createRoute({
+    method: "get",
+    path: "/credentials",
+    tags: ["Admin"],
+    summary: "List all stored credentials (metadata only)",
+    responses: {
+      200: {
+        description: "Credential metadata",
+        content: {
+          "application/json": {
+            schema: z.object({
+              credentials: z.array(
+                z.object({
+                  client_id: z.string(),
+                  name: z.string(),
+                  scopes: z.array(z.string()),
+                  created_at: z.string(),
+                }),
+              ),
+            }),
+          },
+        },
+      },
+    },
+  });
+
+  app.openapi(listAllRoute, async (c) => {
+    optionalAdminGuard(guard, c.req.header("x-orbita-admin-token"));
+    const items = await listAllCredentials(db);
+    return c.json({ credentials: items }, 200);
   });
 
   return app;

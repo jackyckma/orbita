@@ -6,7 +6,7 @@ import {
   notFound,
 } from "@orbita/platform";
 import type { AuthDb } from "../db/client.js";
-import { createApiKey, revokeApiKey } from "../services/api-keys.js";
+import { createApiKey, listApiKeys, revokeApiKey } from "../services/api-keys.js";
 
 const CreateApiKeyBodySchema = z
   .object({
@@ -43,9 +43,19 @@ export function createAdminAuthGuard(expectedToken: string): AdminAuthGuard {
   };
 }
 
+/** @deprecated Prefer admin middleware; guard optional when middleware is used */
+export function optionalAdminGuard(
+  guard: AdminAuthGuard | undefined,
+  headerToken: string | undefined,
+): void {
+  if (guard) {
+    guard(headerToken);
+  }
+}
+
 export function createAdminRoutes(
   authDb: AuthDb,
-  guard: AdminAuthGuard,
+  guard?: AdminAuthGuard,
 ): OpenAPIHono {
   const app = new OpenAPIHono();
 
@@ -87,7 +97,7 @@ export function createAdminRoutes(
   });
 
   app.openapi(createKeyRoute, async (c) => {
-    guard(c.req.header("x-orbita-admin-token"));
+    optionalAdminGuard(guard, c.req.header("x-orbita-admin-token"));
 
     const body = c.req.valid("json");
     let expiresAt: Date | null = null;
@@ -145,13 +155,49 @@ export function createAdminRoutes(
   });
 
   app.openapi(revokeKeyRoute, async (c) => {
-    guard(c.req.header("x-orbita-admin-token"));
+    optionalAdminGuard(guard, c.req.header("x-orbita-admin-token"));
     const { key_id } = c.req.valid("param");
     const revoked = await revokeApiKey(authDb, key_id);
     if (!revoked) {
       throw notFound("API key not found or already revoked");
     }
     return c.body(null, 204);
+  });
+
+  const listKeysRoute = createRoute({
+    method: "get",
+    path: "/api-keys",
+    tags: ["Admin"],
+    summary: "List API keys (metadata only)",
+    responses: {
+      200: {
+        description: "API key list",
+        content: {
+          "application/json": {
+            schema: z.object({
+              keys: z.array(
+                z.object({
+                  id: z.string().uuid(),
+                  key_prefix: z.string(),
+                  allowed_client_ids: z.array(z.string()),
+                  scopes: z.array(z.string()),
+                  expires_at: z.string().datetime().nullable(),
+                  rate_limit_per_minute: z.number().nullable(),
+                  created_at: z.string().datetime(),
+                  revoked_at: z.string().datetime().nullable(),
+                }),
+              ),
+            }),
+          },
+        },
+      },
+    },
+  });
+
+  app.openapi(listKeysRoute, async (c) => {
+    optionalAdminGuard(guard, c.req.header("x-orbita-admin-token"));
+    const keys = await listApiKeys(authDb);
+    return c.json({ keys }, 200);
   });
 
   return app;

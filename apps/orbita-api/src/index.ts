@@ -1,13 +1,20 @@
 import { serve } from "@hono/node-server";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import {
+  createAdminAuthMiddleware,
+  createAdminConsoleRoutes,
+  createAdminDb,
+  createAdminSessionRoutes,
+  createAdminSettingsRoutes,
+  loadDeploymentHttpPolicy,
+} from "@orbita/admin";
+import {
   createAgentTurnRunner,
   createCapabilitiesResponse,
   createSessionSummarizer,
   loadAgentEnv,
 } from "@orbita/agent";
 import {
-  createAdminAuthGuard,
   createAdminRoutes,
   createAuthDb,
   createAuthMiddleware,
@@ -52,7 +59,7 @@ import { createE2eMockTurnRunner } from "./e2e-mock.js";
 
 const E2E_MOCK = process.env.ORBITA_E2E_MOCK === "1";
 
-const VERSION = "0.0.1-w10";
+const VERSION = "0.0.1-w11";
 const env = loadPlatformEnv();
 const agentEnv = loadAgentEnv();
 const memoryEnv = loadMemoryEnv();
@@ -81,13 +88,19 @@ const memoryDb = createMemoryDb(env.DATABASE_URL);
 const trajectoryDb = createTrajectoryDb(env.DATABASE_URL);
 const schedulerDb = createSchedulerDb(env.DATABASE_URL);
 const credentialsDb = createCredentialsDb(env.DATABASE_URL);
+const adminDb = createAdminDb(env.DATABASE_URL);
+
+await loadDeploymentHttpPolicy(adminDb);
 
 const authMiddleware = createAuthMiddleware(authDb);
 const rateLimitMiddleware = createRateLimitMiddleware(
   authDb,
   env.RATE_LIMIT_PER_MINUTE,
 );
-const adminGuard = createAdminAuthGuard(env.ORBITA_ADMIN_TOKEN);
+const adminAuthMiddleware = createAdminAuthMiddleware(
+  env.ORBITA_ADMIN_TOKEN,
+  env.ORBITA_SECRETS_KEY,
+);
 const sessionSummarizer = createSessionSummarizer(agentEnv);
 
 const assertSessionOwner = (sessionId: string, clientId: string) =>
@@ -141,12 +154,21 @@ app.use("*", async (c, next) => {
   logRequest(logger, c, c.res.status, Date.now() - started);
 });
 
+app.route("/", createAdminConsoleRoutes());
+
 app.route("/v1", createHealthRoutes(VERSION));
-app.route(
-  "/v1/admin",
-  createCredentialAdminRoutes(credentialsDb, env.ORBITA_SECRETS_KEY!, adminGuard),
+
+const adminApp = new OpenAPIHono();
+adminApp.use("*", adminAuthMiddleware);
+adminApp.route("/", createAdminSessionRoutes(env.ORBITA_ADMIN_TOKEN, env.ORBITA_SECRETS_KEY));
+adminApp.route("/", createAdminSettingsRoutes(adminDb));
+adminApp.route(
+  "/",
+  createCredentialAdminRoutes(credentialsDb, env.ORBITA_SECRETS_KEY!),
 );
-app.route("/v1/admin", createAdminRoutes(authDb, adminGuard));
+adminApp.route("/", createAdminRoutes(authDb));
+
+app.route("/v1/admin", adminApp);
 
 const protectedApp = new OpenAPIHono();
 protectedApp.use("*", authMiddleware);
@@ -206,6 +228,9 @@ serve(
     port: env.PORT,
   },
   (info) => {
-    logger.info({ url: `http://${info.address}:${info.port}` }, "orbita-api listening");
+    logger.info(
+      { url: `http://${info.address}:${info.port}`, admin: `/admin` },
+      "orbita-api listening",
+    );
   },
 );

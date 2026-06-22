@@ -1,12 +1,12 @@
 # Current status
 
-**Last updated:** 2026-06-20
+**Last updated:** 2026-06-22
 
 ## Summary
 
-Orbita **W0–W10 implemented**. Trajectory replay API + eval helpers; multi-replica ops documented.
+Orbita **W0–W10 shipped**. Marketing site live at https://get-orbita.com. **Next planned wave: W11** (single-user admin console).
 
-**Production:** redeploy pending for `0.0.1-w10`.
+**Production API:** https://orbita-api.zeabur.app — Git deploy from `main`.
 
 ## Waves
 
@@ -14,13 +14,15 @@ Orbita **W0–W10 implemented**. Trajectory replay API + eval helpers; multi-rep
 |------|--------|
 | W0–W9 | ✅ Shipped |
 | **W10** | ✅ Trajectory replay, eval scripts, ops docs |
-
-**Zeabur:** https://orbita-api.zeabur.app — Git deploy from `main`
+| **W11** | 📋 Admin console Phase 1 (planned) |
+| **W12–W16** | 📋 Device auth, self-host examples, sandbox, multi-user, system admin |
 
 ## Key docs
 
-- `docs/product-architecture.md` — lane map
+- `docs/product-architecture.md` — lane map + W11–W16
+- `docs/admin-ui-brainstorm.md` — admin UI & identity (decided direction)
 - `docs/e2e-testing.md` — test harness
-- `docs/eval-tooling.md` — trajectory eval
+- `docs/api-as-product.md` — SaaS 方向備忘（未決定）
+- `docs/self-host-and-extensions.md` — 自用/self-host 待辦、Skills/Tools、E2E 範例
 - `docs/ops-multi-replica.md` — scaling notes
 - `docs/skills-authoring.md` — profiles/skills

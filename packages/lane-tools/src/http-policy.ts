@@ -3,6 +3,18 @@ export type HttpToolPolicy = {
   timeoutMs: number;
 };
 
+let policyOverride: HttpToolPolicy | null = null;
+
+export function setHttpToolPolicyOverride(policy: HttpToolPolicy | null): void {
+  policyOverride = policy;
+}
+
+export function getEffectiveHttpToolPolicy(
+  source: NodeJS.ProcessEnv = process.env,
+): HttpToolPolicy {
+  return policyOverride ?? loadHttpToolPolicy(source);
+}
+
 export function loadHttpToolPolicy(
   source: NodeJS.ProcessEnv = process.env,
 ): HttpToolPolicy {
