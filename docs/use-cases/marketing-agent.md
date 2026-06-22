@@ -190,7 +190,38 @@ Only after that: approval webhook + one `channel_post_*` wrapper + optional CMS/
 
 ---
 
-## 11. References
+## 11. Repo 策略（要不要獨立 repository？）
+
+**結論：早期通常不需要獨立 repo。** Marketing Agent 是 **Orbita 的 client 應用**，不是 Orbita 平台的一部分。
+
+### 三種放法
+
+| 做法 | 適合時機 | 裡面放什麼 |
+|------|----------|------------|
+| **A. 各產品 repo 裡一個資料夾** | 只有你在用、每個專案行銷邏輯不同 | `orbita/skills/`、`orbita/profile.json`、README 怎麼呼叫 API |
+| **B. 一個「my-agents」repo** | 多專案共用同一套 brand/channel skills | 共用 skills + 每專案子目錄 + 呼叫 script |
+| **C. 獨立 `marketing-agent` repo** | 要 CI、版本發佈、或與 Orbita 分權限給他人 | 同 B，但邊界更清楚 |
+
+### 典型內容（無論 A/B/C）
+
+| 有 | 沒有 |
+|----|------|
+| Skill markdown（brand voice、channel 規則） | Orbita lane / API 原始碼 |
+| Profile JSON（引用哪些 skills、allowed_tools） | API keys、OAuth secret |
+| 可選：bash/ts script 建立 session、排 scheduler | 複製 `packages/lane-*` |
+| 可選：campaign 範本、E2E smoke（對 **你的** API） | 改 Orbita core 行為 |
+
+### 執行方式
+
+1. 在 Orbita `/admin` 為每產品建 `client_id`（如 `marketing-project-a`）與 caller key。  
+2. Channel tokens 寫入 **credentials vault**（admin），不進 git。  
+3. Agent 透過 `POST /v1/sessions` + `messages` 跑；skills 由 profile 載入（self-host 可掛 `ORBITA_PROFILES_DIR`，或 copy 進 deploy）。
+
+**Orbita repo 只保留：** `docs/use-cases/marketing-agent.md`（說明平台能支援什麼），不放入你的 channel 文案或品牌素材。
+
+---
+
+## 12. References
 
 - `docs/product-architecture.md` — lanes, waves, agent-first API
 - `docs/self-host.md` — credentials, admin, profiles
