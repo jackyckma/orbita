@@ -7,3 +7,8 @@ dist/
 coverage/
 .turbo/
 drizzle/meta/_journal.json.bak
+
+# Marketing agent workspace — application layer, not Orbita platform code
+# Template: docs/templates/marketing-agent-workspace.md
+/marketing-agent/*
+!/marketing-agent/README.md

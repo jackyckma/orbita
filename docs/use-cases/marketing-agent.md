@@ -199,8 +199,9 @@ Only after that: approval webhook + one `channel_post_*` wrapper + optional CMS/
 | 做法 | 適合時機 | 裡面放什麼 |
 |------|----------|------------|
 | **A. 各產品 repo 裡一個資料夾** | 只有你在用、每個專案行銷邏輯不同 | `orbita/skills/`、`orbita/profile.json`、README 怎麼呼叫 API |
-| **B. 一個「my-agents」repo** | 多專案共用同一套 brand/channel skills | 共用 skills + 每專案子目錄 + 呼叫 script |
-| **C. 獨立 `marketing-agent` repo** | 要 CI、版本發佈、或與 Orbita 分權限給他人 | 同 B，但邊界更清楚 |
+| **B. `marketing-agent/`（repo 內、gitignored）** | **預設** — 本 repo 根目錄；給 agent 讀、不 push 私人內容 | 見 `docs/templates/marketing-agent-workspace.md` |
+| **C. 一個「my-agents」repo** | 多專案共用 skills、要獨立備份 | 共用 skills + 每專案子目錄 + 呼叫 script |
+| **D. 獨立 `marketing-agent` repo** | CI、分權給他人 | 同 C，邊界更清楚 |
 
 ### 典型內容（無論 A/B/C）
 

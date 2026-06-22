@@ -29,6 +29,10 @@ See `docs/AGENT_ENV.md` for local vs cloud capability matrix.
 
 After each **shipped wave**, update the marketing site version log (`apps/orbita-web/public/updates.html` by date) and deploy with `./scripts/deploy-web.sh`. Full checklist: `.agents/instructions/project-guidelines.md` → **Wave completion checklist**.
 
+## Marketing agent workspace
+
+Local folder **`marketing-agent/`** (gitignored except `README.md`) holds brand voice, runbooks, and Orbita **caller** setup — not platform code. For marketing tasks: read that folder and operate `api.get-orbita.com` as a user; do not modify `packages/*` unless fixing the platform. Template: `docs/templates/marketing-agent-workspace.md`.
+
 ## Learned User Preferences
 
 - Auto commit and push after each meaningful wave without asking, unless a critical irreversible decision is pending.
