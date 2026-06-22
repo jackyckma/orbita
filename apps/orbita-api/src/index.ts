@@ -55,12 +55,13 @@ import {
   createTrajectoryDb,
   logTrajectoryEvent,
 } from "@orbita/trajectory";
+import { createProfileRoutes } from "@orbita/profiles";
 import { runMigrations } from "./migrate.js";
 import { createE2eMockTurnRunner } from "./e2e-mock.js";
 
 const E2E_MOCK = process.env.ORBITA_E2E_MOCK === "1";
 
-const VERSION = "0.0.1-w12";
+const VERSION = "0.0.1-w13";
 const env = loadPlatformEnv();
 const agentEnv = loadAgentEnv();
 const memoryEnv = loadMemoryEnv();
@@ -161,6 +162,7 @@ app.use("*", async (c, next) => {
 app.route("/", createAdminConsoleRoutes());
 
 app.route("/v1", createHealthRoutes(VERSION));
+app.route("/v1", createProfileRoutes());
 
 app.route("/v1/auth", createDeviceAuthRoutes(
   adminDb,

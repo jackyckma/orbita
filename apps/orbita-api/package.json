@@ -18,6 +18,7 @@
     "@orbita/credentials": "workspace:*",
     "@orbita/memory": "workspace:*",
     "@orbita/platform": "workspace:*",
+    "@orbita/profiles": "workspace:*",
     "@orbita/scheduler": "workspace:*",
     "@orbita/sessions": "workspace:*",
     "@orbita/trajectory": "workspace:*",

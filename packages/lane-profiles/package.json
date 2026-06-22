@@ -12,7 +12,9 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@hono/zod-openapi": "^0.19.6",
     "@orbita/platform": "workspace:*",
+    "hono": "^4.7.11",
     "zod": "^3.25.56"
   },
   "devDependencies": {

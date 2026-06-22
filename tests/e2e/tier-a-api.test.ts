@@ -13,6 +13,15 @@ describe.skipIf(!runTierAHttp)("e2e tier A — HTTP contracts (mock LLM)", () =>
     expect(body.status).toBe("ok");
   });
 
+  it("profiles catalog is public", async () => {
+    const res = await fetch(`${BASE}/v1/profiles`);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { profiles: { id: string }[] };
+    const ids = body.profiles.map((p) => p.id);
+    expect(ids).toContain("default");
+    expect(ids).toContain("research");
+  });
+
   it("session message round-trip with mock runner", async () => {
     const apiKey = await createApiKey(CLIENT);
     const auth = authHeaders(apiKey, CLIENT);

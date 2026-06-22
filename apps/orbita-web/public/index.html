@@ -23,6 +23,7 @@
         <nav class="nav-links">
           <a href="#why">Why</a>
           <a href="#start">Start</a>
+          <a href="#examples">Examples</a>
           <a href="#api">API</a>
           <a href="https://github.com/jackyckma/orbita" rel="noopener">GitHub</a>
         </nav>
@@ -171,8 +172,14 @@ curl -X POST $API/v1/sessions/$ID/messages \
             </li>
             <li>
               <div>
+                <strong>Admin console</strong>
+                <span>Open <code>/admin</code> — create API keys, credentials, HTTP domain policy. See <code>docs/self-host.md</code>.</span>
+              </div>
+            </li>
+            <li>
+              <div>
                 <strong>Create an API key</strong>
-                <span>POST <code>/v1/admin/api-keys</code> with admin token; bind <code>allowed_client_ids</code>.</span>
+                <span>Admin console or POST <code>/v1/admin/api-keys</code>; bind <code>allowed_client_ids</code>.</span>
               </div>
             </li>
             <li>
@@ -182,6 +189,34 @@ curl -X POST $API/v1/sessions/$ID/messages \
               </div>
             </li>
           </ol>
+        </div>
+      </section>
+
+      <section id="examples">
+        <div class="wrap">
+          <h2>Examples</h2>
+          <p class="section-intro">
+            Typical flows after self-hosting or using the production API. Replace
+            <code>API_KEY</code> and <code>CLIENT_ID</code> with your values.
+          </p>
+          <div class="cards">
+            <article class="card">
+              <h3>Echo tool</h3>
+              <p>Create a session, send a message that uses the <code>echo</code> tool, then read trajectory.</p>
+              <pre class="mono" style="white-space:pre-wrap;font-size:0.8rem">POST /v1/sessions {"agent_profile":"default"}
+POST /v1/sessions/{id}/messages
+  "Use echo with text HELLO"
+GET /v1/sessions/{id}/trajectory</pre>
+            </article>
+            <article class="card">
+              <h3>Research + HTTP</h3>
+              <p>Use <code>research</code> profile with <code>http_get</code> on allowed domains. Store API keys in the credential vault via <code>/admin</code>.</p>
+            </article>
+            <article class="card">
+              <h3>Memory</h3>
+              <p>PUT /v1/memories/{key} then query in later sessions under the same <code>client_id</code>.</p>
+            </article>
+          </div>
         </div>
       </section>
 

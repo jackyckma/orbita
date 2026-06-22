@@ -56,7 +56,7 @@ Agent-native, API-first agent system. Foundation spec: `usr/ORBITA_DESIGN.md`.
 | **W10** | 9 replay/eval + multi-replica ops | ✅ Done |
 | **W11** | Admin console Phase 1 (single-user) | ✅ Done |
 | **W12** | Device auth flow + capabilities/OpenAPI auth | ✅ Done |
-| **W13** | Self-host polish, E2E examples, api subdomain | 📋 Planned |
+| **W13** | Self-host polish, E2E examples, api subdomain | ✅ Done |
 | **W14** | Docker sandbox (tools) | 📋 Planned |
 | **W15** | Multi-user accounts + whitelist register | 📋 Roadmap |
 | **W16** | System admin role + observability | 📋 Roadmap |
@@ -69,7 +69,13 @@ Agent-native, API-first agent system. Foundation spec: `usr/ORBITA_DESIGN.md`.
 - `PUT /v1/admin/settings/http-domains` — DB-backed HTTP tool policy override
 - Docs: `docs/admin-ui-brainstorm.md`, `packages/lane-admin/INTERFACE.md`
 
-### W12 — Auth UX & discovery (next)
+### W13 — Self-host & examples (shipped)
+
+- `GET /v1/profiles`, `GET /v1/profiles/{id}` — public profile catalog
+- `docs/self-host.md`, `scripts/self-host-smoke.sh`, `scripts/cloudflare-dns-api.sh`
+- Marketing site Examples section; Tier A profiles E2E test
+
+### W14 — Sandbox (next)
 
 - Device flow: `POST /v1/auth/device` → verification URL (remote-friendly)
 - Extend `GET /v1/capabilities` + OpenAPI with auth modes and endpoints
@@ -126,7 +132,8 @@ Cross-cutting quality lane, not a product feature lane:
 |--------|------|------|
 | GET | `/v1/health` | 0 |
 | GET | `/v1/openapi.json` | 0 |
-| GET | `/v1/capabilities` | 4 |
+| GET | `/v1/profiles` | 2 |
+| GET | `/v1/profiles/{id}` | 2 |
 | POST/DELETE/GET | `/v1/admin/api-keys` | 1 + 10 |
 | POST/GET | `/v1/admin/credentials` | 6 + 10 |
 | POST/GET/DELETE | `/v1/admin/session` | 10 |
