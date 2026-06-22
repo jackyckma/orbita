@@ -69,6 +69,12 @@ Agent-native, API-first agent system. Foundation spec: `usr/ORBITA_DESIGN.md`.
 - `PUT /v1/admin/settings/http-domains` — DB-backed HTTP tool policy override
 - Docs: `docs/admin-ui-brainstorm.md`, `packages/lane-admin/INTERFACE.md`
 
+### W12 — Auth UX & discovery (shipped)
+
+- Device flow: `POST /v1/auth/device`, poll, `/admin/device` approval
+- `GET /v1/capabilities` includes `auth` metadata
+- `scripts/admin-device-login.sh`
+
 ### W13 — Self-host & examples (shipped)
 
 - `GET /v1/profiles`, `GET /v1/profiles/{id}` — public profile catalog
@@ -80,23 +86,7 @@ Agent-native, API-first agent system. Foundation spec: `usr/ORBITA_DESIGN.md`.
 - `ORBITA_SANDBOX_DOCKER=1` exposes `docker_echo` tool (`alpine:3.20`, `--network=none`)
 - `docs/sandbox.md`
 
-### W15 — Multi-user (roadmap)
-
-- Device flow: `POST /v1/auth/device` → verification URL (remote-friendly)
-- Extend `GET /v1/capabilities` + OpenAPI with auth modes and endpoints
-- Optional authenticated `POST /v1/admin/import` for Agent-driven bootstrap
-
-### W13 — Self-host & examples
-
-- `api.get-orbita.com` DNS; self-host one-pager; `GET /v1/profiles` (optional)
-- Expand Tier A/B E2E; marketing site Examples section
-- Details: `docs/self-host-and-extensions.md`
-
-### W14 — Sandbox
-
-- Docker execution tier for tools (design §8); lane 7
-
-### W15–W16 — Multi-user
+### W15–W16 — Multi-user (roadmap)
 
 - W15: `accounts`, email whitelist register, `/v1/me/*`, revoke-all-access
 - W16: system admin (ban users, cross-tenant monitoring, audit)
