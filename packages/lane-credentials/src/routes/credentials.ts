@@ -27,7 +27,7 @@ export function createCredentialAdminRoutes(
     tags: ["Admin"],
     summary: "Store a client credential (write-once)",
     request: {
-      headers: z.object({ "x-orbita-admin-token": z.string() }),
+      headers: z.object({ "x-orbita-admin-token": z.string().optional() }),
       body: {
         content: {
           "application/json": {

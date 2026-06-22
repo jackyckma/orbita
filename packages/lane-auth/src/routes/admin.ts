@@ -66,7 +66,7 @@ export function createAdminRoutes(
     summary: "Create a pre-issued API key",
     request: {
       headers: z.object({
-        "x-orbita-admin-token": z.string(),
+        "x-orbita-admin-token": z.string().optional(),
       }),
       body: {
         content: {
@@ -137,7 +137,7 @@ export function createAdminRoutes(
     summary: "Revoke an API key",
     request: {
       headers: z.object({
-        "x-orbita-admin-token": z.string(),
+        "x-orbita-admin-token": z.string().optional(),
       }),
       params: RevokeApiKeyParamsSchema,
     },
