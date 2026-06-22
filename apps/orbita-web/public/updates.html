@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Orbita project updates — shipped waves, API milestones, and infrastructure changes by date."
+    />
+    <title>Updates — Orbita</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Syne:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header>
+      <div class="wrap nav">
+        <a class="logo" href="/">Orbit<span>a</span></a>
+        <nav class="nav-links">
+          <a href="/">Home</a>
+          <a href="https://github.com/jackyckma/orbita" rel="noopener">GitHub</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="page-main">
+      <div class="wrap">
+        <p class="eyebrow">Changelog</p>
+        <h1>Project updates</h1>
+        <p class="section-intro">
+          What shipped recently. Orbita is under active development — API version
+          <code>0.0.1-w14</code> on
+          <a href="https://api.get-orbita.com/v1/health" rel="noopener">api.get-orbita.com</a>.
+        </p>
+
+        <div class="changelog">
+          <article class="changelog-day">
+            <h2 class="changelog-date">2026-06-22</h2>
+            <ul class="changelog-list">
+              <li>
+                <strong>Custom API domain</strong> —
+                <code>api.get-orbita.com</code> live on Zeabur + Cloudflare (TLS, public base URL).
+              </li>
+              <li>
+                <strong>W14 — Docker sandbox tier</strong> —
+                optional <code>docker_echo</code> tool when
+                <code>ORBITA_SANDBOX_DOCKER=1</code>; docs in
+                <code>docs/sandbox.md</code>.
+              </li>
+              <li>
+                <strong>W13 — Self-host & profiles</strong> —
+                <code>GET /v1/profiles</code>, self-host guide, smoke scripts, website Examples section.
+              </li>
+              <li>
+                <strong>W12 — Device auth</strong> —
+                <code>POST /v1/auth/device</code>, admin approval flow, capabilities auth metadata.
+              </li>
+              <li>
+                <strong>W11 — Admin console</strong> —
+                <code>/admin</code> UI for API keys, credentials vault, HTTP domain policy (single-user).
+              </li>
+              <li>
+                <strong>W10 — Trajectory replay</strong> —
+                replay API, eval tooling, ops docs.
+              </li>
+              <li>
+                <strong>W9 — Tool library</strong> —
+                profiles/skills, tool trajectory events, expanded registry.
+              </li>
+              <li>
+                <strong>W8 — E2E harness</strong> —
+                mock LLM runner, CI, Tier A/B tests, production smoke checks.
+              </li>
+              <li>
+                <strong>W7 — Scheduler hardening</strong> —
+                cron jobs, webhook delivery, per-key rate limiting.
+              </li>
+              <li>
+                <strong>Marketing site</strong> —
+                <a href="/">get-orbita.com</a> on Cloudflare Pages.
+              </li>
+              <li>
+                <strong>Docs</strong> —
+                marketing-agent use-case draft (<code>docs/use-cases/marketing-agent.md</code>);
+                admin OpenAPI fix for cookie-based admin sessions.
+              </li>
+            </ul>
+          </article>
+
+          <article class="changelog-day">
+            <h2 class="changelog-date">2026-06-21</h2>
+            <ul class="changelog-list">
+              <li>
+                <strong>W6 — Semantic memory</strong> —
+                pgvector-backed memory, context compression between turns.
+              </li>
+              <li>
+                <strong>W5 — Credentials & tools</strong> —
+                encrypted credentials vault, HTTP/JSON tools, MiniMax tool-calling loop.
+              </li>
+              <li>
+                <strong>Production deploy</strong> —
+                Zeabur Docker build fixed, startup DB migrations, Ocean project live.
+              </li>
+            </ul>
+          </article>
+
+          <article class="changelog-day">
+            <h2 class="changelog-date">2026-06-20</h2>
+            <ul class="changelog-list">
+              <li>
+                <strong>W0–W4 — Core API</strong> —
+                sessions, agent runtime, memory lane, scheduler, trajectory logging.
+              </li>
+              <li>
+                <strong>W0 — Platform bootstrap</strong> —
+                monorepo, auth (API keys + client_id), lane package architecture.
+              </li>
+              <li>
+                <strong>Design spec</strong> —
+                <a href="https://github.com/jackyckma/orbita/blob/main/usr/ORBITA_DESIGN.md" rel="noopener">ORBITA_DESIGN.md</a>
+                published — agent-native, API-first direction.
+              </li>
+            </ul>
+          </article>
+        </div>
+
+        <aside class="changelog-aside">
+          <h3>What’s next</h3>
+          <p>
+            W15+ multi-user accounts, system admin, optional hosted SaaS — see
+            <a href="https://github.com/jackyckma/orbita/blob/main/docs/product-architecture.md" rel="noopener">product-architecture.md</a>.
+            Ideas (not built yet): marketing-agent profile, approval workflows.
+          </p>
+        </aside>
+      </div>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <span>Orbita — agent-native API</span>
+        <span>
+          <a href="/">Home</a>
+          ·
+          <a href="https://github.com/jackyckma/orbita" rel="noopener">Source</a>
+          ·
+          <a href="https://api.get-orbita.com/v1/health" rel="noopener">API</a>
+        </span>
+      </div>
+    </footer>
+  </body>
+</html>

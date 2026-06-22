@@ -348,3 +348,93 @@ footer .wrap {
   gap: 1rem;
   justify-content: space-between;
 }
+
+.page-main {
+  padding: 3.5rem 0 4rem;
+}
+
+.page-main h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  letter-spacing: -0.03em;
+  margin: 0 0 1rem;
+}
+
+.changelog {
+  margin-top: 2.5rem;
+}
+
+.changelog-day {
+  padding: 0 0 2.5rem 1.5rem;
+  border-left: 2px solid var(--border);
+  margin-left: 0.35rem;
+}
+
+.changelog-day:last-of-type {
+  padding-bottom: 0;
+}
+
+.changelog-date {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--accent);
+  margin: 0 0 1rem -1.65rem;
+  padding-left: 1rem;
+  position: relative;
+}
+
+.changelog-date::before {
+  content: "";
+  position: absolute;
+  left: -0.45rem;
+  top: 0.35rem;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: var(--accent);
+  box-shadow: 0 0 0 4px var(--bg-deep);
+}
+
+.changelog-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.changelog-list li {
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.98rem;
+}
+
+.changelog-list li:last-child {
+  border-bottom: none;
+}
+
+.changelog-list strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.changelog-aside {
+  margin-top: 3rem;
+  padding: 1.25rem 1.35rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  max-width: 42rem;
+}
+
+.changelog-aside h3 {
+  font-family: var(--font-display);
+  margin: 0 0 0.5rem;
+  font-size: 1.05rem;
+}
+
+.changelog-aside p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
