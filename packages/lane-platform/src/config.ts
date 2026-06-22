@@ -12,6 +12,7 @@ export const PlatformEnvSchema = z.object({
   RATE_LIMIT_PER_MINUTE: z.coerce.number().int().positive().default(120),
   ORBITA_HTTP_ALLOWED_DOMAINS: z.string().optional(),
   ORBITA_HTTP_TIMEOUT_MS: z.coerce.number().int().positive().default(30_000),
+  ORBITA_PUBLIC_BASE_URL: z.string().url().optional(),
 });
 
 export type PlatformEnv = z.infer<typeof PlatformEnvSchema>;

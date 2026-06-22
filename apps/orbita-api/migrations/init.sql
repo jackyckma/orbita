@@ -111,3 +111,14 @@ CREATE TABLE IF NOT EXISTS "deployment_settings" (
   "value" jsonb NOT NULL,
   "updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
+
+-- W12: admin device authorization flow
+CREATE TABLE IF NOT EXISTS "device_auth_requests" (
+  "device_code" text PRIMARY KEY NOT NULL,
+  "user_code" text NOT NULL UNIQUE,
+  "status" text DEFAULT 'pending' NOT NULL,
+  "session_token" text,
+  "expires_at" timestamp with time zone NOT NULL,
+  "approved_at" timestamp with time zone,
+  "created_at" timestamp with time zone DEFAULT now() NOT NULL
+);

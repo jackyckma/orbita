@@ -28,6 +28,7 @@ export function createAdminConsoleRoutes(): Hono {
       return c.body(body, 200, { "Content-Type": contentType });
     };
 
+  app.get("/admin/device", serve("index.html", "text/html; charset=utf-8"));
   app.get("/admin", serve("index.html", "text/html; charset=utf-8"));
   app.get("/admin/", serve("index.html", "text/html; charset=utf-8"));
   app.get("/admin/admin.js", serve("admin.js", "application/javascript; charset=utf-8"));

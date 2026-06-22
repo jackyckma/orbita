@@ -61,6 +61,64 @@ function renderLogin() {
   };
 }
 
+async function renderDeviceApprove(userCode) {
+  app.innerHTML = `
+    <div class="wrap">
+      <h1>Approve device</h1>
+      <p class="lead">Confirm admin access for code <span class="mono">${esc(userCode)}</span></p>
+      <div id="device-panel" class="panel">Checking session…</div>
+    </div>`;
+
+  const panel = document.getElementById("device-panel");
+  try {
+    const session = await api("/session");
+    if (!session.authenticated) {
+      panel.innerHTML = `
+        <p>Sign in first to approve this device.</p>
+        <label for="token">Admin token</label>
+        <input id="token" type="password" />
+        <button id="login-btn">Sign in</button>
+        <div id="login-error" class="error hidden"></div>`;
+      document.getElementById("login-btn").onclick = async () => {
+        const token = document.getElementById("token").value.trim();
+        try {
+          await fetch("/v1/admin/session", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ admin_token: token }),
+          }).then(async (r) => {
+            if (!r.ok) throw new Error("Login failed");
+          });
+          await approveDevice(userCode, panel);
+        } catch (e) {
+          const err = document.getElementById("login-error");
+          err.textContent = e.message;
+          err.classList.remove("hidden");
+        }
+      };
+      return;
+    }
+    await approveDevice(userCode, panel);
+  } catch (e) {
+    panel.innerHTML = `<div class="error">${esc(e.message)}</div>`;
+  }
+}
+
+async function approveDevice(userCode, panel) {
+  const res = await fetch("/v1/auth/device/approve", {
+    method: "POST",
+    credentials: "same-origin",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ user_code: userCode }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body?.error?.message || "Approval failed");
+  }
+  panel.innerHTML = `<p class="flash">Device approved. You can close this tab.</p>`;
+}
+
 async function renderDashboard() {
   const session = await api("/session");
   if (!session.authenticated) {
@@ -263,6 +321,12 @@ async function loadCreds() {
 }
 
 (async () => {
+  const params = new URLSearchParams(window.location.search);
+  const userCode = params.get("user_code");
+  if (userCode && window.location.pathname.includes("/device")) {
+    await renderDeviceApprove(userCode);
+    return;
+  }
   try {
     const session = await api("/session");
     if (session.authenticated) {

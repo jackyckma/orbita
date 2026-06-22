@@ -356,7 +356,8 @@ function stripThinkingContent(text: string): string {
     .trim();
 }
 
-export function createCapabilitiesResponse() {
+export function createCapabilitiesResponse(publicBaseUrl?: string) {
+  const base = publicBaseUrl?.replace(/\/$/, "") ?? "";
   return {
     intents: [
       {
@@ -367,5 +368,25 @@ export function createCapabilitiesResponse() {
     input_modes: ["structured", "text"],
     output_modes: ["structured", "natural_language"],
     tools: listRegisteredTools(),
+    auth: {
+      caller: {
+        type: "api_key",
+        header: "Authorization: Bearer <api_key>",
+        client_id_header: "x-orbita-client-id",
+        docs: "Pre-issued keys via admin console or POST /v1/admin/api-keys",
+      },
+      admin: {
+        modes: ["admin_token_header", "admin_session_cookie", "device_flow"],
+        admin_token_header: "x-orbita-admin-token",
+        session_login: "POST /v1/admin/session",
+        session_check: "GET /v1/admin/session",
+        device_flow: {
+          start: "POST /v1/auth/device",
+          poll: "GET /v1/auth/device/poll?device_code=...",
+          approve: "POST /v1/auth/device/approve",
+        },
+        console_path: base ? `${base}/admin` : "/admin",
+      },
+    },
   };
 }

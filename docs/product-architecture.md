@@ -55,7 +55,7 @@ Agent-native, API-first agent system. Foundation spec: `usr/ORBITA_DESIGN.md`.
 | **W9** | 2 skills library + 7 practical tools + tool trajectory | ✅ Done |
 | **W10** | 9 replay/eval + multi-replica ops | ✅ Done |
 | **W11** | Admin console Phase 1 (single-user) | ✅ Done |
-| **W12** | Device auth flow + capabilities/OpenAPI auth | 📋 Planned |
+| **W12** | Device auth flow + capabilities/OpenAPI auth | ✅ Done |
 | **W13** | Self-host polish, E2E examples, api subdomain | 📋 Planned |
 | **W14** | Docker sandbox (tools) | 📋 Planned |
 | **W15** | Multi-user accounts + whitelist register | 📋 Roadmap |

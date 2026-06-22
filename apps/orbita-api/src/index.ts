@@ -6,6 +6,7 @@ import {
   createAdminDb,
   createAdminSessionRoutes,
   createAdminSettingsRoutes,
+  createDeviceAuthRoutes,
   loadDeploymentHttpPolicy,
 } from "@orbita/admin";
 import {
@@ -59,7 +60,7 @@ import { createE2eMockTurnRunner } from "./e2e-mock.js";
 
 const E2E_MOCK = process.env.ORBITA_E2E_MOCK === "1";
 
-const VERSION = "0.0.1-w11";
+const VERSION = "0.0.1-w12";
 const env = loadPlatformEnv();
 const agentEnv = loadAgentEnv();
 const memoryEnv = loadMemoryEnv();
@@ -91,6 +92,9 @@ const credentialsDb = createCredentialsDb(env.DATABASE_URL);
 const adminDb = createAdminDb(env.DATABASE_URL);
 
 await loadDeploymentHttpPolicy(adminDb);
+
+const publicBaseUrl =
+  env.ORBITA_PUBLIC_BASE_URL ?? `http://${env.HOST === "0.0.0.0" ? "127.0.0.1" : env.HOST}:${env.PORT}`;
 
 const authMiddleware = createAuthMiddleware(authDb);
 const rateLimitMiddleware = createRateLimitMiddleware(
@@ -158,6 +162,13 @@ app.route("/", createAdminConsoleRoutes());
 
 app.route("/v1", createHealthRoutes(VERSION));
 
+app.route("/v1/auth", createDeviceAuthRoutes(
+  adminDb,
+  env.ORBITA_SECRETS_KEY,
+  env.ORBITA_ADMIN_TOKEN,
+  publicBaseUrl,
+));
+
 const adminApp = new OpenAPIHono();
 adminApp.use("*", adminAuthMiddleware);
 adminApp.route("/", createAdminSessionRoutes(env.ORBITA_ADMIN_TOKEN, env.ORBITA_SECRETS_KEY));
@@ -183,7 +194,9 @@ protectedApp.get("/whoami", (c) => {
   });
 });
 
-protectedApp.get("/capabilities", (c) => c.json(createCapabilitiesResponse(), 200));
+protectedApp.get("/capabilities", (c) =>
+  c.json(createCapabilitiesResponse(publicBaseUrl), 200),
+);
 
 protectedApp.route("/", createSessionRoutes(sessionsDb, runTurn, sessionSummarizer));
 protectedApp.route("/", createMemoryRoutes(memoryDb, memoryEnv));
