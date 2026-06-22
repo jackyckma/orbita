@@ -34,7 +34,7 @@ PORT=3002 pnpm dev   # 3000/3001 may be occupied
 
 - Zeabur project/service IDs — documented in `project-guidelines.md`
 - pgvector embedding — MiniMax `embo-01`, 1024-dim (W6)
-- Sandbox v1 tier — local in-process (`echo`, `http_get`); Docker tier deferred
+- Sandbox: local in-process + optional Docker tier (`docker_echo` when `ORBITA_SANDBOX_DOCKER=1`) — `docs/sandbox.md`
 
 ## Still open (founder input eventually)
 

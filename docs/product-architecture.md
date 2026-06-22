@@ -33,7 +33,7 @@ Agent-native, API-first agent system. Foundation spec: `usr/ORBITA_DESIGN.md`.
 | 4 | Agent Runtime | `@orbita/agent` | ✅ Shipped | MiniMax + Anthropic tool loops | W12 capabilities auth discovery |
 | 5 | Memory | `@orbita/memory` | ✅ Shipped | pgvector + memory API | W13 E2E semantic retrieval |
 | 6 | Credentials | `@orbita/credentials` | ✅ Shipped | AES vault, admin list + create | W12 optional batch import |
-| 7 | Tools & Sandbox | `@orbita/tools` | ✅ Shipped | 7 tools + HTTP domain policy | **W14** Docker sandbox tier |
+| 7 | Tools & Sandbox | `@orbita/tools` | ✅ Shipped | 7 tools + HTTP policy + `docker_echo` | General sandbox commands; E2B |
 | 8 | Scheduler | `@orbita/scheduler` | ✅ Shipped | `every_seconds`, cron, webhook | W16 scheduler leader / admin visibility |
 | 9 | Trajectory | `@orbita/trajectory` | ✅ Shipped | replay API + eval helpers | W13 website examples; future LLM judge |
 
@@ -57,7 +57,7 @@ Agent-native, API-first agent system. Foundation spec: `usr/ORBITA_DESIGN.md`.
 | **W11** | Admin console Phase 1 (single-user) | ✅ Done |
 | **W12** | Device auth flow + capabilities/OpenAPI auth | ✅ Done |
 | **W13** | Self-host polish, E2E examples, api subdomain | ✅ Done |
-| **W14** | Docker sandbox (tools) | 📋 Planned |
+| **W14** | Docker sandbox (tools) | ✅ Done (docker_echo tier) |
 | **W15** | Multi-user accounts + whitelist register | 📋 Roadmap |
 | **W16** | System admin role + observability | 📋 Roadmap |
 | **W17+** | Hosted SaaS (if decided) | 📝 Draft — `docs/api-as-product.md` |
@@ -75,7 +75,12 @@ Agent-native, API-first agent system. Foundation spec: `usr/ORBITA_DESIGN.md`.
 - `docs/self-host.md`, `scripts/self-host-smoke.sh`, `scripts/cloudflare-dns-api.sh`
 - Marketing site Examples section; Tier A profiles E2E test
 
-### W14 — Sandbox (next)
+### W14 — Docker sandbox (shipped)
+
+- `ORBITA_SANDBOX_DOCKER=1` exposes `docker_echo` tool (`alpine:3.20`, `--network=none`)
+- `docs/sandbox.md`
+
+### W15 — Multi-user (roadmap)
 
 - Device flow: `POST /v1/auth/device` → verification URL (remote-friendly)
 - Extend `GET /v1/capabilities` + OpenAPI with auth modes and endpoints

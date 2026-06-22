@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import type OpenAI from "openai";
 import { performHttpRequest } from "./http.js";
+import { dockerRunEcho, isDockerSandboxEnabled } from "./sandbox/docker.js";
 
 export type ToolTraceEvent = {
   phase: "start" | "complete";
@@ -178,6 +179,25 @@ const uuidV4Tool: ToolDefinition = {
   execute: async () => ({ uuid: randomUUID() }),
 };
 
+const dockerEchoTool: ToolDefinition = {
+  name: "docker_echo",
+  description:
+    "Run echo inside an isolated Docker container (requires ORBITA_SANDBOX_DOCKER=1 and Docker socket).",
+  parameters: {
+    type: "object",
+    properties: {
+      text: { type: "string", description: "Text to echo inside the container" },
+    },
+    required: ["text"],
+  },
+  execute: async (args) => {
+    if (!isDockerSandboxEnabled()) {
+      throw new Error("Docker sandbox is disabled (set ORBITA_SANDBOX_DOCKER=1)");
+    }
+    return dockerRunEcho(String(args.text ?? ""));
+  },
+};
+
 const registry: Record<string, ToolDefinition> = {
   echo: echoTool,
   http_get: httpGetTool,
@@ -187,6 +207,10 @@ const registry: Record<string, ToolDefinition> = {
   hash_sha256: hashSha256Tool,
   uuid_v4: uuidV4Tool,
 };
+
+if (isDockerSandboxEnabled()) {
+  registry.docker_echo = dockerEchoTool;
+}
 
 export function getToolDefinitions(
   allowedTools: string[],
