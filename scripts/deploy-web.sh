@@ -18,9 +18,7 @@ if [[ -z "${CLOUDFLARE_API_TOKEN:-}" ]]; then
 fi
 
 if [[ -z "${ORBITA_WAITLIST_NOTIFY_EMAIL:-}" ]]; then
-  echo "Set ORBITA_WAITLIST_NOTIFY_EMAIL in .env — inbox you can read (FormSubmit activation + waitlist mail)."
-  echo "Example: ORBITA_WAITLIST_NOTIFY_EMAIL=you@example.com"
-  exit 1
+  ORBITA_WAITLIST_NOTIFY_EMAIL="waitlist@get-orbita.com"
 fi
 
 STAGING="$(mktemp -d)"
@@ -43,4 +41,4 @@ NODE_OPTIONS='--dns-result-order=ipv4first' pnpm exec wrangler pages deploy "$ST
   --branch=main \
   --commit-dirty=true
 
-echo "==> done. Confirm FormSubmit: submit https://get-orbita.com/waitlist once, click activation in ${ORBITA_WAITLIST_NOTIFY_EMAIL}"
+echo "==> done. FormSubmit activation goes to ${ORBITA_WAITLIST_NOTIFY_EMAIL} (forward via Cloudflare Email Routing → your inbox)."
