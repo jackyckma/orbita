@@ -6,7 +6,7 @@ import {
 } from "./registry.js";
 
 describe("tool registry", () => {
-  it("lists seven tools", () => {
+  it("lists nine tools", () => {
     expect(listRegisteredTools()).toEqual([
       "echo",
       "http_get",
@@ -15,6 +15,8 @@ describe("tool registry", () => {
       "json_stringify",
       "hash_sha256",
       "uuid_v4",
+      "memory_put",
+      "memory_get",
     ]);
   });
 
@@ -38,6 +40,33 @@ describe("tool registry", () => {
     );
     expect(result.success).toBe(false);
     expect(result.error).toContain("not allowed");
+  });
+
+  it("memory_put and memory_get", async () => {
+    const store = new Map<string, string>();
+    const ctx = {
+      clientId: "test",
+      resolveCredential: async () => "unused",
+      putMemory: async (key: string, content: string) => {
+        store.set(key, content);
+      },
+      getMemory: async (key: string) => store.get(key) ?? null,
+    };
+    const put = await executeToolCall(
+      "memory_put",
+      JSON.stringify({ key: "drafts/pending/a", content: "hello" }),
+      ["memory_put"],
+      ctx,
+    );
+    expect(put.success).toBe(true);
+    const got = await executeToolCall(
+      "memory_get",
+      JSON.stringify({ key: "drafts/pending/a" }),
+      ["memory_get"],
+      ctx,
+    );
+    expect(got.success).toBe(true);
+    expect((got.result as { content: string }).content).toBe("hello");
   });
 
   it("json_parse and json_stringify round-trip", async () => {

@@ -18,6 +18,8 @@
     "json_parse",
     "json_stringify",
     "hash_sha256",
-    "uuid_v4"
+    "uuid_v4",
+    "memory_put",
+    "memory_get"
   ]
 }

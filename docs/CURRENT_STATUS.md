@@ -6,9 +6,9 @@
 
 Orbita **W0–W14 shipped**. Production API **https://api.get-orbita.com** (`0.0.1-w14`). Marketing site **https://get-orbita.com** with **waitlist** (Product Phase 1).
 
-**Parallel:** MA track — **MA3** complete: X API HTTP allow-list on prod, draft→approve runbook (`docs/marketing-agent-plan.md`).
+**Parallel:** MA track — **MA4** complete (`marketing` profile + memory tools). X publish still blocked until Bearer token.
 
-**Next platform wave:** W15 multi-user (defer). **Next MA:** MA4 optional `marketing` profile, or MA3 publish when `MARKETING_X_API_BEARER` is set.
+**Next platform wave:** W15 multi-user (defer). **Next MA:** X publish when ready; SEO runbook when Search Console creds exist.
 
 ## Waves
 
@@ -38,5 +38,5 @@ Orbita **W0–W14 shipped**. Production API **https://api.get-orbita.com** (`0.0
 
 - `docs/product-architecture.md` — lanes + W waves
 - `docs/api-as-product.md` — invite-only → SaaS (decided)
-- `docs/marketing-agent-plan.md` — MA0 ✅ MA1 ✅ MA2 ✅ MA3 ✅
+- `docs/marketing-agent-plan.md` — MA0–MA4 ✅
 - `docs/self-host.md` — self-host guide

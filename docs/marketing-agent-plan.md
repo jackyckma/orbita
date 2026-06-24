@@ -41,7 +41,7 @@ related: marketing-agent/ (gitignored), docs/use-cases/marketing-agent.md, docs/
 | **MA1** | Dogfood：為 **get-orbita.com / Orbita** 起草內容（draft-only） | ✅ | memory、sessions |
 | **MA2** | 第二個產品資料夾 + weekly runbook + scheduler job | ✅ | W8 scheduler |
 | **MA3** | 一個 channel 憑證進 vault + HTTP allow-list + draft→approve 流程 | ✅ | credentials、http tools |
-| **MA4** | 可選：`marketing` profile（若放 Orbita repo 則變 W wave） | 📋 | profiles lane |
+| **MA4** | 可選：`marketing` profile（若放 Orbita repo 則變 W wave） | ✅ | profiles lane、memory tools |
 
 ---
 
@@ -67,6 +67,7 @@ related: marketing-agent/ (gitignored), docs/use-cases/marketing-agent.md, docs/
 
 | 日期 | 變更 |
 |------|------|
+| 2026-06-24 | MA4 ✅ `marketing` profile + `memory_put`/`memory_get` tools（dogfooding patch, still w14） |
 | 2026-06-24 | MA3 ✅ X HTTP allow-list、draft→approve runbook；vault `x_api` 待 Bearer |
 | 2026-06-24 | MA1 ✅ dogfood X drafts；Phase 1 waitlist 頁上線 |
 | 2026-06-22 | MA0 ✅；初稿 MA track |

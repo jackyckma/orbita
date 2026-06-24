@@ -47,6 +47,8 @@ export type ToolTraceCallback = (
 
 export type AgentTurnRunnerDeps = {
   resolveCredential?: CredentialResolver;
+  putMemory?: (clientId: string, key: string, content: string) => Promise<void>;
+  getMemory?: (clientId: string, key: string) => Promise<string | null>;
   onToolTrace?: ToolTraceCallback;
 };
 
@@ -286,6 +288,12 @@ export function createAgentTurnRunner(
         }
         return deps.resolveCredential(session.clientId, name);
       },
+      putMemory: deps.putMemory
+        ? async (key, content) => deps.putMemory!(session.clientId, key, content)
+        : undefined,
+      getMemory: deps.getMemory
+        ? async (key) => deps.getMemory!(session.clientId, key)
+        : undefined,
       onToolTrace: deps.onToolTrace
         ? (event) =>
             deps.onToolTrace!({

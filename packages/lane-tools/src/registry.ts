@@ -15,6 +15,8 @@ export type ToolTraceEvent = {
 export type ToolExecutionContext = {
   clientId: string;
   resolveCredential: (name: string) => Promise<string>;
+  putMemory?: (key: string, content: string) => Promise<void>;
+  getMemory?: (key: string) => Promise<string | null>;
   onToolTrace?: (event: ToolTraceEvent) => void;
 };
 
@@ -179,6 +181,58 @@ const uuidV4Tool: ToolDefinition = {
   execute: async () => ({ uuid: randomUUID() }),
 };
 
+const memoryPutTool: ToolDefinition = {
+  name: "memory_put",
+  description:
+    "Store or update a client-scoped memory entry by key. Use for drafts, campaign state, or facts the agent should recall later.",
+  parameters: {
+    type: "object",
+    properties: {
+      key: { type: "string", description: "Memory key (e.g. drafts/pending/uuid)" },
+      content: { type: "string", description: "Text content to store" },
+    },
+    required: ["key", "content"],
+  },
+  execute: async (args, ctx) => {
+    if (!ctx.putMemory) {
+      throw new Error("Memory write is not configured for this deployment");
+    }
+    const key = String(args.key ?? "").trim();
+    const content = String(args.content ?? "");
+    if (!key) {
+      throw new Error("key is required");
+    }
+    if (!content) {
+      throw new Error("content is required");
+    }
+    await ctx.putMemory(key, content);
+    return { key, stored: true };
+  },
+};
+
+const memoryGetTool: ToolDefinition = {
+  name: "memory_get",
+  description: "Read a client-scoped memory entry by exact key.",
+  parameters: {
+    type: "object",
+    properties: {
+      key: { type: "string", description: "Memory key to read" },
+    },
+    required: ["key"],
+  },
+  execute: async (args, ctx) => {
+    if (!ctx.getMemory) {
+      throw new Error("Memory read is not configured for this deployment");
+    }
+    const key = String(args.key ?? "").trim();
+    if (!key) {
+      throw new Error("key is required");
+    }
+    const content = await ctx.getMemory(key);
+    return { key, content, found: content !== null };
+  },
+};
+
 const dockerEchoTool: ToolDefinition = {
   name: "docker_echo",
   description:
@@ -206,6 +260,8 @@ const registry: Record<string, ToolDefinition> = {
   json_stringify: jsonStringifyTool,
   hash_sha256: hashSha256Tool,
   uuid_v4: uuidV4Tool,
+  memory_put: memoryPutTool,
+  memory_get: memoryGetTool,
 };
 
 if (isDockerSandboxEnabled()) {

@@ -131,3 +131,16 @@ export async function upsertMemory(
 
   await db.db.insert(clientMemories).values({ clientId, key, content });
 }
+
+export async function getMemoryByKey(
+  db: MemoryDb,
+  clientId: string,
+  key: string,
+): Promise<string | null> {
+  const [row] = await db.db
+    .select({ content: clientMemories.content })
+    .from(clientMemories)
+    .where(and(eq(clientMemories.clientId, clientId), eq(clientMemories.key, key)))
+    .limit(1);
+  return row?.content ?? null;
+}

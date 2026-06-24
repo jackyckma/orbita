@@ -31,8 +31,10 @@ import {
 import {
   createMemoryDb,
   createMemoryRoutes,
+  getMemoryByKey,
   getMemoryContext,
   loadMemoryEnv,
+  upsertMemory,
 } from "@orbita/memory";
 import {
   createErrorHandler,
@@ -116,6 +118,9 @@ const baseTurnRunner = E2E_MOCK
   : createAgentTurnRunner(agentEnv, {
       resolveCredential: (clientId, name) =>
         resolveCredentialSecret(credentialsDb, env.ORBITA_SECRETS_KEY!, clientId, name),
+      putMemory: (clientId, key, content) =>
+        upsertMemory(memoryDb, clientId, key, content, memoryEnv),
+      getMemory: (clientId, key) => getMemoryByKey(memoryDb, clientId, key),
       onToolTrace: (event) => {
         logTrajectoryEvent(trajectoryDb, {
           sessionId: event.sessionId,

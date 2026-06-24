@@ -1,0 +1,24 @@
+{
+  "id": "marketing",
+  "description": "Draft-first marketing content agent",
+  "model": {
+    "provider": "minimax",
+    "model": "MiniMax-M3"
+  },
+  "fallback_model": {
+    "provider": "anthropic",
+    "model": "claude-sonnet-4-6"
+  },
+  "system_prompt": "You prepare marketing drafts for external channels. Default to draft-only: do not call http_post or publish unless the user explicitly approves a specific draft. Store pending drafts with memory_put under keys like drafts/pending/{uuid}. Use uuid_v4 for new draft ids. Keep copy concise and on-brand.",
+  "skills": ["core", "marketing-draft"],
+  "allowed_tools": [
+    "echo",
+    "http_get",
+    "http_post",
+    "json_parse",
+    "json_stringify",
+    "uuid_v4",
+    "memory_put",
+    "memory_get"
+  ]
+}

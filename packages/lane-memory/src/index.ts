@@ -4,6 +4,7 @@ export { loadMemoryEnv, MemoryEnvSchema } from "./config.js";
 export type { MemoryEnv } from "./config.js";
 export {
   formatMemoryLines,
+  getMemoryByKey,
   getMemoryContext,
   listMemories,
   upsertMemory,
