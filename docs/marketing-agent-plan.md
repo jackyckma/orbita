@@ -37,8 +37,8 @@ related: marketing-agent/ (gitignored), docs/use-cases/marketing-agent.md, docs/
 
 | MA | 目標 | 狀態 | Orbita 依賴 |
 |----|------|------|-------------|
-| **MA0** | 工作區 scaffold、`orbita-connection.md`、第一個 `client_id` + caller key | 🔄 | W11 admin、W13 profiles |
-| **MA1** | Dogfood：為 **get-orbita.com / Orbita** 起草內容（draft-only） | 📋 | memory、sessions |
+| **MA0** | 工作區 scaffold、`orbita-connection.md`、第一個 `client_id` + caller key | ✅ | W11 admin、W13 profiles |
+| **MA1** | Dogfood：為 **get-orbita.com / Orbita** 起草內容（draft-only） | 🔄 | memory、sessions |
 | **MA2** | 第二個產品資料夾 + weekly runbook + scheduler job | 📋 | W8 scheduler |
 | **MA3** | 一個 channel 憑證進 vault + HTTP allow-list + draft→approve 流程 | 📋 | credentials、http tools |
 | **MA4** | 可選：`marketing` profile（若放 Orbita repo 則變 W wave） | 📋 | profiles lane |
