@@ -66,9 +66,17 @@ API: **https://api.get-orbita.com** — marketing site links there.
 
 - Page: `apps/orbita-web/public/waitlist.html` → https://get-orbita.com/waitlist
 - Footer link on homepage only (not hero).
-- Form uses [FormSubmit](https://formsubmit.co): default `waitlist@get-orbita.com` in form `action`.
-- **After deploy:** submit once, confirm the inbox via FormSubmit email, or change `action` to your address.
+- **FormSubmit** delivers to **`ORBITA_WAITLIST_NOTIFY_EMAIL`** (must be a real inbox you can read).
+- `waitlist@get-orbita.com` does **not** work until [Cloudflare Email Routing](https://developers.cloudflare.com/email-routing/) forwards it to your inbox — optional later.
+- Deploy injects the email: set in `.env`, then `./scripts/deploy-web.sh`.
+- **After deploy:** submit the waitlist form once; open the **FormSubmit activation** email in that inbox and click confirm.
 - No Orbita API involved — zero backend load from waitlist signups.
+
+```bash
+# .env
+ORBITA_WAITLIST_NOTIFY_EMAIL=you@example.com
+./scripts/deploy-web.sh
+```
 
 ## Env
 

@@ -45,7 +45,7 @@
           <form
             id="waitlist-form"
             class="waitlist-form"
-            action="https://formsubmit.co/waitlist@get-orbita.com"
+            action="https://formsubmit.co/__WAITLIST_NOTIFY_EMAIL__"
             method="POST"
           >
             <input type="hidden" name="_subject" value="Orbita waitlist" />
@@ -76,11 +76,9 @@
               Thanks — we received your request. We’ll email you when invites open.
             </p>
             <p class="waitlist-hint">
-              Form delivery uses
-              <a href="https://formsubmit.co" rel="noopener">FormSubmit</a>. Confirm
-              <code>waitlist@get-orbita.com</code> in FormSubmit after first submission, or
-              change the form <code>action</code> in this file (see
-              <code>docs/website-cloudflare.md</code>).
+              Submissions are emailed to the site operator via
+              <a href="https://formsubmit.co" rel="noopener">FormSubmit</a>
+              (configure <code>ORBITA_WAITLIST_NOTIFY_EMAIL</code> in <code>.env</code> before deploy).
             </p>
           </form>
         </div>
