@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
-# Configure DNS for get-orbita.com → Cloudflare Workers (orbita-web).
+# DNS + Pages custom domains for get-orbita.com → orbita-web (Cloudflare Pages).
 # Prerequisites:
-#   1. Zone get-orbita.com added to Cloudflare (nameservers updated at registrar)
-#   2. CLOUDFLARE_API_TOKEN in .env with Zone:DNS:Edit for get-orbita.com
-#   3. Token IP allowlist includes this machine (use IPv4 API calls)
+#   1. Zone get-orbita.com active on Cloudflare
+#   2. CLOUDFLARE_API_TOKEN with Zone:DNS:Edit + Cloudflare Pages:Edit
+#   3. Token IP allowlist includes this machine (scripts use curl -4)
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DOMAIN="get-orbita.com"
-WORKER_NAME="orbita-web"
+PAGES_PROJECT="orbita-web"
+PAGES_HOST="${PAGES_PROJECT}.pages.dev"
 
 if [[ -f "$ROOT/.env" ]]; then
   set -a
@@ -30,42 +31,73 @@ ZONE_JSON=$(curl -4 -sf "${CF_API}/zones?name=${DOMAIN}" "${auth[@]}")
 ZONE_ID=$(python3 -c "import json,sys; d=json.load(sys.stdin); r=d.get('result',[]); print(r[0]['id'] if r else '')" <<<"$ZONE_JSON")
 
 if [[ -z "$ZONE_ID" ]]; then
-  echo "Zone not found for $DOMAIN."
-  echo "Add the domain in Cloudflare Dashboard → Websites → Add site, then update registrar nameservers."
+  echo "Zone not found for $DOMAIN. Add it in Cloudflare Dashboard first."
   exit 1
 fi
 
 echo "==> zone id: $ZONE_ID"
 
-# Workers custom domain: CNAME @ to worker route (Cloudflare proxied)
-# For Workers on custom domain, use wrangler routes or dashboard Custom Domains.
-# Here we set www CNAME to the workers.dev subdomain pattern after first deploy.
+ACCOUNT_JSON=$(curl -4 -sf "${CF_API}/accounts" "${auth[@]}")
+ACCOUNT_ID=$(python3 -c "import json,sys; d=json.load(sys.stdin); print(d['result'][0]['id'] if d.get('result') else '')" <<<"$ACCOUNT_JSON")
+echo "==> account id: $ACCOUNT_ID"
 
-WORKERS_SUBDOMAIN=$(curl -4 -sf "${CF_API}/accounts" "${auth[@]}" 2>/dev/null | python3 -c "
+upsert_cname() {
+  local name="$1"
+  local existing
+  existing=$(curl -4 -sf "${CF_API}/zones/${ZONE_ID}/dns_records?type=CNAME&name=${name}" "${auth[@]}")
+  local record_id
+  record_id=$(python3 -c "import json,sys; d=json.load(sys.stdin); r=d.get('result',[]); print(r[0]['id'] if r else '')" <<<"$existing")
+
+  local payload
+  payload=$(python3 -c "import json; print(json.dumps({'type':'CNAME','name':'${name}','content':'${PAGES_HOST}','proxied':True,'comment':'orbita-web Pages'}))")
+
+  if [[ -n "$record_id" ]]; then
+    echo "==> updating CNAME ${name} -> ${PAGES_HOST}"
+    curl -4 -sf -X PATCH "${CF_API}/zones/${ZONE_ID}/dns_records/${record_id}" "${auth[@]}" -d "$payload" >/dev/null
+  else
+    echo "==> creating CNAME ${name} -> ${PAGES_HOST}"
+    curl -4 -sf -X POST "${CF_API}/zones/${ZONE_ID}/dns_records" "${auth[@]}" -d "$payload" >/dev/null
+  fi
+}
+
+upsert_cname "$DOMAIN"
+upsert_cname "www.$DOMAIN"
+
+register_pages_domain() {
+  local host="$1"
+  local domains_json
+  domains_json=$(curl -4 -sf "${CF_API}/accounts/${ACCOUNT_ID}/pages/projects/${PAGES_PROJECT}/domains" "${auth[@]}")
+  local found
+  found=$(python3 -c "import json,sys; d=json.load(sys.stdin); print(any(x['name']=='${host}' for x in d.get('result',[])))" <<<"$domains_json")
+
+  if [[ "$found" == "True" ]]; then
+    echo "==> Pages custom domain already registered: $host"
+    return
+  fi
+
+  echo "==> registering Pages custom domain: $host"
+  curl -4 -sf -X POST "${CF_API}/accounts/${ACCOUNT_ID}/pages/projects/${PAGES_PROJECT}/domains" \
+    "${auth[@]}" -d "$(python3 -c "import json; print(json.dumps({'name':'${host}'}))")" >/dev/null
+}
+
+register_pages_domain "$DOMAIN"
+register_pages_domain "www.$DOMAIN"
+
+echo "==> Pages custom domain status"
+curl -4 -sf "${CF_API}/accounts/${ACCOUNT_ID}/pages/projects/${PAGES_PROJECT}/domains" "${auth[@]}" | python3 -c "
 import json,sys
-try:
-  d=json.load(sys.stdin)
-  print(d['result'][0]['name'] if d.get('result') else '')
-except: print('')
-" || true)
+d=json.load(sys.stdin)
+for x in d.get('result',[]):
+    ssl=x.get('validation_data',{}).get('status','?')
+    print(f'  {x[\"name\"]:25} status={x[\"status\"]} ssl={ssl}')
+"
 
-echo "==> ensure Worker '$WORKER_NAME' is deployed (pnpm --filter @orbita/web deploy)"
-echo "==> Then in Cloudflare Dashboard:"
-echo "    Workers & Pages → $WORKER_NAME → Settings → Domains & Routes → Add Custom Domain"
-echo "    Add: $DOMAIN and www.$DOMAIN"
-echo ""
-echo "Optional: apex A/AAAA records are managed automatically when using Custom Domains."
-echo ""
-echo "If you use a manual CNAME for www only:"
-echo "  www.$DOMAIN CNAME ${WORKER_NAME}.<account>.workers.dev (proxied)"
-
-# List existing DNS records
-echo "==> current DNS records for $DOMAIN"
+echo "==> current DNS records"
 curl -4 -sf "${CF_API}/zones/${ZONE_ID}/dns_records?per_page=50" "${auth[@]}" | python3 -c "
 import json,sys
 d=json.load(sys.stdin)
 for r in d.get('result',[]):
-    print(f'{r[\"type\"]:6} {r[\"name\"]:30} -> {r[\"content\"]} (proxied={r.get(\"proxied\")})')
+    print(f'  {r[\"type\"]:6} {r[\"name\"]:30} -> {r[\"content\"]} (proxied={r.get(\"proxied\")})')
 "
 
-echo "==> DNS script finished (custom domain binding is via Workers Custom Domains UI or wrangler)"
+echo "==> done. SSL may take 1–3 minutes after DNS changes; then https://${DOMAIN} should return 200."

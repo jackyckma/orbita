@@ -21,7 +21,12 @@ marketing-agent/
       notes.md              # campaigns, angles, links
   runbooks/
     weekly-content.md       # prompts / scheduler intent for Orbita sessions
+    draft-approve-publish.md  # MA3: draft → approve → X API
     seo-report.md
+  scripts/
+    ma2-setup-weekly-job.sh
+    ma3-setup-channel.sh    # HTTP allow-list + optional x_api vault
+  .env.local.example
 ```
 
 ---

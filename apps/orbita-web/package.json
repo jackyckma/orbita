@@ -3,9 +3,9 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "dev": "wrangler dev",
-    "deploy": "wrangler deploy",
-    "preview": "wrangler dev --local"
+    "dev": "wrangler pages dev public",
+    "deploy": "wrangler pages deploy public --project-name=orbita-web --branch=main",
+    "preview": "wrangler pages dev public"
   },
   "devDependencies": {
     "wrangler": "^3.114.0"

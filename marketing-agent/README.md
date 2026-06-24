@@ -8,4 +8,6 @@ This folder is **not Orbita platform code**. It holds notes, brand voice, and ru
 
 Fill in `orbita-connection.md`, `products/`, and `runbooks/` locally.
 
-**MA2 (local):** `products/self-host-devs/`, `runbooks/weekly-content.md`, `scripts/ma2-setup-weekly-job.sh` — weekly cron on prod session (poll mode; agent turn still manual).
+**MA2:** `products/self-host-devs/`, `runbooks/weekly-content.md`, `scripts/ma2-setup-weekly-job.sh`.
+
+**MA3:** `runbooks/draft-approve-publish.md`, `scripts/ma3-setup-channel.sh`, `.env.local.example` — X HTTP allow-list on prod; set `MARKETING_X_API_BEARER` to store `x_api` vault entry.

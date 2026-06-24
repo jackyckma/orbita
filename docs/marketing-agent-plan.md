@@ -40,7 +40,7 @@ related: marketing-agent/ (gitignored), docs/use-cases/marketing-agent.md, docs/
 | **MA0** | 工作區 scaffold、`orbita-connection.md`、第一個 `client_id` + caller key | ✅ | W11 admin、W13 profiles |
 | **MA1** | Dogfood：為 **get-orbita.com / Orbita** 起草內容（draft-only） | ✅ | memory、sessions |
 | **MA2** | 第二個產品資料夾 + weekly runbook + scheduler job | ✅ | W8 scheduler |
-| **MA3** | 一個 channel 憑證進 vault + HTTP allow-list + draft→approve 流程 | 📋 | credentials、http tools |
+| **MA3** | 一個 channel 憑證進 vault + HTTP allow-list + draft→approve 流程 | ✅ | credentials、http tools |
 | **MA4** | 可選：`marketing` profile（若放 Orbita repo 則變 W wave） | 📋 | profiles lane |
 
 ---
@@ -67,7 +67,7 @@ related: marketing-agent/ (gitignored), docs/use-cases/marketing-agent.md, docs/
 
 | 日期 | 變更 |
 |------|------|
-| 2026-06-24 | MA2 ✅ `self-host-devs`、weekly cron job（Mon 10 UTC）、runbook |
+| 2026-06-24 | MA3 ✅ X HTTP allow-list、draft→approve runbook；vault `x_api` 待 Bearer |
 | 2026-06-24 | MA1 ✅ dogfood X drafts；Phase 1 waitlist 頁上線 |
 | 2026-06-22 | MA0 ✅；初稿 MA track |
 | 2026-06-22 | 初稿：MA track 與 W waves 並行、唔做 lane |
