@@ -1,49 +1,141 @@
 # Session handoff
 
-**Last updated:** 2026-06-21
+**Last updated:** 2026-06-21 (end of day — resume tomorrow)
 
-## Completed
+## Metadata
 
-- W0–W6 on `main` (W6 includes compression + pgvector memory API)
-- W5 production smoke: tool loop (`echo`), trajectory
-- Zeabur Ocean deploy live at https://orbita-api.zeabur.app (Git `main`)
-- W7 orchestrate kickoff: scheduler cron/webhook + rate limiting
+| Item | Value |
+|------|--------|
+| Branch | `main` |
+| Latest commit | `27be07f` — Prefer Zeabur ZSend over Resend for outbound instance email |
+| Push | ✅ on `origin/main` |
+| Prod API | https://api.get-orbita.com — **`0.0.1-w18`** (health checked) |
+| Marketing site | https://get-orbita.com — docs at `/docs/` |
 
-## Production note
+## Active task
 
-Zeabur health may still report `0.0.1-w5` until Git redeploy picks up W6/W7. Smoke after each deploy.
+**Instance email closed loop** — receive registration/verification mail → agent processes → outbound reply.
 
-## Run locally
+**Done means:** ZSend credential in vault, `api.zeabur.com` on HTTP allow-list, real mail to `orbita@get-orbita.com` triggers Worker → agent turn, agent can `http_post` to ZSend to reply (smoke-tested or documented).
+
+**Not in scope this thread:** Multi-user accounts (W15–W16 roadmap), X API publish (MA3 deferred by user).
+
+## Current status
+
+| Area | Status |
+|------|--------|
+| Waitlist API + Admin | ✅ `POST /v1/waitlist`, prod CORS |
+| Scheduler `agent_message` | ✅ weekly marketing job pattern |
+| Memory tools + `marketing` profile | ✅ |
+| Public docs site | ✅ `docs/site/` → `pnpm build:docs` / deploy-web |
+| Inbound API `POST /v1/inbound/email` | ✅ smoke OK (~27s LLM turn) |
+| Cloudflare Email Worker | ✅ deployed `orbita-email-worker` + secret synced |
+| Email Routing `orbita@` → Worker | ✅ rule via `scripts/cloudflare-email-routing-orbita.sh` |
+| Outbound via **Zeabur ZSend** | ⏸ **user preference** — vault + allow-list not configured yet |
+| Resend | ❌ not needed — docs/scripts switched to ZSend (`27be07f`) |
+
+## Verified in
+
+| Environment | Level | Notes |
+|-------------|-------|--------|
+| Local | build + unit/e2e tier A | `pnpm build`, `pnpm test` green before w16 push |
+| Production | health + inbound API | `GET /v1/health` → w18; `POST /v1/inbound/email` → 200 + session_id |
+| Production | Worker deploy | `wrangler deploy` with `CLOUDFLARE_ACCOUNT_ID` |
+| Production | ZSend outbound | **not verified** — no `ZEABUR_ZSEND_API_KEY` in env yet |
+| Production | real mail → Worker | **not verified** — send to `orbita@get-orbita.com` manually tomorrow |
+
+## Top priority next (pick up here)
+
+1. **ZSend setup** — create/list key: `npx zeabur@latest email keys create --name orbita --permission send_only -i=false`
+2. **Run** `./scripts/setup-instance-email-prod.sh` with prod `ORBITA_ADMIN_TOKEN` + `ZEABUR_ZSEND_API_KEY` (merges `api.zeabur.com` into HTTP allow-list, vault credential `zsend` for `orbita-instance`).
+3. **Domain** — if sending from `orbita@get-orbita.com`: `npx zeabur@latest email domains add --domain get-orbita.com` + DNS verify (see `zeabur-email` skill).
+4. **E2E smoke** — email to `orbita@get-orbita.com` → check trajectory; optional agent reply via ZSend.
+
+## What was already tried
+
+| Attempt | Result |
+|---------|--------|
+| Resend as default outbound | User prefers **Zeabur ZSend** — docs/scripts updated, no Resend account needed |
+| `wrangler deploy` without `CLOUDFLARE_ACCOUNT_ID` | Failed `/memberships` auth — **fix:** export account id from CF API in `deploy-email-worker.sh` |
+| Zeabur CLI parse admin token from `variable list` | Fragile (ANSI / wrong line) — use Dashboard token or explicit export |
+| HTTP allow-list PUT with only `api.resend.com` | **Overwrites** list — setup script now **merges** existing domains |
+
+## How to run / verify
 
 ```bash
-docker compose up -d postgres
-pnpm db:migrate   # uses docker exec if psql missing
-PORT=3002 pnpm dev   # 3000/3001 may be occupied
+# Local
+docker compose up -d postgres && pnpm db:migrate && pnpm dev
+
+# Docs site
+./scripts/build-web-docs.sh
+./scripts/deploy-web.sh          # needs CLOUDFLARE_API_TOKEN in .env
+
+# Email Worker
+./scripts/cloudflare-email-routing-orbita.sh
+export ORBITA_INBOUND_EMAIL_TOKEN=...   # same as Zeabur ORBITA_INBOUND_* (no secrets in this file)
+./scripts/deploy-email-worker.sh
+
+# Outbound (ZSend) — tomorrow
+export ORBITA_ADMIN_TOKEN=...           # prod admin from Zeabur Dashboard
+export ZEABUR_ZSEND_API_KEY=...
+./scripts/setup-instance-email-prod.sh
+
+# Inbound API smoke (no real mail)
+export ORBITA_INBOUND_EMAIL_TOKEN=...
+./scripts/smoke-inbound-email.sh
+
+# Prod health
+curl -sS https://api.get-orbita.com/v1/health
 ```
 
-## Wave roadmap (updated priorities)
+**Zeabur API service ID:** `6a37d3a09f5fe35a4aa63552`  
+**Zeabur project ID:** `6a37d39a6d107f2b4271712f`
 
-| Wave | Scope |
-|------|--------|
-| **W7** (active) | Lane 8: cron + webhook scheduler; Lanes 0/1: rate limiting |
-| **W8** | E2E harness Tier A+B, `scripts/smoke-prod.sh`, verify integration |
-| **W9** | Skill/profile library (Lane 2); practical tools + tool trajectory (Lane 7) |
-| **W10** | Trajectory replay, multi-replica ops hardening |
+## Key file paths
 
-## Resolved (no longer open)
+| Symptom / topic | Path |
+|-----------------|------|
+| Inbound HTTP handler | `apps/orbita-api/src/inbound-email.ts` |
+| Cloudflare mail adapter | `apps/orbita-email-worker/src/index.ts` |
+| ZSend / instance email design | `docs/instance-email.md` |
+| Worker + routing ops | `docs/cloudflare-email-worker.md` |
+| Prod email setup script | `scripts/setup-instance-email-prod.sh` |
+| Public docs source | `docs/site/*.md` → `scripts/build-web-docs.sh` |
+| Doc maintenance strategy | `docs/DOCUMENTATION.md` |
+| Marketing dogfooding | `docs/marketing-agent-plan.md`, gitignored `marketing-agent/` |
 
-- Zeabur project/service IDs — documented in `project-guidelines.md`
-- pgvector embedding — MiniMax `embo-01`, 1024-dim (W6)
-- Sandbox: local in-process + optional Docker tier (`docker_echo` when `ORBITA_SANDBOX_DOCKER=1`) — `docs/sandbox.md`
+## Architecture reminder (email)
+
+```
+Receive:  mail → orbita@get-orbita.com
+          → Cloudflare Email Routing
+          → orbita-email-worker (MIME parse)
+          → POST /v1/inbound/email
+          → session turn (default profile: marketing, client: orbita-instance)
+
+Send:     agent http_post
+          → https://api.zeabur.com/api/v1/zsend/emails
+          → credential_ref: zsend (vault Bearer token)
+```
+
+Inbound is **not** a command channel — only for registration replies / verification links.
+
+## Warnings
+
+- **No secrets in git** — `ORBITA_INBOUND_EMAIL_TOKEN`, `ORBITA_ADMIN_TOKEN`, ZSend keys live in Zeabur / `.env` only.
+- **Local `.env` `ORBITA_ADMIN_TOKEN`** is dev — prod admin differs; use Zeabur Dashboard for prod ops.
+- **Uncommitted local files** (do not commit casually): `AGENTS.md`, `.cursor/hooks/state/*` — continual-learning noise.
+- **Session profile snapshot is immutable** — new session after profile/tool changes.
+- **CF API token** — Pages deploy works with zone token; Worker deploy needs account access; set `CLOUDFLARE_ACCOUNT_ID` if wrangler fails.
+- **Prod HTTP allow-list** currently includes `api.twitter.com`, `api.x.com`, `api.resend.com` — run setup script to add `api.zeabur.com` (merge, not replace).
 
 ## Still open (founder input eventually)
 
-- Public domain / Cloudflare TLS polish beyond Zeabur subdomain
+- X API Bearer for MA3 publish channel
+- Multi-user / system admin (W15–W16)
+- Billing SaaS (Phase 2)
 - Credential rotation policy
-- Whether Docker sandbox tier is required before more dangerous tools
 
-## Non-critical defaults (autonomous)
+## Last session closed
 
-- Scheduler `every_seconds` until W7 cron lands
-- MiniMax thinking blocks stripped from assistant output
-- Default profile: `default` with MiniMax-M3 + Anthropic fallback
+Previous handoff (W7 era) superseded by w15–w18 work above. Resume from **ZSend setup + outbound E2E** tomorrow.
