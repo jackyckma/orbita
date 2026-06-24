@@ -29,7 +29,15 @@ Outbound send still uses **Resend** (or similar) via agent `http_post` + credent
 cd orbita
 pnpm install
 
-# Set ORBITA_INBOUND_EMAIL_TOKEN in root .env (same value as Zeabur)
+# Same token as Zeabur ORBITA_INBOUND_EMAIL_TOKEN
+export ORBITA_INBOUND_EMAIL_TOKEN=...
+./scripts/deploy-email-worker.sh
+```
+
+Or configure routing + deploy in one flow:
+
+```bash
+./scripts/cloudflare-email-routing-orbita.sh   # orbita@ → Worker
 ./scripts/deploy-email-worker.sh
 ```
 

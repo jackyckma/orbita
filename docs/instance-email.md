@@ -53,7 +53,15 @@ For **parsed inbound mail → agent turn** (registration replies, not command-by
 | **`apps/orbita-email-worker`** | Cloudflare Worker; Email Routing → Orbita API |
 | **`ORBITA_INBOUND_*` env** | Token, client_id, agent profile on API host |
 
-Setup: `docs/cloudflare-email-worker.md`.
+Setup: `docs/cloudflare-email-worker.md`
+
+Production helpers:
+
+```bash
+export ORBITA_ADMIN_TOKEN=...   # prod admin from Zeabur
+export RESEND_API_KEY=re_...    # optional — vault credential
+./scripts/setup-instance-email-prod.sh
+```.
 
 ## Non-goals
 

@@ -71,7 +71,7 @@ import { createE2eMockTurnRunner } from "./e2e-mock.js";
 
 const E2E_MOCK = process.env.ORBITA_E2E_MOCK === "1";
 
-const VERSION = "0.0.1-w16";
+const VERSION = "0.0.1-w17";
 const env = loadPlatformEnv();
 const agentEnv = loadAgentEnv();
 const memoryEnv = loadMemoryEnv();
@@ -209,6 +209,7 @@ app.route(
       ORBITA_INBOUND_EMAIL_TOKEN: env.ORBITA_INBOUND_EMAIL_TOKEN,
       ORBITA_INBOUND_CLIENT_ID: env.ORBITA_INBOUND_CLIENT_ID,
       ORBITA_INBOUND_AGENT_PROFILE: env.ORBITA_INBOUND_AGENT_PROFILE,
+      ORBITA_INSTANCE_FROM_EMAIL: env.ORBITA_INSTANCE_FROM_EMAIL,
     },
     sessionsDb,
     memoryDb,

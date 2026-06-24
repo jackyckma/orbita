@@ -17,6 +17,7 @@ export const PlatformEnvSchema = z.object({
   ORBITA_INBOUND_EMAIL_TOKEN: z.string().min(16).optional(),
   ORBITA_INBOUND_CLIENT_ID: z.string().min(1).optional(),
   ORBITA_INBOUND_AGENT_PROFILE: z.string().min(1).optional(),
+  ORBITA_INSTANCE_FROM_EMAIL: z.string().email().optional(),
 });
 
 export type PlatformEnv = z.infer<typeof PlatformEnvSchema>;

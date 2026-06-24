@@ -19,6 +19,13 @@ fi
 
 export CLOUDFLARE_API_TOKEN
 
+# Wrangler needs account id; token may lack User:Read (/memberships).
+if [[ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]]; then
+  CLOUDFLARE_ACCOUNT_ID=$(curl -4 -sf "https://api.cloudflare.com/client/v4/accounts" \
+    -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" | python3 -c "import json,sys; print(json.load(sys.stdin)['result'][0]['id'])")
+  export CLOUDFLARE_ACCOUNT_ID
+fi
+
 if [[ -n "${ORBITA_INBOUND_EMAIL_TOKEN:-}" ]]; then
   echo "==> syncing ORBITA_INBOUND_EMAIL_TOKEN secret"
   printf '%s' "$ORBITA_INBOUND_EMAIL_TOKEN" | pnpm exec wrangler secret put ORBITA_INBOUND_EMAIL_TOKEN

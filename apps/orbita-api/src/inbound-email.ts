@@ -17,6 +17,7 @@ export type InboundEmailEnv = {
   ORBITA_INBOUND_EMAIL_TOKEN?: string;
   ORBITA_INBOUND_CLIENT_ID?: string;
   ORBITA_INBOUND_AGENT_PROFILE?: string;
+  ORBITA_INSTANCE_FROM_EMAIL?: string;
 };
 
 function normalizeMailbox(email: string): string {
@@ -97,6 +98,8 @@ export function createInboundEmailRoutes(
     const body = c.req.valid("json");
     const messageId = body.message_id?.trim() || randomUUID();
     const inboxKey = `inbox/${messageId}`;
+    const fromEmail =
+      deps.inboundEnv.ORBITA_INSTANCE_FROM_EMAIL?.trim() || "orbita@get-orbita.com";
 
     let sessionId = await getMemoryByKey(deps.memoryDb, clientId, sessionMemoryKey(body.from));
     if (!sessionId) {
@@ -136,7 +139,9 @@ export function createInboundEmailRoutes(
       "Body:",
       body.text,
       "",
-      "Tasks: summarize, memory_put any registration links or codes, reply via http_post + resend credential if configured. Do not publish without approval.",
+      "Tasks: summarize, memory_put any registration links or codes.",
+      `If replying: http_post https://api.resend.com/emails with credential_ref resend, Authorization from vault, JSON body from ${fromEmail} to ${body.from}, subject Re: ${body.subject}.`,
+      "Do not publish without approval.",
     ].join("\n");
 
     await postMessage(
