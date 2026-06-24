@@ -65,12 +65,13 @@ import {
   logTrajectoryEvent,
 } from "@orbita/trajectory";
 import { createProfileRoutes } from "@orbita/profiles";
+import { createInboundEmailRoutes } from "./inbound-email.js";
 import { runMigrations } from "./migrate.js";
 import { createE2eMockTurnRunner } from "./e2e-mock.js";
 
 const E2E_MOCK = process.env.ORBITA_E2E_MOCK === "1";
 
-const VERSION = "0.0.1-w15";
+const VERSION = "0.0.1-w16";
 const env = loadPlatformEnv();
 const agentEnv = loadAgentEnv();
 const memoryEnv = loadMemoryEnv();
@@ -201,6 +202,22 @@ adminApp.route("/", createWaitlistAdminRoutes(waitlistDb));
 app.route("/v1/admin", adminApp);
 
 app.route("/v1", createWaitlistPublicRoutes(waitlistDb, waitlistEnv));
+app.route(
+  "/v1",
+  createInboundEmailRoutes({
+    inboundEnv: {
+      ORBITA_INBOUND_EMAIL_TOKEN: env.ORBITA_INBOUND_EMAIL_TOKEN,
+      ORBITA_INBOUND_CLIENT_ID: env.ORBITA_INBOUND_CLIENT_ID,
+      ORBITA_INBOUND_AGENT_PROFILE: env.ORBITA_INBOUND_AGENT_PROFILE,
+    },
+    sessionsDb,
+    memoryDb,
+    memoryEnv,
+    trajectoryDb,
+    runTurn,
+    summarizer: sessionSummarizer,
+  }),
+);
 
 const protectedApp = new OpenAPIHono();
 protectedApp.use("*", authMiddleware);

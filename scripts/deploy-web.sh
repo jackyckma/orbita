@@ -3,6 +3,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+bash "$ROOT/scripts/build-web-docs.sh"
 cd "$ROOT/apps/orbita-web"
 
 if [[ -f "$ROOT/.env" ]]; then

@@ -1,0 +1,11 @@
+name = "orbita-email-worker"
+main = "src/index.ts"
+compatibility_date = "2026-06-20"
+
+# Secrets (set via `wrangler secret put`):
+#   ORBITA_INBOUND_EMAIL_TOKEN — same value as Orbita API ORBITA_INBOUND_EMAIL_TOKEN
+# Vars:
+#   ORBITA_API_URL — e.g. https://api.get-orbita.com
+
+[vars]
+ORBITA_API_URL = "https://api.get-orbita.com"

@@ -22,6 +22,7 @@
         <a class="logo" href="/">Orbit<span>a</span></a>
         <nav class="nav-links">
           <a href="/">Home</a>
+          <a href="/docs/">Docs</a>
           <a href="https://github.com/jackyckma/orbita" rel="noopener">GitHub</a>
         </nav>
       </div>
@@ -33,11 +34,27 @@
         <h1>Project updates</h1>
         <p class="section-intro">
           What shipped recently. Orbita is under active development — API version
-          <code>0.0.1-w15</code> on
+          <code>0.0.1-w16</code> on
           <a href="https://api.get-orbita.com/v1/health" rel="noopener">api.get-orbita.com</a>.
         </p>
 
         <div class="changelog">
+          <article class="changelog-day">
+            <h2 class="changelog-date">2026-06-20</h2>
+            <ul class="changelog-list">
+              <li>
+                <strong>Inbound email adapter (w16)</strong> —
+                <code>POST /v1/inbound/email</code> + Cloudflare Email Worker
+                (<code>apps/orbita-email-worker</code>) for registration replies → agent turn.
+              </li>
+              <li>
+                <strong>Public documentation</strong> —
+                <a href="/docs/">get-orbita.com/docs</a> built from
+                <code>docs/site/</code> (single source; see
+                <code>docs/DOCUMENTATION.md</code>).
+              </li>
+            </ul>
+          </article>
           <article class="changelog-day">
             <h2 class="changelog-date">2026-06-24</h2>
             <ul class="changelog-list">

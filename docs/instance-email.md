@@ -43,6 +43,18 @@ PUT /v1/admin/settings/http-domains
 
 Configure Cloudflare Email Routing so `orbita@get-orbita.com` can **receive** verification messages if providers require inbox confirmation.
 
+## Inbound adapter (w16)
+
+For **parsed inbound mail → agent turn** (registration replies, not command-by-email):
+
+| Piece | Role |
+|-------|------|
+| **`POST /v1/inbound/email`** | API endpoint; auth via `x-orbita-inbound-token` |
+| **`apps/orbita-email-worker`** | Cloudflare Worker; Email Routing → Orbita API |
+| **`ORBITA_INBOUND_*` env** | Token, client_id, agent profile on API host |
+
+Setup: `docs/cloudflare-email-worker.md`.
+
 ## Non-goals
 
 - Email as an agent **command channel** (use API / scheduler / webhooks instead).

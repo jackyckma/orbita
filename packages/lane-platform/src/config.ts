@@ -14,6 +14,9 @@ export const PlatformEnvSchema = z.object({
   ORBITA_HTTP_TIMEOUT_MS: z.coerce.number().int().positive().default(30_000),
   ORBITA_PUBLIC_BASE_URL: z.string().url().optional(),
   ORBITA_SANDBOX_DOCKER: z.enum(["0", "1"]).optional(),
+  ORBITA_INBOUND_EMAIL_TOKEN: z.string().min(16).optional(),
+  ORBITA_INBOUND_CLIENT_ID: z.string().min(1).optional(),
+  ORBITA_INBOUND_AGENT_PROFILE: z.string().min(1).optional(),
 });
 
 export type PlatformEnv = z.infer<typeof PlatformEnvSchema>;

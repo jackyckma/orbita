@@ -5,9 +5,11 @@
   "scripts": {
     "dev": "wrangler pages dev public",
     "deploy": "wrangler pages deploy public --project-name=orbita-web --branch=main",
-    "preview": "wrangler pages dev public"
+    "preview": "wrangler pages dev public",
+    "build:docs": "node ../../scripts/build-web-docs.mjs"
   },
   "devDependencies": {
+    "marked": "^15.0.12",
     "wrangler": "^3.114.0"
   }
 }

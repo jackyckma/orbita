@@ -12,3 +12,6 @@ drizzle/meta/_journal.json.bak
 # Template: docs/templates/marketing-agent-workspace.md
 /marketing-agent/*
 !/marketing-agent/README.md
+
+# Generated from docs/site/ — run ./scripts/build-web-docs.sh
+apps/orbita-web/public/docs/

@@ -11,6 +11,9 @@ importers:
       '@types/node':
         specifier: ^22.15.30
         version: 22.19.21
+      marked:
+        specifier: ^15.0.12
+        version: 15.0.12
       typescript:
         specifier: ^5.8.3
         version: 5.9.3
@@ -73,11 +76,30 @@ importers:
         specifier: ^4.19.4
         version: 4.22.4
 
-  apps/orbita-web:
+  apps/orbita-email-worker:
+    dependencies:
+      postal-mime:
+        specifier: ^2.4.4
+        version: 2.7.4
     devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20250317.0
+        version: 4.20260623.1
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
       wrangler:
         specifier: ^3.114.0
-        version: 3.114.17
+        version: 3.114.17(@cloudflare/workers-types@4.20260623.1)
+
+  apps/orbita-web:
+    devDependencies:
+      marked:
+        specifier: ^15.0.12
+        version: 15.0.12
+      wrangler:
+        specifier: ^3.114.0
+        version: 3.114.17(@cloudflare/workers-types@4.20260623.1)
 
   packages/lane-admin:
     dependencies:
@@ -98,7 +120,7 @@ importers:
         version: link:../lane-tools
       drizzle-orm:
         specifier: ^0.44.2
-        version: 0.44.7(postgres@3.4.9)
+        version: 0.44.7(@cloudflare/workers-types@4.20260623.1)(postgres@3.4.9)
       hono:
         specifier: ^4.7.11
         version: 4.12.26
@@ -151,7 +173,7 @@ importers:
         version: link:../lane-platform
       drizzle-orm:
         specifier: ^0.44.2
-        version: 0.44.7(postgres@3.4.9)
+        version: 0.44.7(@cloudflare/workers-types@4.20260623.1)(postgres@3.4.9)
       hono:
         specifier: ^4.7.11
         version: 4.12.26
@@ -182,7 +204,7 @@ importers:
         version: link:../lane-platform
       drizzle-orm:
         specifier: ^0.44.2
-        version: 0.44.7(postgres@3.4.9)
+        version: 0.44.7(@cloudflare/workers-types@4.20260623.1)(postgres@3.4.9)
       hono:
         specifier: ^4.7.11
         version: 4.12.26
@@ -210,7 +232,7 @@ importers:
         version: link:../lane-platform
       drizzle-orm:
         specifier: ^0.44.2
-        version: 0.44.7(postgres@3.4.9)
+        version: 0.44.7(@cloudflare/workers-types@4.20260623.1)(postgres@3.4.9)
       hono:
         specifier: ^4.7.11
         version: 4.12.26
@@ -285,7 +307,7 @@ importers:
         version: 5.6.0
       drizzle-orm:
         specifier: ^0.44.2
-        version: 0.44.7(postgres@3.4.9)
+        version: 0.44.7(@cloudflare/workers-types@4.20260623.1)(postgres@3.4.9)
       hono:
         specifier: ^4.7.11
         version: 4.12.26
@@ -316,7 +338,7 @@ importers:
         version: link:../lane-profiles
       drizzle-orm:
         specifier: ^0.44.2
-        version: 0.44.7(postgres@3.4.9)
+        version: 0.44.7(@cloudflare/workers-types@4.20260623.1)(postgres@3.4.9)
       hono:
         specifier: ^4.7.11
         version: 4.12.26
@@ -354,7 +376,7 @@ importers:
         version: link:../lane-platform
       drizzle-orm:
         specifier: ^0.44.2
-        version: 0.44.7(postgres@3.4.9)
+        version: 0.44.7(@cloudflare/workers-types@4.20260623.1)(postgres@3.4.9)
       hono:
         specifier: ^4.7.11
         version: 4.12.26
@@ -375,7 +397,7 @@ importers:
         version: link:../lane-platform
       drizzle-orm:
         specifier: ^0.44.2
-        version: 0.44.7(postgres@3.4.9)
+        version: 0.44.7(@cloudflare/workers-types@4.20260623.1)(postgres@3.4.9)
       hono:
         specifier: ^4.7.11
         version: 4.12.26
@@ -443,6 +465,9 @@ packages:
     engines: {node: '>=16'}
     cpu: [x64]
     os: [win32]
+
+  '@cloudflare/workers-types@4.20260623.1':
+    resolution: {integrity: sha512-J/0POl0HeLepbwDE5Yx5c7jQrHFkvCEFu3TS+TQsDDlg/vTs5og7wdGP6eNGXOAntgWUrjcvvKTmVLTP7OrnAg==}
 
   '@cspotcode/source-map-support@0.8.1':
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
@@ -1810,6 +1835,11 @@ packages:
   magic-string@0.30.21:
     resolution: {integrity: sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ==}
 
+  marked@15.0.12:
+    resolution: {integrity: sha512-8dD6FusOQSrpv9Z1rdNMdlSgQOIP880DHqnohobOmYLElGEqAL/JvxvuxZO16r4HtjTlfPRDC1hbvxC9dPN2nA==}
+    engines: {node: '>= 18'}
+    hasBin: true
+
   mime@3.0.0:
     resolution: {integrity: sha512-jSCU7/VB1loIWBZe14aEYHU/+1UMEHoaO7qxCOVJOw9GgH72VAWppxNcjU+x9a2k3GSIBXNKxXQFqRvvZ7vr3A==}
     engines: {node: '>=10.0.0'}
@@ -1880,6 +1910,9 @@ packages:
   pino@9.14.0:
     resolution: {integrity: sha512-8OEwKp5juEvb/MjpIc4hjqfgCNysrS94RIOMXYvpYCdm/jglrKEiAYmiumbmGhCvs+IcInsphYDFwqrjr7398w==}
     hasBin: true
+
+  postal-mime@2.7.4:
+    resolution: {integrity: sha512-0WdnFQYUrPGGTFu1uOqD2s7omwua8xaeYGdO6rb88oD5yJ/4pPHDA4sdWqfD8wQVfCny563n/HQS7zTFft+f/g==}
 
   postcss@8.5.15:
     resolution: {integrity: sha512-FfR8sjd4em2T6fb3I2MwAJU7HWVMr9zba+enmQeeWFfCbm+UOC/0X4DS8XtpUTMwWMGbjKYP7xjfNekzyGmB3A==}
@@ -2192,6 +2225,8 @@ snapshots:
 
   '@cloudflare/workerd-windows-64@1.20250718.0':
     optional: true
+
+  '@cloudflare/workers-types@4.20260623.1': {}
 
   '@cspotcode/source-map-support@0.8.1':
     dependencies:
@@ -2899,8 +2934,9 @@ snapshots:
       esbuild: 0.25.12
       tsx: 4.22.4
 
-  drizzle-orm@0.44.7(postgres@3.4.9):
+  drizzle-orm@0.44.7(@cloudflare/workers-types@4.20260623.1)(postgres@3.4.9):
     optionalDependencies:
+      '@cloudflare/workers-types': 4.20260623.1
       postgres: 3.4.9
 
   es-module-lexer@1.7.0: {}
@@ -3093,6 +3129,8 @@ snapshots:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
 
+  marked@15.0.12: {}
+
   mime@3.0.0: {}
 
   miniflare@3.20250718.3:
@@ -3160,6 +3198,8 @@ snapshots:
       safe-stable-stringify: 2.5.0
       sonic-boom: 4.2.1
       thread-stream: 3.2.0
+
+  postal-mime@2.7.4: {}
 
   postcss@8.5.15:
     dependencies:
@@ -3430,7 +3470,7 @@ snapshots:
       '@cloudflare/workerd-linux-arm64': 1.20250718.0
       '@cloudflare/workerd-windows-64': 1.20250718.0
 
-  wrangler@3.114.17:
+  wrangler@3.114.17(@cloudflare/workers-types@4.20260623.1):
     dependencies:
       '@cloudflare/kv-asset-handler': 0.3.4
       '@cloudflare/unenv-preset': 2.0.2(unenv@2.0.0-rc.14)(workerd@1.20250718.0)
@@ -3443,6 +3483,7 @@ snapshots:
       unenv: 2.0.0-rc.14
       workerd: 1.20250718.0
     optionalDependencies:
+      '@cloudflare/workers-types': 4.20260623.1
       fsevents: 2.3.3
       sharp: 0.33.5
     transitivePeerDependencies:

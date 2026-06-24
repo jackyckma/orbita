@@ -11,10 +11,13 @@
     "typecheck": "pnpm --filter @orbita/platform build && pnpm --filter @orbita/profiles build && pnpm --filter @orbita/auth build && pnpm --filter @orbita/tools build && pnpm --filter @orbita/admin build && pnpm --filter @orbita/sessions build && pnpm --filter @orbita/agent build && pnpm --filter @orbita/memory build && pnpm --filter @orbita/credentials build && pnpm --filter @orbita/trajectory build && pnpm --filter @orbita/waitlist build && pnpm --filter @orbita/scheduler build && pnpm -r typecheck",
     "test": "pnpm -r test && vitest run --config tests/e2e/vitest.config.ts",
     "db:migrate": "bash scripts/db-migrate.sh",
-    "deploy:web": "bash scripts/deploy-web.sh"
+    "deploy:web": "bash scripts/deploy-web.sh",
+    "build:docs": "bash scripts/build-web-docs.sh",
+    "deploy:email-worker": "bash scripts/deploy-email-worker.sh"
   },
   "devDependencies": {
     "@types/node": "^22.15.30",
+    "marked": "^15.0.12",
     "typescript": "^5.8.3",
     "vitest": "^3.2.4"
   }
