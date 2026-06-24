@@ -140,7 +140,7 @@ export function createInboundEmailRoutes(
       body.text,
       "",
       "Tasks: summarize, memory_put any registration links or codes.",
-      `If replying: http_post https://api.resend.com/emails with credential_ref resend, Authorization from vault, JSON body from ${fromEmail} to ${body.from}, subject Re: ${body.subject}.`,
+      `If replying: http_post https://api.zeabur.com/api/v1/zsend/emails with credential_ref zsend, JSON from ${fromEmail} to ${body.from}, subject Re: ${body.subject}, html or text body.`,
       "Do not publish without approval.",
     ].join("\n");
 

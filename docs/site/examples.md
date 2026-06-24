@@ -41,9 +41,9 @@ Agents with `memory_put` / `memory_get` tools can also read and write during tur
 
 ## HTTP tools + credential vault
 
-1. Admin → add credential `resend` (or other provider).
-2. Admin → HTTP allow-list includes `api.resend.com`.
-3. Session with `http_post` in profile — agent sends outbound mail using `credential_ref`, not raw secrets.
+1. Admin → add credential `zsend` (Zeabur Email API key).
+2. Admin → HTTP allow-list includes `api.zeabur.com`.
+3. Session with `http_post` — agent sends mail using `credential_ref: zsend`.
 
 See [docs/instance-email.md](https://github.com/jackyckma/orbita/blob/main/docs/instance-email.md).
 

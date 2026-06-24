@@ -58,7 +58,7 @@ Open `http://127.0.0.1:3000/admin` (or production `/admin`).
 Use it to:
 
 - Create **API keys** with `allowed_client_ids`
-- Store **credentials** (Resend, third-party APIs) — never inline secrets in prompts
+- Store **credentials** (ZSend, third-party APIs) — never inline secrets in prompts
 - Configure **HTTP domain policy** for tools
 
 Deep guide: [docs/self-host.md](https://github.com/jackyckma/orbita/blob/main/docs/self-host.md)

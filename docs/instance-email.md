@@ -14,34 +14,66 @@ Orbita callers use **HTTP API** for commands. A deployment-level **from-address*
 
 | Concept | Role |
 |---------|------|
-| **`ORBITA_INSTANCE_FROM_EMAIL`** | Public-facing sender address for this deployment (e.g. `orbita@get-orbita.com`) |
-| **Vault `resend` / `sendgrid`** | API key for outbound send (`http_post` to provider) |
-| **Cloudflare Email Routing** | Optional **receive** for humans (`waitlist@` → Gmail); separate from agent outbound |
+| **`ORBITA_INSTANCE_FROM_EMAIL`** | Public-facing sender address (e.g. `orbita@get-orbita.com`) |
+| **Vault `zsend`** | Zeabur Email (ZSend) API key — agent sends via `http_post` |
+| **Cloudflare Email Routing** | **Receive** on your domain (`orbita@` → Worker → Orbita API) |
+| **Third-party SMTP APIs** | Optional alternatives (Resend, SendGrid) — same `http_post` + vault pattern |
 
-Each running instance (self-host or Zeabur) can set its own from-address and mail provider credential. Agents never need an inbox to accept instructions — API keys + sessions remain the control plane.
+Orbita does **not** embed a mail provider SDK. Any outbound provider is just an HTTPS API + Bearer token in the credential vault.
+
+## Zeabur Email (ZSend) — recommended for hosted Orbita
+
+Same stack you may already use on other Zeabur projects.
+
+| Step | Action |
+|------|--------|
+| Domain | `npx zeabur@latest email domains add --domain get-orbita.com --region ap-northeast-1` |
+| DNS | Configure records from `email domains get` |
+| API key | `npx zeabur@latest email keys create --name orbita --permission send_only` |
+| Send API | `POST https://api.zeabur.com/api/v1/zsend/emails` |
+
+Example body:
+
+```json
+{
+  "from": "orbita@get-orbita.com",
+  "to": ["recipient@example.com"],
+  "subject": "Subject",
+  "html": "<p>...</p>",
+  "text": "..."
+}
+```
+
+Agent call pattern: `http_post` with `credential_ref: zsend` (vault stores the ZSend API key as `Authorization: Bearer`).
 
 ## Typical flows
 
-1. **Service registration** — Agent fills a signup form via `http_post` with contact email = `ORBITA_INSTANCE_FROM_EMAIL`; verification link goes to that mailbox (forward to human) or a dedicated ops inbox.
-2. **Transactional send** — Agent calls Resend/SendGrid API with `credential_ref` to send invite, waitlist reply, or newsletter **after approval**.
-3. **Waitlist ops** — Today: entries in Postgres + Admin UI; optional future: approved → auto-send invite email via outbound API.
+1. **Service registration** — Agent uses `ORBITA_INSTANCE_FROM_EMAIL` on signup forms; verification mail arrives at `orbita@` (Cloudflare → Worker → agent turn).
+2. **Transactional send** — Agent `http_post` to ZSend after approval (invite, reply, newsletter draft).
+3. **Waitlist ops** — Postgres + Admin today; optional: approve → ZSend invite email.
 
 ## Setup (hosted)
 
 ```bash
 # Zeabur / .env
 ORBITA_INSTANCE_FROM_EMAIL=orbita@get-orbita.com
+ZEABUR_ZSEND_API_KEY=...   # from: npx zeabur@latest email keys create ...
 
-# Admin vault (per client_id if needed)
+# Or via Admin API
 POST /v1/admin/credentials
-{ "client_id": "...", "name": "resend", "secret": "re_...", "scope": ["emails:send"] }
+{ "client_id": "orbita-instance", "name": "zsend", "secret": "<zsend-key>", "scope": ["emails:send"] }
 
-# HTTP allow-list
 PUT /v1/admin/settings/http-domains
-{ "domains": ["api.resend.com"] }
+{ "domains": ["api.zeabur.com", ...] }
 ```
 
-Configure Cloudflare Email Routing so `orbita@get-orbita.com` can **receive** verification messages if providers require inbox confirmation.
+One-shot script:
+
+```bash
+export ORBITA_ADMIN_TOKEN=...   # prod admin from Zeabur
+export ZEABUR_ZSEND_API_KEY=...
+./scripts/setup-instance-email-prod.sh
+```
 
 ## Inbound adapter (w16)
 
@@ -55,13 +87,9 @@ For **parsed inbound mail → agent turn** (registration replies, not command-by
 
 Setup: `docs/cloudflare-email-worker.md`
 
-Production helpers:
+## What is Resend? (optional alternative)
 
-```bash
-export ORBITA_ADMIN_TOKEN=...   # prod admin from Zeabur
-export RESEND_API_KEY=re_...    # optional — vault credential
-./scripts/setup-instance-email-prod.sh
-```.
+[Resend](https://resend.com) is a **standalone** transactional email SaaS (`api.resend.com`). We mentioned it early as a common choice for agent `http_post`, but it is **not required**. If you already use Zeabur ZSend elsewhere, use `zsend` in the vault and allow `api.zeabur.com` — no Resend account needed.
 
 ## Non-goals
 
@@ -71,6 +99,6 @@ export RESEND_API_KEY=re_...    # optional — vault credential
 
 ## Next steps (when needed)
 
-- Optional `send_email` tool wrapper around Resend (validate from-address, template helpers).
-- Waitlist approve → send invite template via outbound mail.
-- Document DNS (SPF/DKIM) for the instance from-domain.
+- Optional `send_email` tool wrapper (validate from-address, templates).
+- Waitlist approve → send invite via ZSend.
+- ZSend webhooks for bounce/complaint handling.

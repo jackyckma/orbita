@@ -12,7 +12,7 @@ Mail to orbita@get-orbita.com
   → Orbita session turn (marketing profile by default)
 ```
 
-Outbound send still uses **Resend** (or similar) via agent `http_post` + credential vault. See `docs/instance-email.md`.
+Outbound send uses **Zeabur Email (ZSend)** via agent `http_post` + credential vault. See `docs/instance-email.md`.
 
 ## Prerequisites
 
@@ -103,6 +103,6 @@ Orbita maps `from` → session via memory key `inbox-session/{from}`, stores raw
 
 ## Related
 
-- `docs/instance-email.md` — outbound identity + Resend
+- `docs/instance-email.md` — outbound identity + Zeabur ZSend
 - `docs/DOCUMENTATION.md` — public docs build workflow
 - `apps/orbita-email-worker/src/index.ts` — handler source
