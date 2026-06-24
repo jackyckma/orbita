@@ -26,16 +26,16 @@ Agent-native, API-first agent system. Foundation spec: `usr/ORBITA_DESIGN.md`.
 
 | Lane | Name | Package | Status | Last shipped | Next up (prioritized) |
 |------|------|---------|--------|--------------|------------------------|
-| 0 | Platform | `@orbita/platform` | ✅ Shipped | Errors, health, 429 + Retry-After | W12 capabilities auth metadata; W16 admin metrics |
-| 1 | Auth | `@orbita/auth` | ✅ Shipped | API keys, rate limits, list keys | **W12** device flow; **W15** accounts |
-| 2 | Profiles & Skills | `@orbita/profiles` | ✅ Shipped | `default`, `research`, `coding` + skills | W13 `GET /v1/profiles`; W13 profile examples |
-| 3 | Sessions | `@orbita/sessions` | ✅ Shipped | API + LLM compression | W13 E2E compress scenarios |
-| 4 | Agent Runtime | `@orbita/agent` | ✅ Shipped | MiniMax + Anthropic tool loops | W12 capabilities auth discovery |
-| 5 | Memory | `@orbita/memory` | ✅ Shipped | pgvector + memory API | W13 E2E semantic retrieval |
-| 6 | Credentials | `@orbita/credentials` | ✅ Shipped | AES vault, admin list + create | W12 optional batch import |
-| 7 | Tools & Sandbox | `@orbita/tools` | ✅ Shipped | 7 tools + HTTP policy + `docker_echo` | General sandbox commands; E2B |
-| 8 | Scheduler | `@orbita/scheduler` | ✅ Shipped | `every_seconds`, cron, webhook | W16 scheduler leader / admin visibility |
-| 9 | Trajectory | `@orbita/trajectory` | ✅ Shipped | replay API + eval helpers | W13 website examples; future LLM judge |
+| 0 | Platform | `@orbita/platform` | ✅ Shipped | Errors, health, 429 | W16 admin metrics |
+| 1 | Auth | `@orbita/auth` | ✅ Shipped | API keys, rate limits, device flow | **W15** accounts |
+| 2 | Profiles & Skills | `@orbita/profiles` | ✅ Shipped | `default`, `research`, `coding` | More examples; MA4 optional profile |
+| 3 | Sessions | `@orbita/sessions` | ✅ Shipped | API + compression | E2E compress scenarios |
+| 4 | Agent Runtime | `@orbita/agent` | ✅ Shipped | MiniMax + Anthropic tool loops | Structured output ideas (dogfood) |
+| 5 | Memory | `@orbita/memory` | ✅ Shipped | pgvector + memory API | E2E semantic retrieval |
+| 6 | Credentials | `@orbita/credentials` | ✅ Shipped | AES vault, admin | Batch import (optional) |
+| 7 | Tools & Sandbox | `@orbita/tools` | ✅ Shipped | 7 tools + `docker_echo` | General sandbox; E2B |
+| 8 | Scheduler | `@orbita/scheduler` | ✅ Shipped | cron, webhook | W16 leader / admin visibility |
+| 9 | Trajectory | `@orbita/trajectory` | ✅ Shipped | replay + eval | LLM judge (future) |
 
 **Lane 10 — Admin console:** `@orbita/admin` — ✅ W11 shipped (`/admin` UI, session cookie, deployment HTTP domains). See `docs/admin-ui-brainstorm.md`.
 

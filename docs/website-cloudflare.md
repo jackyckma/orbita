@@ -1,11 +1,11 @@
 # Website & Cloudflare (get-orbita.com)
 
-Marketing site lives in **`apps/orbita-web`** (static assets + Cloudflare Workers deploy).
+Marketing site lives in **`apps/orbita-web`** (static assets deployed to **Cloudflare Pages**).
 
 | App | Role |
 |-----|------|
 | `apps/orbita-api` | Orbita HTTP API (Zeabur) |
-| `apps/orbita-web` | Public intro site (Cloudflare Workers) |
+| `apps/orbita-web` | Public intro site (Cloudflare Pages) |
 
 **One repo is fine** — shared docs, version alignment, single PR for API + copy updates. Split repos only if you need isolated access or unrelated release cadence.
 
@@ -24,6 +24,12 @@ pnpm dev
 ./scripts/deploy-web.sh
 ```
 
+Production URLs:
+
+- https://get-orbita.com
+- https://www.get-orbita.com
+- https://orbita-web.pages.dev (default Pages hostname)
+
 ## Cloudflare API token — IP allowlist
 
 This environment uses:
@@ -39,21 +45,35 @@ Use **IPv4** for API scripts: `curl -4` (see `scripts/cloudflare-dns-get-orbita.
 
 ## Domain setup (get-orbita.com)
 
-As of last check, **`get-orbita.com` is not yet a zone** on this Cloudflare account. Steps:
+Zone **`get-orbita.com`** is on this Cloudflare account (status **Active**).
 
-1. Cloudflare Dashboard → **Add site** → `get-orbita.com`
-2. Update nameservers at your registrar to Cloudflare’s pair
-3. Wait until zone status is **Active**
-4. Deploy worker: `./scripts/deploy-web.sh`
-5. Workers & Pages → **orbita-web** → **Domains & Routes** → Add **get-orbita.com** and **www.get-orbita.com**
-6. Or run `./scripts/cloudflare-dns-get-orbita.sh` to inspect DNS
+1. Deploy site: `./scripts/deploy-web.sh`
+2. Configure DNS + Pages custom domains: `./scripts/cloudflare-dns-get-orbita.sh`
+3. Wait until Pages reports both hostnames **active** (SSL usually 1–3 minutes after DNS)
 
-API remains at **https://orbita-api.zeabur.app** — the marketing site links there; no need to CNAME API to get-orbita.com unless you want a unified domain later.
+DNS records (proxied CNAME):
+
+| Host | Target |
+|------|--------|
+| `get-orbita.com` | `orbita-web.pages.dev` |
+| `www.get-orbita.com` | `orbita-web.pages.dev` |
+
+**Workers Routes** are not used — the zone-scoped token does not need `Workers Routes:Edit`. Pages custom domains handle TLS and routing.
+
+API: **https://api.get-orbita.com** — marketing site links there.
+
+## Waitlist (Product Phase 1)
+
+- Page: `apps/orbita-web/public/waitlist.html` → https://get-orbita.com/waitlist
+- Footer link on homepage only (not hero).
+- Form uses [FormSubmit](https://formsubmit.co): default `waitlist@get-orbita.com` in form `action`.
+- **After deploy:** submit once, confirm the inbox via FormSubmit email, or change `action` to your address.
+- No Orbita API involved — zero backend load from waitlist signups.
 
 ## Env
 
 ```bash
-CLOUDFLARE_API_TOKEN=...   # Needs Workers Scripts:Edit + Account:Read (deploy) and Zone:DNS:Edit (DNS scripts)
+CLOUDFLARE_API_TOKEN=...   # Needs Account:Read, Cloudflare Pages:Edit, Zone:DNS:Edit (get-orbita.com)
 ```
 
 Never commit tokens. `.env` is gitignored.

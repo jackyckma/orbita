@@ -26,8 +26,8 @@ purpose: 產品方向 — Orbita hosted 如何對外開放（階段性邀請制 
 
 | 階段 | 名稱 | 陌生人 | 受邀／朋友 | 收費 | Orbita 對應 |
 |------|------|--------|------------|------|-------------|
-| **Phase 0**（現在） | 自用 + 穩定 | 無 API 存取 | 你手動 `/admin` 發 key 測試 | 無 | **A + B** 技術底座 ✅ |
-| **Phase 1** | 邀請制 hosted | **Waitlist only**（行銷站表單，不發 key） | Admin approve → 發 key；per-key rate limit | 測試期可免費／低 quota | **B+** — waitlist 表 + approve 流程 |
+| **Phase 0**（現在） | 自用 + 穩定 + MA dogfood | 無 API 存取 | 你手動 `/admin` 發 key | 無 | **A + B** ✅；MA1 ✅ |
+| **Phase 1** | 邀請制 hosted | **Waitlist**（`get-orbita.com/waitlist`） | Admin approve → 發 key | 測試期低 quota | **B+** 🔄 FormSubmit 確認 |
 | **Phase 2** | 正式 SaaS | 註冊（或 waitlist → 開通） | 方案、用量 dashboard | **必須收費**（或硬 quota + 超額停） | **C** — W17+ metering + billing |
 
 **長期保留：** **模式 A（Self-host）** 與開源 repo — 與 hosted 不衝突。

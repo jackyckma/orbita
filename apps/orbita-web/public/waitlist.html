@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Join the Orbita API waitlist — invite-only hosted access while we stabilize the platform."
+    />
+    <title>Waitlist — Orbita</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Syne:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header>
+      <div class="wrap nav">
+        <a class="logo" href="/">Orbit<span>a</span></a>
+        <nav class="nav-links">
+          <a href="/">Home</a>
+          <a href="/updates.html">Updates</a>
+          <a href="https://github.com/jackyckma/orbita" rel="noopener">GitHub</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="page-main">
+      <div class="wrap">
+        <p class="eyebrow">Invite-only</p>
+        <h1>Hosted API waitlist</h1>
+        <p class="section-intro">
+          Orbita’s hosted API at
+          <a href="https://api.get-orbita.com/v1/health" rel="noopener">api.get-orbita.com</a>
+          is in early access. We onboard by invitation while we test load and pricing.
+          Self-host from
+          <a href="https://github.com/jackyckma/orbita" rel="noopener">GitHub</a>
+          anytime — no waitlist required.
+        </p>
+
+        <div class="changelog-aside" style="max-width: 32rem">
+          <form
+            id="waitlist-form"
+            class="waitlist-form"
+            action="https://formsubmit.co/waitlist@get-orbita.com"
+            method="POST"
+          >
+            <input type="hidden" name="_subject" value="Orbita waitlist" />
+            <input type="hidden" name="_captcha" value="false" />
+            <input type="hidden" name="_next" value="https://get-orbita.com/waitlist.html?thanks=1" />
+            <label class="waitlist-label">
+              Email
+              <input
+                type="email"
+                name="email"
+                required
+                autocomplete="email"
+                placeholder="you@company.com"
+                class="waitlist-input"
+              />
+            </label>
+            <label class="waitlist-label">
+              What are you building? (optional)
+              <textarea
+                name="message"
+                rows="3"
+                class="waitlist-input"
+                placeholder="Agent orchestrator, internal tools, …"
+              ></textarea>
+            </label>
+            <button type="submit" class="btn btn-primary">Join waitlist</button>
+            <p id="waitlist-thanks" class="waitlist-hint" hidden>
+              Thanks — we received your request. We’ll email you when invites open.
+            </p>
+            <p class="waitlist-hint">
+              Form delivery uses
+              <a href="https://formsubmit.co" rel="noopener">FormSubmit</a>. Confirm
+              <code>waitlist@get-orbita.com</code> in FormSubmit after first submission, or
+              change the form <code>action</code> in this file (see
+              <code>docs/website-cloudflare.md</code>).
+            </p>
+          </form>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <span>Orbita — agent-native API</span>
+        <span>
+          <a href="/">Home</a>
+          ·
+          <a href="https://api.get-orbita.com/v1/health" rel="noopener">API</a>
+        </span>
+      </div>
+    </footer>
+    <script>
+      if (new URLSearchParams(location.search).get("thanks") === "1") {
+        document.getElementById("waitlist-thanks").hidden = false;
+        document.getElementById("waitlist-form").style.display = "none";
+      }
+    </script>
+  </body>
+</html>
