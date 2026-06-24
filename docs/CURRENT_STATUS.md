@@ -6,9 +6,9 @@
 
 Orbita **W0–W14 shipped**. Production API **https://api.get-orbita.com** (`0.0.1-w14`). Marketing site **https://get-orbita.com** with **waitlist** (Product Phase 1).
 
-**Parallel:** MA track — **MA1** dogfood complete (`docs/marketing-agent-plan.md`).
+**Parallel:** MA track — **MA2** complete (`docs/marketing-agent-plan.md`): second product folder, weekly cron scheduler job.
 
-**Next platform wave:** W15 multi-user (defer until invite scale needs accounts). **Next product:** Phase 1 waitlist ops (FormSubmit email confirm).
+**Next platform wave:** W15 multi-user (defer until invite scale needs accounts). **Next MA:** MA3 credentials + channel draft flow.
 
 ## Waves
 
@@ -23,7 +23,7 @@ Orbita **W0–W14 shipped**. Production API **https://api.get-orbita.com** (`0.0
 | Phase | Status |
 |-------|--------|
 | **Phase 0** | 🔄 Self-use stabilize (ongoing polish) |
-| **Phase 1** | 🔄 Waitlist live on marketing site |
+| **Phase 1** | ✅ Waitlist live (`waitlist@get-orbita.com` → Email Routing) |
 | **Phase 2** | 📋 Paid SaaS |
 
 ## Infrastructure
@@ -38,5 +38,5 @@ Orbita **W0–W14 shipped**. Production API **https://api.get-orbita.com** (`0.0
 
 - `docs/product-architecture.md` — lanes + W waves
 - `docs/api-as-product.md` — invite-only → SaaS (decided)
-- `docs/marketing-agent-plan.md` — MA0 ✅ MA1 ✅
+- `docs/marketing-agent-plan.md` — MA0 ✅ MA1 ✅ MA2 ✅
 - `docs/self-host.md` — self-host guide
