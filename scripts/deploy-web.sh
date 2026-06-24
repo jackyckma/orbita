@@ -17,28 +17,11 @@ if [[ -z "${CLOUDFLARE_API_TOKEN:-}" ]]; then
   exit 1
 fi
 
-if [[ -z "${ORBITA_WAITLIST_NOTIFY_EMAIL:-}" ]]; then
-  ORBITA_WAITLIST_NOTIFY_EMAIL="waitlist@get-orbita.com"
-fi
-
-STAGING="$(mktemp -d)"
-trap 'rm -rf "$STAGING"' EXIT
-cp -r public/* "$STAGING/"
-# Escape sed replacement (email only — still escape & and /)
-ESCAPED_EMAIL="${ORBITA_WAITLIST_NOTIFY_EMAIL//\\/\\\\}"
-ESCAPED_EMAIL="${ESCAPED_EMAIL//&/\\&}"
-sed -i "s|__WAITLIST_NOTIFY_EMAIL__|${ESCAPED_EMAIL}|g" "$STAGING/waitlist.html"
-
-if grep -q '__WAITLIST_NOTIFY_EMAIL__' "$STAGING/waitlist.html"; then
-  echo "waitlist.html placeholder not replaced — check ORBITA_WAITLIST_NOTIFY_EMAIL"
-  exit 1
-fi
-
 export CLOUDFLARE_API_TOKEN
-echo "==> deploying orbita-web to Cloudflare Pages (waitlist → ${ORBITA_WAITLIST_NOTIFY_EMAIL})"
-NODE_OPTIONS='--dns-result-order=ipv4first' pnpm exec wrangler pages deploy "$STAGING" \
+echo "==> deploying orbita-web to Cloudflare Pages"
+NODE_OPTIONS='--dns-result-order=ipv4first' pnpm exec wrangler pages deploy public \
   --project-name=orbita-web \
   --branch=main \
   --commit-dirty=true
 
-echo "==> done. FormSubmit activation goes to ${ORBITA_WAITLIST_NOTIFY_EMAIL} (forward via Cloudflare Email Routing → your inbox)."
+echo "==> done. Waitlist submits to POST https://api.get-orbita.com/v1/waitlist"

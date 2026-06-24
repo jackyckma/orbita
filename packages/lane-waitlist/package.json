@@ -1,5 +1,5 @@
 {
-  "name": "@orbita/scheduler",
+  "name": "@orbita/waitlist",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -11,16 +11,11 @@
   },
   "dependencies": {
     "@hono/zod-openapi": "^0.19.6",
-    "@orbita/auth": "workspace:*",
     "@orbita/platform": "workspace:*",
-    "cron-parser": "^5.0.4",
     "drizzle-orm": "^0.44.2",
     "hono": "^4.7.11",
     "postgres": "^3.4.7",
-    "@orbita/sessions": "workspace:*",
     "zod": "^3.25.56"
   },
-  "devDependencies": {
-    "vitest": "^3.2.4"
-  }
+  "devDependencies": { "vitest": "^3.2.4" }
 }

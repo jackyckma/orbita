@@ -42,19 +42,12 @@
         </p>
 
         <div class="changelog-aside" style="max-width: 32rem">
-          <form
-            id="waitlist-form"
-            class="waitlist-form"
-            action="https://formsubmit.co/__WAITLIST_NOTIFY_EMAIL__"
-            method="POST"
-          >
-            <input type="hidden" name="_subject" value="Orbita waitlist" />
-            <input type="hidden" name="_captcha" value="false" />
-            <input type="hidden" name="_next" value="https://get-orbita.com/waitlist.html?thanks=1" />
+          <form id="waitlist-form" class="waitlist-form">
             <label class="waitlist-label">
               Email
               <input
                 type="email"
+                id="waitlist-email"
                 name="email"
                 required
                 autocomplete="email"
@@ -65,19 +58,21 @@
             <label class="waitlist-label">
               What are you building? (optional)
               <textarea
+                id="waitlist-message"
                 name="message"
                 rows="3"
                 class="waitlist-input"
                 placeholder="Agent orchestrator, internal tools, …"
               ></textarea>
             </label>
-            <button type="submit" class="btn btn-primary">Join waitlist</button>
+            <button type="submit" class="btn btn-primary" id="waitlist-submit">Join waitlist</button>
+            <p id="waitlist-error" class="waitlist-hint" hidden style="color: var(--danger, #c44)"></p>
             <p id="waitlist-thanks" class="waitlist-hint" hidden>
-              Thanks — we received your request. We’ll email you when invites open.
+              Thanks — you’re on the list. We’ll email you when invites open.
             </p>
             <p class="waitlist-hint">
-              Operator notifications go to
-              <code>waitlist@get-orbita.com</code> (forwarded to our inbox via Cloudflare Email Routing).
+              Submissions are stored on the Orbita API. Review and approve in
+              <a href="https://api.get-orbita.com/admin" rel="noopener">Admin</a>.
             </p>
           </form>
         </div>
@@ -95,10 +90,42 @@
       </div>
     </footer>
     <script>
+      const API = "https://api.get-orbita.com/v1/waitlist";
+      const form = document.getElementById("waitlist-form");
+      const thanks = document.getElementById("waitlist-thanks");
+      const errEl = document.getElementById("waitlist-error");
+      const submitBtn = document.getElementById("waitlist-submit");
+
       if (new URLSearchParams(location.search).get("thanks") === "1") {
-        document.getElementById("waitlist-thanks").hidden = false;
-        document.getElementById("waitlist-form").style.display = "none";
+        thanks.hidden = false;
+        form.style.display = "none";
       }
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        errEl.hidden = true;
+        submitBtn.disabled = true;
+        const email = document.getElementById("waitlist-email").value.trim();
+        const message = document.getElementById("waitlist-message").value.trim();
+        try {
+          const res = await fetch(API, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, message: message || undefined }),
+          });
+          const body = await res.json().catch(() => ({}));
+          if (!res.ok) {
+            throw new Error(body?.error?.message || "Could not join waitlist");
+          }
+          history.replaceState(null, "", "?thanks=1");
+          thanks.hidden = false;
+          form.style.display = "none";
+        } catch (err) {
+          errEl.textContent = err.message || "Something went wrong";
+          errEl.hidden = false;
+          submitBtn.disabled = false;
+        }
+      });
     </script>
   </body>
 </html>

@@ -65,17 +65,14 @@ API: **https://api.get-orbita.com** — marketing site links there.
 ## Waitlist (Product Phase 1)
 
 - Page: https://get-orbita.com/waitlist
-- FormSubmit delivers to **`waitlist@get-orbita.com`**.
-- **Cloudflare Email Routing** must forward `waitlist@get-orbita.com` → your personal inbox (Dashboard → Email → Routing rules).
-- MX/SPF/DKIM: enable via Email Routing wizard (API: `GET /zones/{id}/email/routing/dns`).
-- **FormSubmit:** after deploy, submit the waitlist form once; open the activation email in your **forwarded** inbox (e.g. Gmail) and confirm.
-- Deploy: `./scripts/deploy-web.sh` (uses `ORBITA_WAITLIST_NOTIFY_EMAIL`, default `waitlist@get-orbita.com`).
+- API: `POST https://api.get-orbita.com/v1/waitlist` (JSON `{ email, message? }`)
+- CORS origins: `ORBITA_WAITLIST_ALLOWED_ORIGINS` (default `https://get-orbita.com`, `https://www.get-orbita.com`)
+- Admin: https://api.get-orbita.com/admin → **Waitlist** panel (approve / reject)
+- Deploy site: `./scripts/deploy-web.sh` (no FormSubmit)
 
-```bash
-# Optional override in .env
-ORBITA_WAITLIST_NOTIFY_EMAIL=waitlist@get-orbita.com
-./scripts/deploy-web.sh
-```
+Optional operator inbox: Cloudflare Email Routing on `waitlist@get-orbita.com` for human notifications (not required for API storage).
+
+Instance outbound email design: `docs/instance-email.md`.
 
 ## Env
 

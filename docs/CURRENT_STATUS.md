@@ -4,18 +4,19 @@
 
 ## Summary
 
-Orbita **W0–W14 shipped**. Production API **https://api.get-orbita.com** (`0.0.1-w14`). Marketing site **https://get-orbita.com** with **waitlist** (Product Phase 1).
+Orbita **W0–W14 shipped**; API version **0.0.1-w15** adds waitlist + scheduler `agent_message`.
 
-**Parallel:** MA track — **MA4** complete (`marketing` profile + memory tools). X publish still blocked until Bearer token.
+**Parallel:** MA track MA0–MA4 complete. X publish blocked until Bearer token.
 
-**Next platform wave:** W15 multi-user (defer). **Next MA:** X publish when ready; SEO runbook when Search Console creds exist.
+**Next platform wave:** W15 multi-user accounts (deferred). **Next product:** waitlist approve → invite email; instance outbound email (`docs/instance-email.md`).
 
 ## Waves
 
 | Wave | Status |
 |------|--------|
 | W0–W14 | ✅ Shipped |
-| **W15–W16** | 📋 Multi-user, system admin |
+| **w15** (API version) | ✅ Waitlist API, scheduler `agent_message`, memory tools |
+| **W15–W16** (roadmap) | 📋 Multi-user accounts, system admin |
 | **W17+** | 📋 Billing SaaS (Phase 2 product) |
 
 ## Product phases (`docs/api-as-product.md`)
@@ -23,7 +24,7 @@ Orbita **W0–W14 shipped**. Production API **https://api.get-orbita.com** (`0.0
 | Phase | Status |
 |-------|--------|
 | **Phase 0** | 🔄 Self-use stabilize (ongoing polish) |
-| **Phase 1** | ✅ Waitlist live (`waitlist@get-orbita.com` → Email Routing) |
+| **Phase 1** | ✅ Waitlist API + Admin review (`POST /v1/waitlist`) |
 | **Phase 2** | 📋 Paid SaaS |
 
 ## Infrastructure

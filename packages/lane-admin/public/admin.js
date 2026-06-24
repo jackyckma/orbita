@@ -183,6 +183,12 @@ async function renderDashboard() {
       </div>
 
       <div class="panel">
+        <h2>Waitlist</h2>
+        <p class="hint">Phase 1 hosted API signups from get-orbita.com/waitlist.</p>
+        <div id="waitlist-table">Loading…</div>
+      </div>
+
+      <div class="panel">
         <h2>Credentials</h2>
         <div id="creds-table">Loading…</div>
       </div>
@@ -255,6 +261,7 @@ async function renderDashboard() {
 
   await loadSettings();
   await loadKeys();
+  await loadWaitlist();
   await loadCreds();
 }
 
@@ -298,6 +305,48 @@ async function loadKeys() {
       if (!confirm("Revoke this API key?")) return;
       await api(`/api-keys/${btn.dataset.revoke}`, { method: "DELETE" });
       await loadKeys();
+    };
+  });
+}
+
+async function loadWaitlist() {
+  const { entries } = await api("/waitlist?status=pending");
+  const rows = entries
+    .map(
+      (e) => `<tr>
+        <td class="mono">${esc(e.email)}</td>
+        <td>${esc(e.message || "—")}</td>
+        <td>${esc(e.created_at)}</td>
+        <td>
+          <button data-approve="${esc(e.id)}">Approve</button>
+          <button class="secondary" data-reject="${esc(e.id)}">Reject</button>
+        </td>
+      </tr>`,
+    )
+    .join("");
+  document.getElementById("waitlist-table").innerHTML = `
+    <table>
+      <thead><tr><th>Email</th><th>Message</th><th>Created</th><th></th></tr></thead>
+      <tbody>${rows || '<tr><td colspan="4">No pending entries.</td></tr>'}</tbody>
+    </table>`;
+  document.querySelectorAll("[data-approve]").forEach((btn) => {
+    btn.onclick = async () => {
+      await api(`/waitlist/${btn.dataset.approve}`, {
+        method: "PATCH",
+        body: JSON.stringify({ status: "approved" }),
+      });
+      flash(`Approved ${btn.dataset.approve}`);
+      await loadWaitlist();
+    };
+  });
+  document.querySelectorAll("[data-reject]").forEach((btn) => {
+    btn.onclick = async () => {
+      await api(`/waitlist/${btn.dataset.reject}`, {
+        method: "PATCH",
+        body: JSON.stringify({ status: "rejected" }),
+      });
+      flash(`Rejected ${btn.dataset.reject}`);
+      await loadWaitlist();
     };
   });
 }

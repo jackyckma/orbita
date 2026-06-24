@@ -45,13 +45,20 @@ import {
   logRequest,
   requestIdMiddleware,
 } from "@orbita/platform";
-import { createSchedulerRoutes, createSchedulerDb, startSchedulerTick } from "@orbita/scheduler";
+import { createSchedulerRoutes, createSchedulerDb, runScheduledAgentMessage, startSchedulerTick } from "@orbita/scheduler";
 import {
   createSessionRoutes,
   createSessionsDb,
   getSessionForClient,
   type AgentTurnRunner,
 } from "@orbita/sessions";
+import {
+  createWaitlistAdminRoutes,
+  createWaitlistDb,
+  createWaitlistPublicRoutes,
+  ensureWaitlistSchema,
+  loadWaitlistEnv,
+} from "@orbita/waitlist";
 import {
   createTrajectoryRoutes,
   createTrajectoryDb,
@@ -63,10 +70,11 @@ import { createE2eMockTurnRunner } from "./e2e-mock.js";
 
 const E2E_MOCK = process.env.ORBITA_E2E_MOCK === "1";
 
-const VERSION = "0.0.1-w14";
+const VERSION = "0.0.1-w15";
 const env = loadPlatformEnv();
 const agentEnv = loadAgentEnv();
 const memoryEnv = loadMemoryEnv();
+const waitlistEnv = loadWaitlistEnv();
 const logger = createLogger(env.NODE_ENV);
 
 if (!env.DATABASE_URL) {
@@ -93,6 +101,9 @@ const trajectoryDb = createTrajectoryDb(env.DATABASE_URL);
 const schedulerDb = createSchedulerDb(env.DATABASE_URL);
 const credentialsDb = createCredentialsDb(env.DATABASE_URL);
 const adminDb = createAdminDb(env.DATABASE_URL);
+const waitlistDb = createWaitlistDb(env.DATABASE_URL);
+
+await ensureWaitlistSchema(waitlistDb);
 
 await loadDeploymentHttpPolicy(adminDb);
 
@@ -185,8 +196,11 @@ adminApp.route(
   createCredentialAdminRoutes(credentialsDb, env.ORBITA_SECRETS_KEY!),
 );
 adminApp.route("/", createAdminRoutes(authDb));
+adminApp.route("/", createWaitlistAdminRoutes(waitlistDb));
 
 app.route("/v1/admin", adminApp);
+
+app.route("/v1", createWaitlistPublicRoutes(waitlistDb, waitlistEnv));
 
 const protectedApp = new OpenAPIHono();
 protectedApp.use("*", authMiddleware);
@@ -232,6 +246,29 @@ startSchedulerTick(
       eventType: "scheduled_job_tick",
       payload: { task: job.task, output_routing: job.outputRouting },
     });
+
+    const agentResult = await runScheduledAgentMessage(
+      sessionsDb,
+      job.sessionId,
+      job.clientId,
+      job.task as Record<string, unknown>,
+      runTurn,
+      sessionSummarizer,
+    );
+    if (agentResult.ran) {
+      logger.info({ job_id: job.id, session_id: job.sessionId }, "scheduled agent_message completed");
+      await logTrajectoryEvent(trajectoryDb, {
+        sessionId: job.sessionId,
+        clientId: job.clientId,
+        eventType: "scheduled_agent_turn",
+        payload: { task: job.task },
+      });
+    } else if (agentResult.error) {
+      logger.warn(
+        { job_id: job.id, session_id: job.sessionId, error: agentResult.error },
+        "scheduled agent_message failed",
+      );
+    }
   },
   logger,
 );

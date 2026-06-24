@@ -122,3 +122,18 @@ CREATE TABLE IF NOT EXISTS "device_auth_requests" (
   "approved_at" timestamp with time zone,
   "created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
+
+-- Phase 1: hosted API waitlist
+CREATE TABLE IF NOT EXISTS "waitlist_entries" (
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+  "email" text NOT NULL,
+  "message" text,
+  "status" text DEFAULT 'pending' NOT NULL,
+  "notes" text,
+  "created_at" timestamp with time zone DEFAULT now() NOT NULL,
+  "updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+  "approved_at" timestamp with time zone
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS "waitlist_entries_email_lower_unique"
+  ON "waitlist_entries" (lower("email"));

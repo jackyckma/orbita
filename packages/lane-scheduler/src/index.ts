@@ -8,3 +8,8 @@ export {
   initialNextRunAt,
 } from "./schedule.js";
 export { deliverJobWebhook } from "./webhook.js";
+export {
+  parseAgentMessageTask,
+  runScheduledAgentMessage,
+  type ScheduledAgentMessageTask,
+} from "./agent-message.js";
