@@ -17,7 +17,20 @@ if [[ -f "$ROOT/.env" ]]; then
 fi
 
 if [[ -z "${ORBITA_ADMIN_TOKEN:-}" ]]; then
-  echo "ORBITA_ADMIN_TOKEN required (prod admin token)"
+  ORBITA_ADMIN_TOKEN=$(npx zeabur@latest variable list --id "$SERVICE_ID" -i=false 2>/dev/null | python3 -c "
+import re, sys
+for line in sys.stdin:
+    if re.search(r'\\bORBITA_ADMIN_TOKEN\\b', line) and 'INBOUND' not in line:
+        m = re.search(r'\\[32m([^\\[]+)\\[0m', line)
+        if m:
+            print(m.group(1).strip())
+            break
+")
+  export ORBITA_ADMIN_TOKEN
+fi
+
+if [[ -z "${ORBITA_ADMIN_TOKEN:-}" ]]; then
+  echo "ORBITA_ADMIN_TOKEN required (prod admin token from Zeabur Dashboard)"
   exit 1
 fi
 

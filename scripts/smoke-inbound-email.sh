@@ -17,7 +17,7 @@ curl -4 -sf -X POST "$API/v1/inbound/email" \
   -d "$(jq -n \
     --arg mid "$MSG_ID" \
     '{
-      from: "noreply@resend.dev",
+      from: "verify@service.com",
       to: "orbita@get-orbita.com",
       subject: "Orbita inbound smoke",
       text: "verification_code=SMOKE123",
