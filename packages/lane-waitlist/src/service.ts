@@ -1,7 +1,11 @@
 import { desc, eq } from "drizzle-orm";
 import { conflict, notFound } from "@orbita/platform";
+import type { AuthDb } from "@orbita/auth";
+import { createApiKey } from "@orbita/auth";
+import type { WaitlistEnv } from "./config.js";
 import type { WaitlistDb } from "./db/client.js";
 import { waitlistEntries, type WaitlistEntryRow } from "./db/schema.js";
+import { sendWaitlistInviteEmail } from "./invite.js";
 
 export function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
@@ -85,6 +89,66 @@ export async function updateWaitlistEntry(
     throw notFound("Waitlist entry not found");
   }
   return entryToJson(row);
+}
+
+export type ApproveWaitlistResult = {
+  entry: WaitlistEntryJson;
+  api_key?: string;
+  invite_sent: boolean;
+};
+
+export async function approveWaitlistEntryWithInvite(
+  waitlistDb: WaitlistDb,
+  authDb: AuthDb,
+  env: WaitlistEnv,
+  id: string,
+  input: { client_id?: string; send_invite?: boolean; notes?: string },
+): Promise<ApproveWaitlistResult> {
+  const [existing] = await waitlistDb.db
+    .select()
+    .from(waitlistEntries)
+    .where(eq(waitlistEntries.id, id))
+    .limit(1);
+  if (!existing) {
+    throw notFound("Waitlist entry not found");
+  }
+  if (existing.status === "approved") {
+    throw conflict("Waitlist entry already approved");
+  }
+
+  const entry = await updateWaitlistEntry(waitlistDb, id, {
+    status: "approved",
+    notes: input.notes,
+  });
+
+  const clientId =
+    input.client_id?.trim() ||
+    env.ORBITA_WAITLIST_INVITE_CLIENT_ID?.trim() ||
+    `waitlist-${entry.id.slice(0, 8)}`;
+
+  const keyResult = await createApiKey(authDb, {
+    allowedClientIds: [clientId],
+    scopes: ["sessions:create", "sessions:use"],
+  });
+
+  let inviteSent = false;
+  if (input.send_invite && env.ZEABUR_ZSEND_API_KEY && env.ORBITA_INSTANCE_FROM_EMAIL) {
+    const apiBase = env.ORBITA_PUBLIC_BASE_URL?.replace(/\/$/, "") || "https://api.get-orbita.com";
+    await sendWaitlistInviteEmail({
+      apiKey: keyResult.plaintextKey,
+      fromEmail: env.ORBITA_INSTANCE_FROM_EMAIL,
+      toEmail: entry.email,
+      zsendApiKey: env.ZEABUR_ZSEND_API_KEY,
+      apiBaseUrl: apiBase,
+    });
+    inviteSent = true;
+  }
+
+  return {
+    entry,
+    api_key: keyResult.plaintextKey,
+    invite_sent: inviteSent,
+  };
 }
 
 export async function ensureWaitlistSchema(db: WaitlistDb): Promise<void> {

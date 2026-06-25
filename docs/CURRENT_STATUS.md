@@ -1,21 +1,22 @@
 # Current status
 
-**Last updated:** 2026-06-24
+**Last updated:** 2026-06-20
 
 ## Summary
 
-Orbita **W0–W14 shipped**; API version **0.0.1-w15** adds waitlist + scheduler `agent_message`.
+Orbita **W0–W19 shipped**; API version **0.0.1-w20** adds waitlist approve → API key + optional ZSend invite email.
 
 **Parallel:** MA track MA0–MA4 complete. X publish blocked until Bearer token.
 
-**Next platform wave:** W15 multi-user accounts (deferred). **Next product:** waitlist approve → invite email; instance outbound email (`docs/instance-email.md`).
+**Next platform wave:** W15 multi-user accounts (deferred). **Next product:** usage/observability polish; optional admin sessions read-only view.
 
 ## Waves
 
 | Wave | Status |
 |------|--------|
 | W0–W14 | ✅ Shipped |
-| **w15** (API version) | ✅ Waitlist API, scheduler `agent_message`, memory tools |
+| **w15–w19** | ✅ Waitlist, scheduler, inbound email, ZSend outbound, async inbound |
+| **w20** | ✅ Waitlist approve → API key + ZSend invite |
 | **W15–W16** (roadmap) | 📋 Multi-user accounts, system admin |
 | **W17+** | 📋 Billing SaaS (Phase 2 product) |
 
@@ -24,7 +25,7 @@ Orbita **W0–W14 shipped**; API version **0.0.1-w15** adds waitlist + scheduler
 | Phase | Status |
 |-------|--------|
 | **Phase 0** | 🔄 Self-use stabilize (ongoing polish) |
-| **Phase 1** | ✅ Waitlist API + Admin review (`POST /v1/waitlist`) |
+| **Phase 1** | ✅ Waitlist + approve → key + invite email (`PATCH /v1/admin/waitlist/{id}`) |
 | **Phase 2** | 📋 Paid SaaS |
 
 ## Infrastructure

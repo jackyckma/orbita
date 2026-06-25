@@ -8,6 +8,9 @@ export {
   listWaitlistEntries,
   normalizeEmail,
   updateWaitlistEntry,
+  approveWaitlistEntryWithInvite,
 } from "./service.js";
+export type { ApproveWaitlistResult } from "./service.js";
 export { createWaitlistPublicRoutes } from "./routes/public.js";
 export { createWaitlistAdminRoutes } from "./routes/admin.js";
+export type { WaitlistAdminDeps } from "./routes/admin.js";

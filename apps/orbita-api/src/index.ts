@@ -71,7 +71,7 @@ import { createE2eMockTurnRunner } from "./e2e-mock.js";
 
 const E2E_MOCK = process.env.ORBITA_E2E_MOCK === "1";
 
-const VERSION = "0.0.1-w19";
+const VERSION = "0.0.1-w20";
 const env = loadPlatformEnv();
 const agentEnv = loadAgentEnv();
 const memoryEnv = loadMemoryEnv();
@@ -197,7 +197,7 @@ adminApp.route(
   createCredentialAdminRoutes(credentialsDb, env.ORBITA_SECRETS_KEY!),
 );
 adminApp.route("/", createAdminRoutes(authDb));
-adminApp.route("/", createWaitlistAdminRoutes(waitlistDb));
+adminApp.route("/", createWaitlistAdminRoutes({ waitlistDb, authDb, waitlistEnv }));
 
 app.route("/v1/admin", adminApp);
 

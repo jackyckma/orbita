@@ -331,12 +331,26 @@ async function loadWaitlist() {
     </table>`;
   document.querySelectorAll("[data-approve]").forEach((btn) => {
     btn.onclick = async () => {
-      await api(`/waitlist/${btn.dataset.approve}`, {
-        method: "PATCH",
-        body: JSON.stringify({ status: "approved" }),
-      });
-      flash(`Approved ${btn.dataset.approve}`);
-      await loadWaitlist();
+      try {
+        const res = await api(`/waitlist/${btn.dataset.approve}`, {
+          method: "PATCH",
+          body: JSON.stringify({ status: "approved", send_invite: true }),
+        });
+        let msg = `Approved ${btn.dataset.approve}`;
+        if (res.invite_sent) {
+          msg += " — invite email sent.";
+        } else {
+          msg += " — invite email not sent (check ZSend env). Copy API key below.";
+        }
+        if (res.api_key) {
+          msg += ` Key: ${res.api_key}`;
+        }
+        flash(msg);
+        await loadKeys();
+        await loadWaitlist();
+      } catch (e) {
+        flash(e.message, true);
+      }
     };
   });
   document.querySelectorAll("[data-reject]").forEach((btn) => {

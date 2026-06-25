@@ -1,8 +1,21 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
+import type { AuthDb } from "@orbita/auth";
+import type { WaitlistEnv } from "../config.js";
 import type { WaitlistDb } from "../db/client.js";
-import { listWaitlistEntries, updateWaitlistEntry } from "../service.js";
+import {
+  approveWaitlistEntryWithInvite,
+  listWaitlistEntries,
+  updateWaitlistEntry,
+} from "../service.js";
 
-export function createWaitlistAdminRoutes(db: WaitlistDb): OpenAPIHono {
+export type WaitlistAdminDeps = {
+  waitlistDb: WaitlistDb;
+  authDb: AuthDb;
+  waitlistEnv: WaitlistEnv;
+};
+
+export function createWaitlistAdminRoutes(deps: WaitlistAdminDeps): OpenAPIHono {
+  const { waitlistDb, authDb, waitlistEnv } = deps;
   const app = new OpenAPIHono();
 
   const listRoute = createRoute({
@@ -31,7 +44,7 @@ export function createWaitlistAdminRoutes(db: WaitlistDb): OpenAPIHono {
 
   app.openapi(listRoute, async (c) => {
     const { status } = c.req.valid("query");
-    const entries = await listWaitlistEntries(db, status);
+    const entries = await listWaitlistEntries(waitlistDb, status);
     return c.json({ entries }, 200);
   });
 
@@ -48,6 +61,8 @@ export function createWaitlistAdminRoutes(db: WaitlistDb): OpenAPIHono {
             schema: z.object({
               status: z.enum(["pending", "approved", "rejected"]),
               notes: z.string().max(2000).optional(),
+              send_invite: z.boolean().optional(),
+              client_id: z.string().min(1).max(128).optional(),
             }),
           },
         },
@@ -58,7 +73,11 @@ export function createWaitlistAdminRoutes(db: WaitlistDb): OpenAPIHono {
         description: "Updated entry",
         content: {
           "application/json": {
-            schema: z.object({ entry: z.record(z.unknown()) }),
+            schema: z.object({
+              entry: z.record(z.unknown()),
+              api_key: z.string().optional(),
+              invite_sent: z.boolean().optional(),
+            }),
           },
         },
       },
@@ -68,7 +87,24 @@ export function createWaitlistAdminRoutes(db: WaitlistDb): OpenAPIHono {
   app.openapi(patchRoute, async (c) => {
     const { entry_id } = c.req.valid("param");
     const body = c.req.valid("json");
-    const entry = await updateWaitlistEntry(db, entry_id, body);
+
+    if (body.status === "approved") {
+      const result = await approveWaitlistEntryWithInvite(waitlistDb, authDb, waitlistEnv, entry_id, {
+        send_invite: body.send_invite ?? false,
+        client_id: body.client_id,
+        notes: body.notes,
+      });
+      return c.json(
+        {
+          entry: result.entry,
+          api_key: result.api_key,
+          invite_sent: result.invite_sent,
+        },
+        200,
+      );
+    }
+
+    const entry = await updateWaitlistEntry(waitlistDb, entry_id, body);
     return c.json({ entry }, 200);
   });
 

@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@hono/zod-openapi": "^0.19.6",
+    "@orbita/auth": "workspace:*",
     "@orbita/platform": "workspace:*",
     "drizzle-orm": "^0.44.2",
     "hono": "^4.7.11",

@@ -41,19 +41,20 @@ Local folder **`marketing-agent/`** (gitignored except `README.md`) holds brand 
 - After deployment, smoke-test production (`GET /v1/health` and a representative API flow) before continuing to the next wave.
 - Poll orchestrate runs regularly; merge when workers complete, report status, then advance to the next wave.
 - Prefer a single monorepo for API and marketing web (`apps/orbita-api`, `apps/orbita-web`, shared `packages/*`).
-- Prefer 繁體中文 for product alignment, planning, and status discussions (English for code/commits unless asked otherwise).
+- Always respond in 繁體中文 for user-facing communication (English for code/commits unless asked otherwise).
+- Prefer Zeabur ZSend (`api.zeabur.com`) over Resend for outbound instance email.
 
 ## Learned Workspace Facts
 
 - Orbita is an agent-native, API-first HTTP system whose primary users are other AI systems (not human chat).
-- Authoritative design spec: `usr/ORBITA_DESIGN.md`; W0–W14 shipped; ongoing waves in `docs/product-architecture.md`.
+- Authoritative design spec: `usr/ORBITA_DESIGN.md`; W0–W19 shipped (w16 inbound adapter, w19 async inbound); session profile snapshots immutable after creation; ongoing waves in `docs/product-architecture.md`.
 - Not related to Jacky's OpenClaw orchestration or the public `openclaw/openclaw` repo.
-- pnpm monorepo: `apps/orbita-api` (API), `apps/orbita-web` (marketing), lane packages (`@orbita/*`).
-- Split deploy: production API on Zeabur at `https://api.get-orbita.com`; marketing site `get-orbita.com` on Cloudflare Pages (static HTML, not Workers routes).
+- pnpm monorepo (`apps/orbita-api`, `apps/orbita-web`, `@orbita/*`); Postgres + pgvector via Drizzle; split deploy: production API on Zeabur at `https://api.get-orbita.com` (service ID `6a37d3a09f5fe35a4aa63552`, version track `0.0.1-w*`), marketing site `get-orbita.com` on Cloudflare Pages (static HTML, not Workers routes).
 - Public changelog at `get-orbita.com/updates`; GitHub `jackyckma/orbita`, branch `main`.
-- API-as-product: invite-only phased launch (waitlist → billing SaaS); see `docs/api-as-product.md`.
-- Personal use and self-host roadmap in `docs/self-host-and-extensions.md`.
-- Marketing agent use case is a doc-only draft at `docs/use-cases/marketing-agent.md` (not implemented).
-- Cloudflare API token IP allowlists may block wrangler IPv6; Pages deploy uses IPv4 (see `scripts/deploy-web.sh`).
-- LLM stack: MiniMax-M3 primary, Anthropic fallback; disclose failover in `execution_meta`.
-- Postgres + pgvector via Drizzle; all session/memory state externalized (no in-process session state).
+- API-as-product phased launch: Phase 1 waitlist live at `get-orbita.com/waitlist`; invite-only before billing SaaS; see `docs/api-as-product.md`.
+- Marketing Agent application track (MA0–MAn) runs parallel to W waves; gitignored workspace `marketing-agent/`; plan at `docs/marketing-agent-plan.md`.
+- Platform ships `memory_put`/`memory_get` tools and `marketing` agent profile.
+- Public docs: single source `docs/site/` → `./scripts/build-web-docs.sh` → `get-orbita.com/docs`.
+- Instance email: Cloudflare Worker inbound to `POST /v1/inbound/email`; outbound via Zeabur ZSend (vault credential `zsend` on `orbita-instance`); for registration/reply handling, not email-as-command-channel.
+- Admin UI: API keys, credentials, HTTP domain allow-list, waitlist—no session list, trajectory, or inbound mail viewer.
+- LLM stack: MiniMax-M3 primary, Anthropic fallback; disclose failover in `execution_meta`; all session/memory state externalized (no in-process session state).
