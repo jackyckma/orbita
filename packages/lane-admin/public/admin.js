@@ -288,7 +288,9 @@ function flash(message, isError = false) {
 }
 
 async function loadUsage() {
-  const { summary } = await api("/usage/summary");
+  const el = document.getElementById("usage-summary");
+  try {
+    const { summary } = await api("/usage/summary");
   const p24 = summary.periods.hours_24;
   const p7 = summary.periods.days_7;
   const all = summary.periods.all;
@@ -302,7 +304,7 @@ async function loadUsage() {
   const providerRows = (summary.providers || [])
     .map((p) => `<tr><td>${esc(p.provider)}</td><td>${fmt(p.turn_count)}</td></tr>`)
     .join("");
-  document.getElementById("usage-summary").innerHTML = `
+  el.innerHTML = `
     <table>
       <thead>
         <tr><th>Window</th><th>Sessions</th><th>Messages</th><th>Turns</th><th>Tool calls</th><th>Token est.</th><th>Failover</th></tr>
@@ -324,10 +326,15 @@ async function loadUsage() {
       <thead><tr><th>Provider</th><th>Turns</th></tr></thead>
       <tbody>${providerRows || '<tr><td colspan="2">No turns yet.</td></tr>'}</tbody>
     </table>`;
+  } catch (e) {
+    el.innerHTML = `<div class="error">${esc(e.message)}</div>`;
+  }
 }
 
 async function loadSessions() {
-  const { sessions } = await api("/sessions?limit=40");
+  const tableEl = document.getElementById("sessions-table");
+  try {
+    const { sessions } = await api("/sessions?limit=40");
   const rows = sessions
     .map(
       (s) => `<tr>
@@ -341,7 +348,7 @@ async function loadSessions() {
       </tr>`,
     )
     .join("");
-  document.getElementById("sessions-table").innerHTML = `
+  tableEl.innerHTML = `
     <table>
       <thead><tr><th>Session</th><th>Client</th><th>Profile</th><th>Status</th><th>Msgs</th><th>Updated</th><th></th></tr></thead>
       <tbody>${rows || '<tr><td colspan="7">No sessions yet.</td></tr>'}</tbody>
@@ -359,6 +366,9 @@ async function loadSessions() {
       }
     };
   });
+  } catch (e) {
+    tableEl.innerHTML = `<div class="error">${esc(e.message)}</div>`;
+  }
 }
 
 async function loadSettings() {
