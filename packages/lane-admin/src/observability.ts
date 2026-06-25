@@ -1,5 +1,11 @@
 import type { AdminDb } from "./settings.js";
 
+function toIso(value: Date | string | null | undefined): string | null {
+  if (value == null) return null;
+  if (value instanceof Date) return value.toISOString();
+  return new Date(value).toISOString();
+}
+
 export type UsagePeriodStats = {
   sessions_created: number;
   assistant_turns: number;
@@ -221,9 +227,9 @@ export async function listAdminSessions(
     status: row.status,
     token_count_estimate: row.token_count_estimate,
     message_count: row.message_count,
-    created_at: row.created_at.toISOString(),
-    updated_at: row.updated_at.toISOString(),
-    ended_at: row.ended_at?.toISOString() ?? null,
+    created_at: toIso(row.created_at)!,
+    updated_at: toIso(row.updated_at)!,
+    ended_at: toIso(row.ended_at),
   }));
 }
 
@@ -266,9 +272,9 @@ export async function getAdminSession(
     status: row.status,
     token_count_estimate: row.token_count_estimate,
     message_count: row.message_count,
-    created_at: row.created_at.toISOString(),
-    updated_at: row.updated_at.toISOString(),
-    ended_at: row.ended_at?.toISOString() ?? null,
+    created_at: toIso(row.created_at)!,
+    updated_at: toIso(row.updated_at)!,
+    ended_at: toIso(row.ended_at),
   };
 }
 
@@ -300,6 +306,6 @@ export async function listTrajectoryEventsForSession(
     id: row.id,
     event_type: row.event_type,
     payload: row.payload,
-    created_at: row.created_at.toISOString(),
+    created_at: toIso(row.created_at)!,
   }));
 }
