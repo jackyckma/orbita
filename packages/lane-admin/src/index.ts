@@ -13,6 +13,7 @@ export {
 } from "./settings.js";
 export type { AdminDb } from "./settings.js";
 export { createAdminSessionRoutes, createAdminSettingsRoutes } from "./routes.js";
+export { createAdminObservabilityRoutes } from "./observability-routes.js";
 export { createAdminConsoleRoutes } from "./console.js";
 export { createDeviceAuthRoutes } from "./device-routes.js";
 export { startDeviceAuth, pollDeviceAuth, approveDeviceAuth } from "./device.js";

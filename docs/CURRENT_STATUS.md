@@ -4,19 +4,19 @@
 
 ## Summary
 
-Orbita **W0–W19 shipped**; API version **0.0.1-w20** adds waitlist approve → API key + optional ZSend invite email.
+Orbita **W0–W21 shipped**; API version **0.0.1-w21** adds admin usage summary and cross-client session observability.
 
 **Parallel:** MA track MA0–MA4 complete. X publish blocked until Bearer token.
 
-**Next platform wave:** W15 multi-user accounts (deferred). **Next product:** usage/observability polish; optional admin sessions read-only view.
+**Next platform wave:** W15 multi-user accounts (deferred). **Next product:** W17 metering/quotas prep; scheduler admin visibility.
 
 ## Waves
 
 | Wave | Status |
 |------|--------|
 | W0–W14 | ✅ Shipped |
-| **w15–w19** | ✅ Waitlist, scheduler, inbound email, ZSend outbound, async inbound |
-| **w20** | ✅ Waitlist approve → API key + ZSend invite |
+| **w15–w20** | ✅ Waitlist, inbound email, ZSend, approve→invite |
+| **w21** | ✅ Admin usage summary + cross-client sessions / trajectory replay |
 | **W15–W16** (roadmap) | 📋 Multi-user accounts, system admin |
 | **W17+** | 📋 Billing SaaS (Phase 2 product) |
 

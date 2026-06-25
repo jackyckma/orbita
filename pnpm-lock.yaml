@@ -118,6 +118,9 @@ importers:
       '@orbita/tools':
         specifier: workspace:*
         version: link:../lane-tools
+      '@orbita/trajectory':
+        specifier: workspace:*
+        version: link:../lane-trajectory
       drizzle-orm:
         specifier: ^0.44.2
         version: 0.44.7(@cloudflare/workers-types@4.20260623.1)(postgres@3.4.9)

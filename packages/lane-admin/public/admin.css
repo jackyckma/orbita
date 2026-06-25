@@ -175,3 +175,21 @@ th {
   margin-top: -0.35rem;
   margin-bottom: 0.75rem;
 }
+
+.replay {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #0a1018;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  max-height: 320px;
+  overflow: auto;
+}
+
+.replay.hidden {
+  display: none;
+}

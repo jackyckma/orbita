@@ -16,6 +16,7 @@
     "@orbita/auth": "workspace:*",
     "@orbita/credentials": "workspace:*",
     "@orbita/platform": "workspace:*",
+    "@orbita/trajectory": "workspace:*",
     "@orbita/tools": "workspace:*",
     "drizzle-orm": "^0.44.2",
     "hono": "^4.7.11",

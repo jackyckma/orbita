@@ -141,6 +141,19 @@ async function renderDashboard() {
       <div id="flash"></div>
 
       <div class="panel">
+        <h2>Usage</h2>
+        <p class="hint">Deployment-wide counts from Postgres (sessions, messages, trajectory, scheduler).</p>
+        <div id="usage-summary">Loading…</div>
+      </div>
+
+      <div class="panel">
+        <h2>Recent sessions</h2>
+        <p class="hint">Read-only view across all client IDs. Trajectory replay for debugging.</p>
+        <div id="sessions-table">Loading…</div>
+        <pre id="session-replay" class="replay hidden"></pre>
+      </div>
+
+      <div class="panel">
         <h2>HTTP allowed domains</h2>
         <p class="hint">Comma-separated hostnames for <code>http_get</code> / <code>http_post</code>. Empty = allow any HTTPS host.</p>
         <label for="domains">Domains</label>
@@ -259,6 +272,8 @@ async function renderDashboard() {
     }
   };
 
+  await loadUsage();
+  await loadSessions();
   await loadSettings();
   await loadKeys();
   await loadWaitlist();
@@ -270,6 +285,80 @@ function flash(message, isError = false) {
   if (!el) return;
   el.className = isError ? "error" : "flash";
   el.textContent = message;
+}
+
+async function loadUsage() {
+  const { summary } = await api("/usage/summary");
+  const p24 = summary.periods.hours_24;
+  const p7 = summary.periods.days_7;
+  const all = summary.periods.all;
+  const fmt = (n) => Number(n).toLocaleString();
+  const clientRows = (summary.top_clients || [])
+    .map(
+      (c) =>
+        `<tr><td class="mono">${esc(c.client_id)}</td><td>${fmt(c.session_count)}</td><td>${fmt(c.message_count)}</td></tr>`,
+    )
+    .join("");
+  const providerRows = (summary.providers || [])
+    .map((p) => `<tr><td>${esc(p.provider)}</td><td>${fmt(p.turn_count)}</td></tr>`)
+    .join("");
+  document.getElementById("usage-summary").innerHTML = `
+    <table>
+      <thead>
+        <tr><th>Window</th><th>Sessions</th><th>Messages</th><th>Turns</th><th>Tool calls</th><th>Token est.</th><th>Failover</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>24h</td><td>${fmt(p24.sessions_created)}</td><td>${fmt(p24.messages)}</td><td>${fmt(p24.assistant_turns)}</td><td>${fmt(p24.tool_calls)}</td><td>${fmt(p24.token_estimate)}</td><td>${fmt(p24.failover_turns)}</td></tr>
+        <tr><td>7d</td><td>${fmt(p7.sessions_created)}</td><td>${fmt(p7.messages)}</td><td>${fmt(p7.assistant_turns)}</td><td>${fmt(p7.tool_calls)}</td><td>${fmt(p7.token_estimate)}</td><td>${fmt(p7.failover_turns)}</td></tr>
+        <tr><td>All</td><td>${fmt(all.sessions_created)}</td><td>${fmt(all.messages)}</td><td>${fmt(all.assistant_turns)}</td><td>${fmt(all.tool_calls)}</td><td>${fmt(all.token_estimate)}</td><td>${fmt(all.failover_turns)}</td></tr>
+      </tbody>
+    </table>
+    <p class="hint">Scheduler: ${fmt(summary.scheduler.enabled_jobs)} enabled / ${fmt(summary.scheduler.total_jobs)} total jobs · Waitlist: ${fmt(summary.waitlist.pending)} pending, ${fmt(summary.waitlist.approved)} approved</p>
+    <h3>Top clients</h3>
+    <table>
+      <thead><tr><th>Client ID</th><th>Sessions</th><th>Messages</th></tr></thead>
+      <tbody>${clientRows || '<tr><td colspan="3">No sessions yet.</td></tr>'}</tbody>
+    </table>
+    <h3>Providers (turns)</h3>
+    <table>
+      <thead><tr><th>Provider</th><th>Turns</th></tr></thead>
+      <tbody>${providerRows || '<tr><td colspan="2">No turns yet.</td></tr>'}</tbody>
+    </table>`;
+}
+
+async function loadSessions() {
+  const { sessions } = await api("/sessions?limit=40");
+  const rows = sessions
+    .map(
+      (s) => `<tr>
+        <td class="mono">${esc(s.id.slice(0, 8))}…</td>
+        <td class="mono">${esc(s.client_id)}</td>
+        <td>${esc(s.agent_profile_id)}</td>
+        <td>${esc(s.status)}</td>
+        <td>${s.message_count}</td>
+        <td>${esc(s.updated_at)}</td>
+        <td><button class="secondary" data-replay="${esc(s.id)}">Replay</button></td>
+      </tr>`,
+    )
+    .join("");
+  document.getElementById("sessions-table").innerHTML = `
+    <table>
+      <thead><tr><th>Session</th><th>Client</th><th>Profile</th><th>Status</th><th>Msgs</th><th>Updated</th><th></th></tr></thead>
+      <tbody>${rows || '<tr><td colspan="7">No sessions yet.</td></tr>'}</tbody>
+    </table>`;
+  document.querySelectorAll("[data-replay]").forEach((btn) => {
+    btn.onclick = async () => {
+      const replayEl = document.getElementById("session-replay");
+      replayEl.classList.remove("hidden");
+      replayEl.textContent = "Loading trajectory…";
+      try {
+        const { replay } = await api(`/sessions/${btn.dataset.replay}/trajectory/replay`);
+        replayEl.textContent = replay.timeline_text || "No trajectory events.";
+      } catch (e) {
+        replayEl.textContent = e.message;
+      }
+    };
+  });
 }
 
 async function loadSettings() {
