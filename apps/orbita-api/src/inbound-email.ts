@@ -66,13 +66,13 @@ export function createInboundEmailRoutes(
     },
     responses: {
       200: {
-        description: "Email queued for agent turn",
+        description: "Email accepted; agent turn runs asynchronously",
         content: {
           "application/json": {
             schema: z.object({
               session_id: z.string().uuid(),
               inbox_key: z.string(),
-              processed: z.literal(true),
+              queued: z.literal(true),
             }),
           },
         },
@@ -129,6 +129,19 @@ export function createInboundEmailRoutes(
       deps.memoryEnv,
     );
 
+    await logTrajectoryEvent(deps.trajectoryDb, {
+      sessionId,
+      clientId,
+      eventType: "inbound_email",
+      payload: {
+        from: body.from,
+        to: body.to,
+        subject: body.subject,
+        message_id: messageId,
+        inbox_key: inboxKey,
+      },
+    });
+
     const prompt = [
       "Inbound email received for this Orbita instance.",
       `From: ${body.from}`,
@@ -144,7 +157,8 @@ export function createInboundEmailRoutes(
       "Do not publish without approval.",
     ].join("\n");
 
-    await postMessage(
+    // Return before LLM turn — Email Worker must get a fast 200 (wall-clock ~30s limit).
+    void postMessage(
       deps.sessionsDb,
       sessionId,
       clientId,
@@ -152,22 +166,24 @@ export function createInboundEmailRoutes(
       false,
       deps.runTurn,
       deps.summarizer,
-    );
-
-    await logTrajectoryEvent(deps.trajectoryDb, {
-      sessionId,
-      clientId,
-      eventType: "inbound_email",
-      payload: {
-        from: body.from,
-        to: body.to,
-        subject: body.subject,
+    ).catch(async (error) => {
+      console.error("Inbound email agent turn failed", {
+        session_id: sessionId,
         message_id: messageId,
-        inbox_key: inboxKey,
-      },
+        error,
+      });
+      await logTrajectoryEvent(deps.trajectoryDb, {
+        sessionId,
+        clientId,
+        eventType: "inbound_email_turn_failed",
+        payload: {
+          message_id: messageId,
+          error: error instanceof Error ? error.message : String(error),
+        },
+      });
     });
 
-    return c.json({ session_id: sessionId, inbox_key: inboxKey, processed: true as const }, 200);
+    return c.json({ session_id: sessionId, inbox_key: inboxKey, queued: true as const }, 200);
   });
 
   return app;

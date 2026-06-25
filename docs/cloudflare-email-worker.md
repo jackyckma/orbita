@@ -96,7 +96,7 @@ Orbita maps `from` → session via memory key `inbox-session/{from}`, stores raw
 
 | Symptom | Check |
 |---------|--------|
-| Bounce from Cloudflare | Worker `setReject` — API returned non-2xx; check Zeabur logs |
+| **Message blocked** bounce from Gmail | Worker `setReject` — API non-2xx or Worker timed out (~30s). w19+ returns 200 before LLM turn. |
 | 403 from API | Token mismatch between Worker secret and `ORBITA_INBOUND_EMAIL_TOKEN` |
 | No agent action | Profile lacks tools; create new session after profile changes |
 | Empty body | HTML-only mail — Worker strips HTML to text; prefer plain in tests |

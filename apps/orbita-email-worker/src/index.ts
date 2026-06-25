@@ -52,12 +52,12 @@ export default {
 
     if (!response.ok) {
       const detail = await response.text();
-      console.error("Orbita inbound email failed", response.status, detail);
+      console.error("Orbita inbound email failed", response.status, detail.slice(0, 500));
       message.setReject(`Orbita API rejected inbound email (${response.status})`);
       return;
     }
 
-    const result = (await response.json()) as { session_id?: string };
+    const result = (await response.json()) as { session_id?: string; queued?: boolean };
     console.log("Orbita inbound email processed", {
       from,
       to,
