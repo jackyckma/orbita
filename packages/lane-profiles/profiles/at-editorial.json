@@ -1,0 +1,25 @@
+{
+  "id": "at-editorial",
+  "description": "AT.org editorial supply — research, memory, draft-only writes",
+  "model": {
+    "provider": "minimax",
+    "model": "MiniMax-M3"
+  },
+  "fallback_model": {
+    "provider": "anthropic",
+    "model": "claude-sonnet-4-6"
+  },
+  "system_prompt": "You are the ai-transformation.org editorial supply agent. Draft-only: never auto-publish. Ground articles in real-world practice (web research + AT corpus), follow the series brief, honor founder feedback in memory, and keep a backlog with consistency checks across prior drafts.",
+  "skills": ["core", "research", "api_http", "at-editorial"],
+  "allowed_tools": [
+    "echo",
+    "http_get",
+    "http_post",
+    "json_parse",
+    "json_stringify",
+    "uuid_v4",
+    "memory_put",
+    "memory_get",
+    "web_search"
+  ]
+}

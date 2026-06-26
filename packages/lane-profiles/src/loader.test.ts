@@ -14,9 +14,9 @@ describe("profiles", () => {
     expect(snapshot.bound_at).toBeTruthy();
   });
 
-  it("loads research, coding, and marketing profiles", () => {
+  it("loads research, coding, marketing, and at-editorial profiles", () => {
     expect(listProfileIds()).toEqual(
-      expect.arrayContaining(["research", "coding", "marketing"]),
+      expect.arrayContaining(["research", "coding", "marketing", "at-editorial"]),
     );
     const research = bindProfileSnapshot("research");
     expect(research.skills).toEqual(["core", "research", "api_http"]);
@@ -27,5 +27,11 @@ describe("profiles", () => {
     const marketing = bindProfileSnapshot("marketing");
     expect(marketing.skills).toEqual(["core", "marketing-draft"]);
     expect(marketing.allowed_tools).toContain("memory_put");
+    const atEditorial = bindProfileSnapshot("at-editorial");
+    expect(atEditorial.skills).toEqual(
+      expect.arrayContaining(["at-editorial", "research", "api_http"]),
+    );
+    expect(atEditorial.allowed_tools).toContain("web_search");
+    expect(atEditorial.allowed_tools).toContain("memory_get");
   });
 });

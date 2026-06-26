@@ -2,6 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import type OpenAI from "openai";
 import { performHttpRequest } from "./http.js";
 import { dockerRunEcho, isDockerSandboxEnabled } from "./sandbox/docker.js";
+import { performWebSearch } from "./web-search.js";
 
 export type ToolTraceEvent = {
   phase: "start" | "complete";
@@ -210,6 +211,34 @@ const memoryPutTool: ToolDefinition = {
   },
 };
 
+const webSearchTool: ToolDefinition = {
+  name: "web_search",
+  description:
+    "Search the public web for practitioner articles and ideas. Returns titles, URLs, and snippets. Default backend: self-hosted SearXNG (ORBITA_SEARXNG_BASE_URL). Optional Tavily via ORBITA_WEB_SEARCH_PROVIDER=tavily and vault tavily_search.",
+  parameters: {
+    type: "object",
+    properties: {
+      query: { type: "string", description: "Search query (English)" },
+      max_results: {
+        type: "number",
+        description: "Max results (1–10, default 5)",
+      },
+      credential_ref: {
+        type: "string",
+        description: "Tavily only — credential name (default tavily_search)",
+      },
+    },
+    required: ["query"],
+  },
+  execute: async (args, ctx) =>
+    performWebSearch({
+      query: String(args.query ?? ""),
+      maxResults: args.max_results !== undefined ? Number(args.max_results) : undefined,
+      credentialRef: args.credential_ref ? String(args.credential_ref) : undefined,
+      resolveCredential: ctx.resolveCredential,
+    }),
+};
+
 const memoryGetTool: ToolDefinition = {
   name: "memory_get",
   description: "Read a client-scoped memory entry by exact key.",
@@ -262,6 +291,7 @@ const registry: Record<string, ToolDefinition> = {
   uuid_v4: uuidV4Tool,
   memory_put: memoryPutTool,
   memory_get: memoryGetTool,
+  web_search: webSearchTool,
 };
 
 if (isDockerSandboxEnabled()) {
