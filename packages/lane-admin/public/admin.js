@@ -322,7 +322,11 @@ async function loadUsage() {
         <tr><td>All</td><td>${fmt(all.sessions_created)}</td><td>${fmt(all.messages)}</td><td>${fmt(all.assistant_turns)}</td><td>${fmt(all.tool_calls)}</td><td>${fmt(all.token_estimate)}</td><td>${fmt(all.failover_turns)}</td></tr>
       </tbody>
     </table>
-    <p class="hint">Scheduler: ${fmt(summary.scheduler.enabled_jobs)} enabled / ${fmt(summary.scheduler.total_jobs)} total jobs · Waitlist: ${fmt(summary.waitlist.pending)} pending, ${fmt(summary.waitlist.approved)} approved</p>
+    <p class="hint">Scheduler: ${fmt(summary.scheduler.enabled_jobs)} enabled / ${fmt(summary.scheduler.total_jobs)} total jobs · Waitlist: ${fmt(summary.waitlist.pending)} pending, ${fmt(summary.waitlist.approved)} approved${
+      summary.quotas?.unlimited
+        ? " · Quotas: unlimited"
+        : ` · Quotas: ${summary.quotas?.sessions_per_day ?? 0} sessions/day, ${summary.quotas?.messages_per_day ?? 0} msgs/day per client_id`
+    } · Default RPM: ${summary.rate_limit?.default_per_minute ?? "—"}</p>
     <h3>Top clients</h3>
     <table>
       <thead><tr><th>Client ID</th><th>Sessions</th><th>Messages</th></tr></thead>

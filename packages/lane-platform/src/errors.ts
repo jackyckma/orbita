@@ -7,6 +7,7 @@ export const ErrorCodeSchema = z.enum([
   "not_found",
   "conflict",
   "rate_limited",
+  "quota_exceeded",
   "internal_error",
 ]);
 
@@ -83,4 +84,11 @@ export function tooManyRequests(
   headers?: Record<string, string>,
 ): OrbitaError {
   return new OrbitaError("rate_limited", message, 429, details, headers);
+}
+
+export function quotaExceeded(
+  message = "Daily quota exceeded",
+  details?: Record<string, unknown>,
+): OrbitaError {
+  return new OrbitaError("quota_exceeded", message, 429, details);
 }

@@ -17,6 +17,11 @@ import {
   postMessage,
   sessionToJson,
 } from "../services/sessions.js";
+import type { QuotaLimits } from "../quota.js";
+import {
+  assertClientMessageQuota,
+  assertClientSessionQuota,
+} from "../quota.js";
 import type { AgentTurnRunner, SessionSummarizer } from "../services/history.js";
 import type { SessionsDb } from "../db/client.js";
 
@@ -24,6 +29,7 @@ export function createSessionRoutes(
   sessionsDb: SessionsDb,
   runTurn?: AgentTurnRunner,
   summarizer?: SessionSummarizer,
+  quota: QuotaLimits = { sessionsPerDay: 0, messagesPerDay: 0 },
 ): OpenAPIHono {
   const app = new OpenAPIHono();
 
@@ -69,6 +75,7 @@ export function createSessionRoutes(
     if (!profileIds.includes(body.agent_profile)) {
       throw badRequest("Unknown agent_profile", { agent_profile: body.agent_profile });
     }
+    await assertClientSessionQuota(sessionsDb, auth.clientId, quota);
     const session = await createSession(sessionsDb, auth.clientId, body.agent_profile);
     return c.json({ session: sessionToJson(session) }, 201);
   });
@@ -159,6 +166,7 @@ export function createSessionRoutes(
     const auth = getAuth(c);
     const { session_id } = c.req.valid("param");
     const body = c.req.valid("json");
+    await assertClientMessageQuota(sessionsDb, auth.clientId, quota);
     const result = await postMessage(
       sessionsDb,
       session_id,

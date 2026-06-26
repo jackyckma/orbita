@@ -20,3 +20,10 @@ export {
   listMessages,
   postMessage,
 } from "./services/sessions.js";
+export type { QuotaLimits } from "./quota.js";
+export {
+  assertClientMessageQuota,
+  assertClientSessionQuota,
+  countClientMessagesLast24h,
+  countClientSessionsLast24h,
+} from "./quota.js";

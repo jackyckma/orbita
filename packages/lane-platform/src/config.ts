@@ -18,6 +18,9 @@ export const PlatformEnvSchema = z.object({
   ORBITA_INBOUND_CLIENT_ID: z.string().min(1).optional(),
   ORBITA_INBOUND_AGENT_PROFILE: z.string().min(1).optional(),
   ORBITA_INSTANCE_FROM_EMAIL: z.string().email().optional(),
+  /** 0 = unlimited. Rolling 24h window per client_id. */
+  ORBITA_QUOTA_SESSIONS_PER_DAY: z.coerce.number().int().nonnegative().default(0),
+  ORBITA_QUOTA_MESSAGES_PER_DAY: z.coerce.number().int().nonnegative().default(0),
 });
 
 export type PlatformEnv = z.infer<typeof PlatformEnvSchema>;

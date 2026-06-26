@@ -72,7 +72,7 @@ import { createE2eMockTurnRunner } from "./e2e-mock.js";
 
 const E2E_MOCK = process.env.ORBITA_E2E_MOCK === "1";
 
-const VERSION = "0.0.1-w25";
+const VERSION = "0.0.1-w26";
 const env = loadPlatformEnv();
 const agentEnv = loadAgentEnv();
 const memoryEnv = loadMemoryEnv();
@@ -195,6 +195,10 @@ adminApp.route("/", createAdminSessionRoutes(env.ORBITA_ADMIN_TOKEN, env.ORBITA_
 adminApp.route("/", createAdminSettingsRoutes(adminDb));
 adminApp.route("/", createAdminObservabilityRoutes(adminDb, {
   defaultRateLimitPerMinute: env.RATE_LIMIT_PER_MINUTE,
+  quotas: {
+    sessionsPerDay: env.ORBITA_QUOTA_SESSIONS_PER_DAY,
+    messagesPerDay: env.ORBITA_QUOTA_MESSAGES_PER_DAY,
+  },
 }));
 adminApp.route(
   "/",
@@ -241,7 +245,10 @@ protectedApp.get("/capabilities", (c) =>
   c.json(createCapabilitiesResponse(publicBaseUrl), 200),
 );
 
-protectedApp.route("/", createSessionRoutes(sessionsDb, runTurn, sessionSummarizer));
+protectedApp.route("/", createSessionRoutes(sessionsDb, runTurn, sessionSummarizer, {
+  sessionsPerDay: env.ORBITA_QUOTA_SESSIONS_PER_DAY,
+  messagesPerDay: env.ORBITA_QUOTA_MESSAGES_PER_DAY,
+}));
 protectedApp.route("/", createMemoryRoutes(memoryDb, memoryEnv));
 protectedApp.route("/", createTrajectoryRoutes(trajectoryDb, assertSessionOwner));
 protectedApp.route("/", createSchedulerRoutes(schedulerDb, assertSessionOwner));

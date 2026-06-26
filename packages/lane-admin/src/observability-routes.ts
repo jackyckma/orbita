@@ -13,6 +13,7 @@ import {
 
 export type ObservabilityRouteOptions = {
   defaultRateLimitPerMinute?: number;
+  quotas?: { sessionsPerDay: number; messagesPerDay: number };
 };
 
 export function createAdminObservabilityRoutes(
@@ -20,6 +21,7 @@ export function createAdminObservabilityRoutes(
   options: ObservabilityRouteOptions = {},
 ): OpenAPIHono {
   const defaultRateLimitPerMinute = options.defaultRateLimitPerMinute ?? 120;
+  const quotas = options.quotas ?? { sessionsPerDay: 0, messagesPerDay: 0 };
   const app = new OpenAPIHono();
 
   const usageRoute = createRoute({
@@ -41,7 +43,21 @@ export function createAdminObservabilityRoutes(
 
   app.openapi(usageRoute, async (c) => {
     const summary = await getUsageSummary(adminDb);
-    return c.json({ summary }, 200);
+    return c.json(
+      {
+        summary: {
+          ...summary,
+          quotas: {
+            sessions_per_day: quotas.sessionsPerDay,
+            messages_per_day: quotas.messagesPerDay,
+            unlimited:
+              quotas.sessionsPerDay <= 0 && quotas.messagesPerDay <= 0,
+          },
+          rate_limit: { default_per_minute: defaultRateLimitPerMinute },
+        },
+      },
+      200,
+    );
   });
 
   const keyMeteringRoute = createRoute({
