@@ -1,14 +1,14 @@
 # Current status
 
-**Last updated:** 2026-06-20
+**Last updated:** 2026-06-25
 
 ## Summary
 
-Orbita **W0–W21 shipped**; API version **0.0.1-w21** adds admin usage summary and cross-client session observability.
+Orbita **W0–W24 shipped**; API version **0.0.1-w24** adds admin scheduler jobs list, usage/sessions observability, waitlist approve→invite.
 
 **Parallel:** MA track MA0–MA4 complete. X publish blocked until Bearer token.
 
-**Next platform wave:** W15 multi-user accounts (deferred). **Next product:** W17 metering/quotas prep; scheduler admin visibility.
+**Next:** Phase 1 waitlist E2E in prod; W17 metering prep (per-key usage, rate-limit visibility); W15 multi-user (deferred).
 
 ## Waves
 
@@ -16,7 +16,7 @@ Orbita **W0–W21 shipped**; API version **0.0.1-w21** adds admin usage summary 
 |------|--------|
 | W0–W14 | ✅ Shipped |
 | **w15–w20** | ✅ Waitlist, inbound email, ZSend, approve→invite |
-| **w21** | ✅ Admin usage summary + cross-client sessions / trajectory replay |
+| **w21–w24** | ✅ Admin usage, sessions, scheduler jobs; cache-bust + date fixes |
 | **W15–W16** (roadmap) | 📋 Multi-user accounts, system admin |
 | **W17+** | 📋 Billing SaaS (Phase 2 product) |
 
@@ -25,7 +25,7 @@ Orbita **W0–W21 shipped**; API version **0.0.1-w21** adds admin usage summary 
 | Phase | Status |
 |-------|--------|
 | **Phase 0** | 🔄 Self-use stabilize (ongoing polish) |
-| **Phase 1** | ✅ Waitlist + approve → key + invite email (`PATCH /v1/admin/waitlist/{id}`) |
+| **Phase 1** | ✅ Waitlist + approve → key + invite email |
 | **Phase 2** | 📋 Paid SaaS |
 
 ## Infrastructure

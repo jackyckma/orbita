@@ -34,11 +34,30 @@
         <h1>Project updates</h1>
         <p class="section-intro">
           What shipped recently. Orbita is under active development — API version
-          <code>0.0.1-w16</code> on
+          <code>0.0.1-w24</code> on
           <a href="https://api.get-orbita.com/v1/health" rel="noopener">api.get-orbita.com</a>.
         </p>
 
         <div class="changelog">
+          <article class="changelog-day">
+            <h2 class="changelog-date">2026-06-25</h2>
+            <ul class="changelog-list">
+              <li>
+                <strong>Admin observability (w21–w24)</strong> —
+                Usage summary, cross-client sessions + trajectory replay,
+                scheduler jobs list; waitlist approve → API key + ZSend invite email.
+              </li>
+              <li>
+                <strong>Inbound email (w19)</strong> —
+                async agent turns fix Gmail bounces; Cloudflare Email Worker →
+                <code>POST /v1/inbound/email</code>.
+              </li>
+              <li>
+                <strong>Instance email (ZSend)</strong> —
+                outbound via Zeabur ZSend; <code>orbita@get-orbita.com</code> verified.
+              </li>
+            </ul>
+          </article>
           <article class="changelog-day">
             <h2 class="changelog-date">2026-06-20</h2>
             <ul class="changelog-list">
@@ -172,9 +191,9 @@
         <aside class="changelog-aside">
           <h3>What’s next</h3>
           <p>
-            W15+ multi-user accounts, system admin, optional hosted SaaS — see
+            Phase 1 waitlist onboarding E2E, metering prep (W17), optional multi-user (W15) —
+            see
             <a href="https://github.com/jackyckma/orbita/blob/main/docs/product-architecture.md" rel="noopener">product-architecture.md</a>.
-            Ideas (not built yet): marketing-agent profile, approval workflows.
           </p>
         </aside>
       </div>

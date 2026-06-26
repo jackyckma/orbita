@@ -154,6 +154,12 @@ async function renderDashboard() {
       </div>
 
       <div class="panel">
+        <h2>Scheduler jobs</h2>
+        <p class="hint">Cron / interval jobs across all clients (read-only).</p>
+        <div id="scheduler-table">Loading…</div>
+      </div>
+
+      <div class="panel">
         <h2>HTTP allowed domains</h2>
         <p class="hint">Comma-separated hostnames for <code>http_get</code> / <code>http_post</code>. Empty = allow any HTTPS host.</p>
         <label for="domains">Domains</label>
@@ -274,6 +280,7 @@ async function renderDashboard() {
 
   await loadUsage();
   await loadSessions();
+  await loadScheduler();
   await loadSettings();
   await loadKeys();
   await loadWaitlist();
@@ -368,6 +375,33 @@ async function loadSessions() {
   });
   } catch (e) {
     tableEl.innerHTML = `<div class="error">${esc(e.message)}</div>`;
+  }
+}
+
+async function loadScheduler() {
+  const el = document.getElementById("scheduler-table");
+  try {
+    const { jobs } = await api("/scheduler/jobs?limit=40");
+    const rows = jobs
+      .map(
+        (j) => `<tr>
+        <td class="mono">${esc(j.id.slice(0, 8))}…</td>
+        <td class="mono">${esc(j.client_id)}</td>
+        <td>${esc(j.task_kind)}</td>
+        <td>${esc(j.schedule)}</td>
+        <td>${j.enabled ? "on" : "off"}</td>
+        <td>${esc(j.last_run_at || "—")}</td>
+        <td>${esc(j.next_run_at || "—")}</td>
+      </tr>`,
+      )
+      .join("");
+    el.innerHTML = `
+    <table>
+      <thead><tr><th>Job</th><th>Client</th><th>Task</th><th>Schedule</th><th>Enabled</th><th>Last run</th><th>Next run</th></tr></thead>
+      <tbody>${rows || '<tr><td colspan="7">No scheduler jobs.</td></tr>'}</tbody>
+    </table>`;
+  } catch (e) {
+    el.innerHTML = `<div class="error">${esc(e.message)}</div>`;
   }
 }
 

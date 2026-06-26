@@ -177,6 +177,84 @@ export async function getUsageSummary(adminDb: AdminDb): Promise<UsageSummary> {
   };
 }
 
+export type AdminSchedulerJobRow = {
+  id: string;
+  session_id: string;
+  client_id: string;
+  schedule: string;
+  enabled: boolean;
+  last_run_at: string | null;
+  next_run_at: string | null;
+  created_at: string;
+  task_kind: string;
+};
+
+export async function listAdminSchedulerJobs(
+  adminDb: AdminDb,
+  input: { limit?: number; enabled?: boolean },
+): Promise<AdminSchedulerJobRow[]> {
+  const limit = Math.min(Math.max(input.limit ?? 50, 1), 200);
+  const enabledFilter =
+    input.enabled === undefined
+      ? adminDb.sql``
+      : adminDb.sql`AND enabled = ${input.enabled}`;
+
+  const rows = await adminDb.sql<
+    {
+      id: string;
+      session_id: string;
+      client_id: string;
+      every_seconds: number | null;
+      cron: string | null;
+      enabled: boolean;
+      last_run_at: Date | string | null;
+      next_run_at: Date | string | null;
+      created_at: Date | string;
+      task: Record<string, unknown>;
+    }[]
+  >`
+    SELECT id,
+           session_id,
+           client_id,
+           every_seconds,
+           cron,
+           enabled,
+           last_run_at,
+           next_run_at,
+           created_at,
+           task
+    FROM session_jobs
+    WHERE true ${enabledFilter}
+    ORDER BY created_at DESC
+    LIMIT ${limit}
+  `;
+
+  return rows.map((row) => {
+    let schedule = "unknown";
+    if (row.cron) schedule = `cron: ${row.cron}`;
+    else if (row.every_seconds != null) schedule = `every ${row.every_seconds}s`;
+
+    const taskKind =
+      typeof row.task?.kind === "string"
+        ? row.task.kind
+        : typeof row.task?.type === "string"
+          ? row.task.type
+          : "job";
+
+    return {
+      id: row.id,
+      session_id: row.session_id,
+      client_id: row.client_id,
+      schedule,
+      enabled: row.enabled,
+      last_run_at: toIso(row.last_run_at),
+      next_run_at: toIso(row.next_run_at),
+      created_at: toIso(row.created_at)!,
+      task_kind: taskKind,
+    };
+  });
+}
+
 export async function listAdminSessions(
   adminDb: AdminDb,
   input: { limit?: number; client_id?: string; status?: string },

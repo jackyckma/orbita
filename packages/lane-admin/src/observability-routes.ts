@@ -5,6 +5,7 @@ import type { AdminDb } from "./settings.js";
 import {
   getAdminSession,
   getUsageSummary,
+  listAdminSchedulerJobs,
   listAdminSessions,
   listTrajectoryEventsForSession,
 } from "./observability.js";
@@ -118,6 +119,38 @@ export function createAdminObservabilityRoutes(adminDb: AdminDb): OpenAPIHono {
     const events = await listTrajectoryEventsForSession(adminDb, session_id);
     const replay = buildTrajectoryReplay(events, session_id);
     return c.json({ replay }, 200);
+  });
+
+  const schedulerRoute = createRoute({
+    method: "get",
+    path: "/scheduler/jobs",
+    tags: ["Admin"],
+    summary: "List scheduler jobs (all clients)",
+    request: {
+      query: z.object({
+        limit: z.coerce.number().int().positive().max(200).optional(),
+        enabled: z
+          .enum(["true", "false"])
+          .optional()
+          .transform((v) => (v === undefined ? undefined : v === "true")),
+      }),
+    },
+    responses: {
+      200: {
+        description: "Scheduler jobs",
+        content: {
+          "application/json": {
+            schema: z.object({ jobs: z.array(z.record(z.unknown())) }),
+          },
+        },
+      },
+    },
+  });
+
+  app.openapi(schedulerRoute, async (c) => {
+    const query = c.req.valid("query");
+    const jobs = await listAdminSchedulerJobs(adminDb, query);
+    return c.json({ jobs }, 200);
   });
 
   return app;
