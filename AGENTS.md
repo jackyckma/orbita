@@ -31,7 +31,7 @@ After each **shipped wave**, update the marketing site version log (`apps/orbita
 
 ## Marketing agent workspace
 
-Local folder **`marketing-agent/`** (gitignored except `README.md`) holds brand voice, runbooks, and Orbita **caller** setup — not platform code. For marketing tasks: read that folder and operate `api.get-orbita.com` as a user; do not modify `packages/*` unless fixing the platform. Template: `docs/templates/marketing-agent-workspace.md`. Progress: `docs/marketing-agent-plan.md` (MA0–Mn); dogfooding feedback → `marketing-agent/feedback-to-orbita.md`.
+Local folder **`marketing-agent/`** (gitignored except `README.md`) holds brand voice, runbooks, and Orbita **caller** setup — not platform code. **`at-agent/`** is the parallel workspace for **ai-transformation.org** dogfood (`docs/at-track-plan.md`). **Cross-project handoff with ai-transformation-io:** read/write **`/home/jackyma/Orbiter-AT-dogfood/`** (`state/STATUS.md`, `inbox/*`) — see `PROTOCOL.md` there; not in git. On demand: skill **`orbiter-handoff-check`** or say「檢查 handoff」. Auto: `.cursor/hooks.json` `stop` hook polls every **30 min** (or new AT files). For marketing tasks: read that folder and operate `api.get-orbita.com` as a user; do not modify `packages/*` unless fixing the platform.
 
 ## Learned User Preferences
 
@@ -43,18 +43,23 @@ Local folder **`marketing-agent/`** (gitignored except `README.md`) holds brand 
 - Prefer a single monorepo for API and marketing web (`apps/orbita-api`, `apps/orbita-web`, shared `packages/*`).
 - Always respond in 繁體中文 for user-facing communication (English for code/commits unless asked otherwise).
 - Prefer Zeabur ZSend (`api.zeabur.com`) over Resend for outbound instance email.
+- Finish loose ends before new waves; next milestone is Dogfood validation (W15 multi-user deferred).
+- Marketing beyond X; evaluate skills catalog vs plugins; dogfood **ai-transformation.org** first — proof batch then ramp (~5/day max), not weekly 1+1 steady state; MA brand: **AI Business Life** next, **Agent Mindset** when book ships (~2–3 weeks); apprenticeship under Powerhouse + AT.org.
+- Social posting: meaningful draft→approve only (prior X spam ban); MA depth via per-project workspaces + shared/tested skills catalog — not plugins.
+- Prefer agent-operated Zeabur CLI (`npx zeabur@latest`) and Orbita Admin API over asking user to run prod SQL or Dashboard steps; Postgres `service exec`/`psql` often 524-times out.
+- Commit continual-learning outputs directly (`AGENTS.md`, `.cursor/hooks/state/continual-learning*.json`) without asking.
 
 ## Learned Workspace Facts
 
 - Orbita is an agent-native, API-first HTTP system whose primary users are other AI systems (not human chat).
-- Authoritative design spec: `usr/ORBITA_DESIGN.md`; W0–W19 shipped (w16 inbound adapter, w19 async inbound); session profile snapshots immutable after creation; ongoing waves in `docs/product-architecture.md`.
+- Authoritative design spec: `usr/ORBITA_DESIGN.md`; W0–W26 shipped (w16–w19 inbound, w20–w26 waitlist invite/quotas/metering); session profile snapshots immutable after creation; ongoing waves in `docs/product-architecture.md`.
 - Not related to Jacky's OpenClaw orchestration or the public `openclaw/openclaw` repo.
-- pnpm monorepo (`apps/orbita-api`, `apps/orbita-web`, `@orbita/*`); Postgres + pgvector via Drizzle; split deploy: production API on Zeabur at `https://api.get-orbita.com` (service ID `6a37d3a09f5fe35a4aa63552`, version track `0.0.1-w*`), marketing site `get-orbita.com` on Cloudflare Pages (static HTML, not Workers routes).
+- pnpm monorepo (`apps/orbita-api`, `apps/orbita-web`, `@orbita/*`); Postgres + pgvector via Drizzle; split deploy: production API on Zeabur at `https://api.get-orbita.com` (service ID `6a37d3a09f5fe35a4aa63552`, version track `0.0.1-w*`), marketing site `get-orbita.com` on Cloudflare Pages (static HTML, not Workers routes); prod `web_search` via self-hosted SearXNG at `https://orbita-searxng.zeabur.app` (`deploy/searxng/`, default `ORBITA_WEB_SEARCH_PROVIDER=searxng`).
 - Public changelog at `get-orbita.com/updates`; GitHub `jackyckma/orbita`, branch `main`.
 - API-as-product phased launch: Phase 1 waitlist live at `get-orbita.com/waitlist`; invite-only before billing SaaS; see `docs/api-as-product.md`.
-- Marketing Agent application track (MA0–MAn) runs parallel to W waves; gitignored workspace `marketing-agent/`; plan at `docs/marketing-agent-plan.md`.
-- Platform ships `memory_put`/`memory_get` tools and `marketing` agent profile.
+- Marketing Agent track (MA0–MAn) parallel to W waves; gitignored `marketing-agent/` (`docs/marketing-agent-plan.md`); **`at-agent/`** for ai-transformation.org dogfood (`docs/at-track-plan.md`); AT1b **`at-editorial`** profile (memory + `web_search` + AT write) with **one** enabled 07:00 UTC daily cron; AT writes via `POST /api/v1/objects/drafts` + vault `atx_write_org` (`token` only, not `token_id`); Wave 19 dedup via AT `GET /objects/catalog` (interim `objects?status=published`; legacy `GET /content` excludes Wave 12); caller secrets in gitignored `.env.local` (agent shell env vars alone unreliable).
 - Public docs: single source `docs/site/` → `./scripts/build-web-docs.sh` → `get-orbita.com/docs`.
-- Instance email: Cloudflare Worker inbound to `POST /v1/inbound/email`; outbound via Zeabur ZSend (vault credential `zsend` on `orbita-instance`); for registration/reply handling, not email-as-command-channel.
+- Instance email: Cloudflare Worker inbound to `POST /v1/inbound/email`; outbound via Zeabur ZSend (vault `zsend` on `orbita-instance`); waitlist invite also needs ZSend env on API service; not email-as-command-channel.
+- Daily quota placeholder defaults: 200 sessions / 1000 messages per `client_id` (W17/W26 hard-stop).
 - Admin UI: API keys, credentials, HTTP domain allow-list, waitlist—no session list, trajectory, or inbound mail viewer.
 - LLM stack: MiniMax-M3 primary, Anthropic fallback; disclose failover in `execution_meta`; all session/memory state externalized (no in-process session state).

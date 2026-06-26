@@ -1,10 +1,10 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-25T22:17:48.000Z",
+  "updatedAt": "2026-06-26T15:17:46.000Z",
   "files": {
     "/home/jackyma/.cursor/projects/home-jackyma-orbita/agent-transcripts/89db4a51-4fc3-471c-b64b-fcf0dccc9f1c/89db4a51-4fc3-471c-b64b-fcf0dccc9f1c.jsonl": {
-      "mtime": 1782425825,
-      "processedAt": "2026-06-25T22:17:48.000Z"
+      "mtime": 1782487024,
+      "processedAt": "2026-06-26T15:17:46.000Z"
     },
     "/home/jackyma/.cursor/projects/home-jackyma-orbita/agent-transcripts/89db4a51-4fc3-471c-b64b-fcf0dccc9f1c/subagents/10b92cae-52e3-4756-8371-e9cedd9ace8c.jsonl": {
       "mtime": 1782142653,
@@ -14,9 +14,17 @@
       "mtime": 1782088050,
       "processedAt": "2026-06-22T15:37:24.000Z"
     },
+    "/home/jackyma/.cursor/projects/home-jackyma-orbita/agent-transcripts/89db4a51-4fc3-471c-b64b-fcf0dccc9f1c/subagents/5767e95c-4119-4b7d-9de9-527aba6c809f.jsonl": {
+      "mtime": 1782467273,
+      "processedAt": "2026-06-26T12:33:30.000Z"
+    },
+    "/home/jackyma/.cursor/projects/home-jackyma-orbita/agent-transcripts/89db4a51-4fc3-471c-b64b-fcf0dccc9f1c/subagents/5856a930-295e-4ba4-8ac6-ebd695e60c3d.jsonl": {
+      "mtime": 1782477221,
+      "processedAt": "2026-06-26T15:17:46.000Z"
+    },
     "/home/jackyma/.cursor/projects/home-jackyma-orbita/agent-transcripts/89db4a51-4fc3-471c-b64b-fcf0dccc9f1c/subagents/6529a217-24e9-4f94-9e28-24f7a77814b9.jsonl": {
-      "mtime": 1782425841,
-      "processedAt": "2026-06-25T22:17:48.000Z"
+      "mtime": 1782425887,
+      "processedAt": "2026-06-26T09:47:22.000Z"
     },
     "/home/jackyma/.cursor/projects/home-jackyma-orbita/agent-transcripts/89db4a51-4fc3-471c-b64b-fcf0dccc9f1c/subagents/66999968-233b-45de-a743-f293930307cd.jsonl": {
       "mtime": 1782314426,
