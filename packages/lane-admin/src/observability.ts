@@ -177,6 +177,100 @@ export async function getUsageSummary(adminDb: AdminDb): Promise<UsageSummary> {
   };
 }
 
+export type ApiKeyMeteringRow = {
+  id: string;
+  key_prefix: string;
+  allowed_client_ids: string[];
+  rate_limit_per_minute: number | null;
+  effective_rate_limit_per_minute: number;
+  requests_this_minute: number;
+  revoked_at: string | null;
+  usage_24h: {
+    sessions: number;
+    messages: number;
+    turns: number;
+    token_estimate: number;
+  };
+};
+
+export async function listApiKeyMetering(
+  adminDb: AdminDb,
+  defaultRateLimitPerMinute: number,
+): Promise<ApiKeyMeteringRow[]> {
+  const rows = await adminDb.sql<
+    {
+      id: string;
+      key_prefix: string;
+      allowed_client_ids: string[];
+      rate_limit_per_minute: number | null;
+      requests_this_minute: number;
+      revoked_at: Date | string | null;
+      sessions_24h: number;
+      messages_24h: number;
+      turns_24h: number;
+      token_estimate_24h: number;
+    }[]
+  >`
+    SELECT k.id,
+           k.key_prefix,
+           k.allowed_client_ids,
+           k.rate_limit_per_minute,
+           COALESCE(rl.count, 0)::int AS requests_this_minute,
+           k.revoked_at,
+           COALESCE(stats.sessions_24h, 0)::int AS sessions_24h,
+           COALESCE(stats.messages_24h, 0)::int AS messages_24h,
+           COALESCE(stats.turns_24h, 0)::int AS turns_24h,
+           COALESCE(stats.token_estimate_24h, 0)::int AS token_estimate_24h
+    FROM api_keys k
+    LEFT JOIN rate_limit_counters rl
+      ON rl.key_id = k.id
+     AND rl.window_start = date_trunc('minute', now())
+    LEFT JOIN LATERAL (
+      SELECT COUNT(DISTINCT s.id) FILTER (
+               WHERE s.created_at >= now() - interval '24 hours'
+             ) AS sessions_24h,
+             COUNT(m.id) FILTER (
+               WHERE m.created_at >= now() - interval '24 hours'
+             ) AS messages_24h,
+             COUNT(m.id) FILTER (
+               WHERE m.role = 'assistant'
+                 AND m.created_at >= now() - interval '24 hours'
+             ) AS turns_24h,
+             COALESCE(SUM(
+               CASE
+                 WHEN m.role = 'assistant'
+                   AND m.created_at >= now() - interval '24 hours'
+                   AND m.execution_meta IS NOT NULL
+                   AND (m.execution_meta->>'token_count_estimate') ~ '^[0-9]+$'
+                 THEN (m.execution_meta->>'token_count_estimate')::bigint
+                 ELSE 0
+               END
+             ), 0)::int AS token_estimate_24h
+      FROM jsonb_array_elements_text(k.allowed_client_ids) AS cid(client_id)
+      LEFT JOIN sessions s ON s.client_id = cid.client_id
+      LEFT JOIN messages m ON m.session_id = s.id
+    ) stats ON true
+    ORDER BY k.created_at DESC
+    LIMIT 100
+  `;
+
+  return rows.map((row) => ({
+    id: row.id,
+    key_prefix: row.key_prefix,
+    allowed_client_ids: row.allowed_client_ids ?? [],
+    rate_limit_per_minute: row.rate_limit_per_minute,
+    effective_rate_limit_per_minute: row.rate_limit_per_minute ?? defaultRateLimitPerMinute,
+    requests_this_minute: row.requests_this_minute,
+    revoked_at: toIso(row.revoked_at),
+    usage_24h: {
+      sessions: row.sessions_24h,
+      messages: row.messages_24h,
+      turns: row.turns_24h,
+      token_estimate: row.token_estimate_24h,
+    },
+  }));
+}
+
 export type AdminSchedulerJobRow = {
   id: string;
   session_id: string;

@@ -7,10 +7,19 @@ import {
   getUsageSummary,
   listAdminSchedulerJobs,
   listAdminSessions,
+  listApiKeyMetering,
   listTrajectoryEventsForSession,
 } from "./observability.js";
 
-export function createAdminObservabilityRoutes(adminDb: AdminDb): OpenAPIHono {
+export type ObservabilityRouteOptions = {
+  defaultRateLimitPerMinute?: number;
+};
+
+export function createAdminObservabilityRoutes(
+  adminDb: AdminDb,
+  options: ObservabilityRouteOptions = {},
+): OpenAPIHono {
+  const defaultRateLimitPerMinute = options.defaultRateLimitPerMinute ?? 120;
   const app = new OpenAPIHono();
 
   const usageRoute = createRoute({
@@ -33,6 +42,28 @@ export function createAdminObservabilityRoutes(adminDb: AdminDb): OpenAPIHono {
   app.openapi(usageRoute, async (c) => {
     const summary = await getUsageSummary(adminDb);
     return c.json({ summary }, 200);
+  });
+
+  const keyMeteringRoute = createRoute({
+    method: "get",
+    path: "/usage/keys",
+    tags: ["Admin"],
+    summary: "Per API key usage estimates and rate-limit counters (W17 prep)",
+    responses: {
+      200: {
+        description: "API key metering",
+        content: {
+          "application/json": {
+            schema: z.object({ keys: z.array(z.record(z.unknown())) }),
+          },
+        },
+      },
+    },
+  });
+
+  app.openapi(keyMeteringRoute, async (c) => {
+    const keys = await listApiKeyMetering(adminDb, defaultRateLimitPerMinute);
+    return c.json({ keys }, 200);
   });
 
   const listSessionsRoute = createRoute({

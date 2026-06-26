@@ -333,6 +333,32 @@ async function loadUsage() {
       <thead><tr><th>Provider</th><th>Turns</th></tr></thead>
       <tbody>${providerRows || '<tr><td colspan="2">No turns yet.</td></tr>'}</tbody>
     </table>`;
+
+    const { keys } = await api("/usage/keys");
+    const keyRows = keys
+      .map((k) => {
+        const u = k.usage_24h || {};
+        const limit = k.effective_rate_limit_per_minute;
+        const rpm = k.requests_this_minute;
+        const hot = rpm >= limit * 0.8 ? " style=\"color:var(--danger)\"" : "";
+        return `<tr>
+        <td class="mono">${esc(k.key_prefix)}…</td>
+        <td class="mono">${esc((k.allowed_client_ids || []).join(", "))}</td>
+        <td${hot}>${rpm} / ${limit}</td>
+        <td>${fmt(u.sessions || 0)}</td>
+        <td>${fmt(u.messages || 0)}</td>
+        <td>${fmt(u.turns || 0)}</td>
+        <td>${k.revoked_at ? "revoked" : "active"}</td>
+      </tr>`;
+      })
+      .join("");
+    el.innerHTML += `
+    <h3>API key metering (24h, W17 prep)</h3>
+    <p class="hint">Usage attributed by allowed client_id(s). RPM = requests this minute vs effective limit.</p>
+    <table>
+      <thead><tr><th>Key</th><th>Client IDs</th><th>RPM</th><th>Sessions</th><th>Msgs</th><th>Turns</th><th>Status</th></tr></thead>
+      <tbody>${keyRows || '<tr><td colspan="7">No API keys.</td></tr>'}</tbody>
+    </table>`;
   } catch (e) {
     el.innerHTML = `<div class="error">${esc(e.message)}</div>`;
   }

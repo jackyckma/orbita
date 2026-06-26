@@ -72,7 +72,7 @@ import { createE2eMockTurnRunner } from "./e2e-mock.js";
 
 const E2E_MOCK = process.env.ORBITA_E2E_MOCK === "1";
 
-const VERSION = "0.0.1-w24";
+const VERSION = "0.0.1-w25";
 const env = loadPlatformEnv();
 const agentEnv = loadAgentEnv();
 const memoryEnv = loadMemoryEnv();
@@ -193,7 +193,9 @@ const adminApp = new OpenAPIHono();
 adminApp.use("*", adminAuthMiddleware);
 adminApp.route("/", createAdminSessionRoutes(env.ORBITA_ADMIN_TOKEN, env.ORBITA_SECRETS_KEY));
 adminApp.route("/", createAdminSettingsRoutes(adminDb));
-adminApp.route("/", createAdminObservabilityRoutes(adminDb));
+adminApp.route("/", createAdminObservabilityRoutes(adminDb, {
+  defaultRateLimitPerMinute: env.RATE_LIMIT_PER_MINUTE,
+}));
 adminApp.route(
   "/",
   createCredentialAdminRoutes(credentialsDb, env.ORBITA_SECRETS_KEY!),
