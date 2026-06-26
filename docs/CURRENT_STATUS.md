@@ -1,14 +1,14 @@
 # Current status
 
-**Last updated:** 2026-06-25
+**Last updated:** 2026-06-26
 
 ## Summary
 
-Orbita **W0–W24 shipped**; API version **0.0.1-w24** adds admin scheduler jobs list, usage/sessions observability, waitlist approve→invite.
+Orbita **W0–W26 shipped**; API version **0.0.1-w26** adds W17 daily quota hard-stop (`quota_exceeded`), API key metering, waitlist invite E2E.
 
 **Parallel:** MA track MA0–MA4 complete. X publish blocked until Bearer token.
 
-**Next:** Phase 1 waitlist E2E in prod; W17 metering prep (per-key usage, rate-limit visibility); W15 multi-user (deferred).
+**Next:** Enable hosted quotas on prod (optional env); W15 multi-user (deferred); Stripe/billing (W17 full).
 
 ## Waves
 
@@ -16,9 +16,9 @@ Orbita **W0–W24 shipped**; API version **0.0.1-w24** adds admin scheduler jobs
 |------|--------|
 | W0–W14 | ✅ Shipped |
 | **w15–w20** | ✅ Waitlist, inbound email, ZSend, approve→invite |
-| **w21–w24** | ✅ Admin usage, sessions, scheduler jobs; cache-bust + date fixes |
+| **w21–w26** | ✅ Admin observability, metering, quotas, invite E2E |
 | **W15–W16** (roadmap) | 📋 Multi-user accounts, system admin |
-| **W17+** | 📋 Billing SaaS (Phase 2 product) |
+| **W17+** | 🔄 Quota prep shipped; billing/abuse TBD |
 
 ## Product phases (`docs/api-as-product.md`)
 
