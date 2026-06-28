@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { deepMerge, mergeHarnessConfig } from "./templates.js";
+import { deepMerge, getHarnessTemplate, mergeHarnessConfig } from "./templates.js";
 
 describe("harness templates", () => {
   it("merges editorial-supply onto cron-agent", () => {
@@ -16,6 +16,11 @@ describe("harness templates", () => {
     expect(config.loops.trigger.cron).toBe("0 7 * * *");
     expect(config.loops.agent.task.message).toBe("Daily run override");
     expect(config.loops.verify.enabled).toBe(false);
+  });
+
+  it("accepts @vN version suffix from templatePublicId", () => {
+    expect(getHarnessTemplate("editorial-supply@v1").id).toBe("editorial-supply");
+    expect(getHarnessTemplate("editorial-supply@1").id).toBe("editorial-supply");
   });
 
   it("deep merges nested loops", () => {

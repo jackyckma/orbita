@@ -23,11 +23,18 @@ export function listHarnessTemplates(): HarnessTemplate[] {
     .map((name) => loadTemplateFile(name.replace(/\.json$/, "")));
 }
 
+function normalizeTemplateVersion(versionPart: string): string {
+  return versionPart.replace(/^v/i, "");
+}
+
 export function getHarnessTemplate(templateRef: string): HarnessTemplate {
   const [id, versionPart] = templateRef.split("@");
   if (!id) throw notFound(`Harness template not found: ${templateRef}`);
   const base = loadTemplateFile(id);
-  if (versionPart && String(base.version) !== versionPart) {
+  if (
+    versionPart &&
+    String(base.version) !== normalizeTemplateVersion(versionPart)
+  ) {
     throw notFound(`Harness template version not found: ${templateRef}`);
   }
   if (base.extends) {
