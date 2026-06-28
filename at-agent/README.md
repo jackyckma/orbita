@@ -26,6 +26,7 @@ at-agent/
     at1a-submit-proof-batch.py
     at1b-setup-daily-job.sh      # once — session + cron
     at1b-setup-harness.sh        # W27 — harness editorial-supply (parallel migration)
+    at1b-disable-legacy-job.sh   # migration A — disable legacy session_jobs cron (admin PATCH)
     at1b-run-daily-submit.sh     # manual trigger
     at1b-init-editorial-memory.sh  # seed backlog/feedback memory
     at1b-ingest-feedback.sh      # append founder feedback
@@ -48,4 +49,4 @@ at-agent/
 - ✅ AT platform Q&A — `docs/at-platform-answers.md`
 - ✅ **AT0b** — vault `atx_write_org` + HTTP allow-list
 - ✅ **AT1a** — 4-draft proof batch published via `/editorial`
-- ✅ **AT1b** — daily scheduler (`./scripts/at1b-setup-daily-job.sh`, cron `0 7 * * *` UTC, ~5 drafts/run)
+- ✅ **AT1b** — daily supply via **Harness** `editorial-supply@v1` (`at1b-setup-harness.sh`, cron `0 7 * * *` UTC); legacy `session_jobs` disabled after migration A

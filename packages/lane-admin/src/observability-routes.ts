@@ -6,6 +6,7 @@ import {
   getAdminSession,
   getUsageSummary,
   listAdminSchedulerJobs,
+  patchAdminSchedulerJob,
   listAdminSessions,
   listApiKeyMetering,
   listTrajectoryEventsForSession,
@@ -198,6 +199,43 @@ export function createAdminObservabilityRoutes(
     const query = c.req.valid("query");
     const jobs = await listAdminSchedulerJobs(adminDb, query);
     return c.json({ jobs }, 200);
+  });
+
+  const patchSchedulerJobRoute = createRoute({
+    method: "patch",
+    path: "/scheduler/jobs/{job_id}",
+    tags: ["Admin"],
+    summary: "Enable or disable a scheduler job (admin)",
+    request: {
+      params: z.object({ job_id: z.string().uuid() }),
+      body: {
+        content: {
+          "application/json": {
+            schema: z.object({ enabled: z.boolean() }),
+          },
+        },
+      },
+    },
+    responses: {
+      200: {
+        description: "Updated job",
+        content: {
+          "application/json": {
+            schema: z.object({ job: z.record(z.unknown()) }),
+          },
+        },
+      },
+    },
+  });
+
+  app.openapi(patchSchedulerJobRoute, async (c) => {
+    const { job_id } = c.req.valid("param");
+    const body = c.req.valid("json");
+    const job = await patchAdminSchedulerJob(adminDb, job_id, body);
+    if (!job) {
+      throw notFound("Scheduler job not found");
+    }
+    return c.json({ job }, 200);
   });
 
   return app;

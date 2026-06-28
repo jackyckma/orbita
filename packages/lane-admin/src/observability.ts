@@ -323,30 +323,81 @@ export async function listAdminSchedulerJobs(
     LIMIT ${limit}
   `;
 
-  return rows.map((row) => {
-    let schedule = "unknown";
-    if (row.cron) schedule = `cron: ${row.cron}`;
-    else if (row.every_seconds != null) schedule = `every ${row.every_seconds}s`;
+  return rows.map((row) => mapAdminSchedulerJobRow(row));
+}
 
-    const taskKind =
-      typeof row.task?.kind === "string"
-        ? row.task.kind
-        : typeof row.task?.type === "string"
-          ? row.task.type
-          : "job";
+function mapAdminSchedulerJobRow(row: {
+  id: string;
+  session_id: string;
+  client_id: string;
+  every_seconds: number | null;
+  cron: string | null;
+  enabled: boolean;
+  last_run_at: Date | string | null;
+  next_run_at: Date | string | null;
+  created_at: Date | string;
+  task: Record<string, unknown>;
+}): AdminSchedulerJobRow {
+  let schedule = "unknown";
+  if (row.cron) schedule = `cron: ${row.cron}`;
+  else if (row.every_seconds != null) schedule = `every ${row.every_seconds}s`;
 
-    return {
-      id: row.id,
-      session_id: row.session_id,
-      client_id: row.client_id,
-      schedule,
-      enabled: row.enabled,
-      last_run_at: toIso(row.last_run_at),
-      next_run_at: toIso(row.next_run_at),
-      created_at: toIso(row.created_at)!,
-      task_kind: taskKind,
-    };
-  });
+  const taskKind =
+    typeof row.task?.kind === "string"
+      ? row.task.kind
+      : typeof row.task?.type === "string"
+        ? row.task.type
+        : "job";
+
+  return {
+    id: row.id,
+    session_id: row.session_id,
+    client_id: row.client_id,
+    schedule,
+    enabled: row.enabled,
+    last_run_at: toIso(row.last_run_at),
+    next_run_at: toIso(row.next_run_at),
+    created_at: toIso(row.created_at)!,
+    task_kind: taskKind,
+  };
+}
+
+export async function patchAdminSchedulerJob(
+  adminDb: AdminDb,
+  jobId: string,
+  patch: { enabled: boolean },
+): Promise<AdminSchedulerJobRow | null> {
+  const rows = await adminDb.sql<
+    {
+      id: string;
+      session_id: string;
+      client_id: string;
+      every_seconds: number | null;
+      cron: string | null;
+      enabled: boolean;
+      last_run_at: Date | string | null;
+      next_run_at: Date | string | null;
+      created_at: Date | string;
+      task: Record<string, unknown>;
+    }[]
+  >`
+    UPDATE session_jobs
+    SET enabled = ${patch.enabled}
+    WHERE id = ${jobId}::uuid
+    RETURNING id,
+              session_id,
+              client_id,
+              every_seconds,
+              cron,
+              enabled,
+              last_run_at,
+              next_run_at,
+              created_at,
+              task
+  `;
+  const row = rows[0];
+  if (!row) return null;
+  return mapAdminSchedulerJobRow(row);
 }
 
 export async function listAdminSessions(
