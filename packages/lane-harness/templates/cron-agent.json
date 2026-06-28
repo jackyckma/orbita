@@ -1,0 +1,29 @@
+{
+  "id": "cron-agent",
+  "version": 1,
+  "description": "Generic scheduled agent turn — Loop 1 (agent) + Loop 3 (cron trigger). Verification and improve loops disabled by default.",
+  "defaults": {
+    "session_policy": "sticky",
+    "loops": {
+      "agent": {
+        "enabled": true,
+        "profile_id": "default",
+        "task": {
+          "mode": "message",
+          "message": "Run the scheduled task."
+        }
+      },
+      "verify": { "enabled": false },
+      "trigger": {
+        "enabled": true,
+        "cron": "0 9 * * *",
+        "timezone": "UTC"
+      },
+      "improve": { "enabled": false }
+    },
+    "output": {
+      "mode": "poll",
+      "emit_trajectory": true
+    }
+  }
+}

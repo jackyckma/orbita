@@ -137,3 +137,42 @@ CREATE TABLE IF NOT EXISTS "waitlist_entries" (
 
 CREATE UNIQUE INDEX IF NOT EXISTS "waitlist_entries_email_lower_unique"
   ON "waitlist_entries" (lower("email"));
+
+-- W27: Harness (Loop Engineering infrastructure)
+CREATE TABLE IF NOT EXISTS "harnesses" (
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+  "client_id" text NOT NULL,
+  "name" text NOT NULL,
+  "template_id" text NOT NULL,
+  "template_version" text DEFAULT '1' NOT NULL,
+  "config_version" text DEFAULT '1' NOT NULL,
+  "config" jsonb NOT NULL,
+  "session_id" uuid NOT NULL,
+  "cron" text,
+  "timezone" text DEFAULT 'UTC' NOT NULL,
+  "next_run_at" timestamp with time zone,
+  "last_run_at" timestamp with time zone,
+  "session_memory_key" text,
+  "feedback_memory_key" text,
+  "enabled" boolean DEFAULT true NOT NULL,
+  "created_at" timestamp with time zone DEFAULT now() NOT NULL,
+  "updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS "harnesses_client_idx" ON "harnesses" ("client_id", "enabled");
+
+CREATE TABLE IF NOT EXISTS "harness_runs" (
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+  "harness_id" uuid NOT NULL,
+  "client_id" text NOT NULL,
+  "session_id" uuid NOT NULL,
+  "status" text NOT NULL,
+  "trigger" text NOT NULL,
+  "cron_fingerprint" text,
+  "error" text,
+  "started_at" timestamp with time zone DEFAULT now() NOT NULL,
+  "finished_at" timestamp with time zone
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS "harness_runs_idempotency_idx"
+  ON "harness_runs" ("harness_id", "cron_fingerprint");

@@ -1,0 +1,33 @@
+{
+  "id": "editorial-supply",
+  "version": 1,
+  "extends": "cron-agent",
+  "description": "AT.org editorial supply preset — extends cron-agent with at-editorial profile and daily cron defaults.",
+  "defaults": {
+    "loops": {
+      "agent": {
+        "enabled": true,
+        "profile_id": "at-editorial",
+        "task": {
+          "mode": "message",
+          "message": "Run daily AT editorial supply per at-agent/prompts/daily-submit.md (override at create with composed prompt)."
+        }
+      },
+      "trigger": {
+        "enabled": true,
+        "cron": "0 7 * * *",
+        "timezone": "UTC"
+      }
+    }
+  },
+  "application": {
+    "memory_keys": [
+      "editorial/feedback",
+      "editorial/backlog",
+      "editorial/published-log",
+      "editorial/research-recommendations"
+    ],
+    "session_memory_key": "at-daily-session",
+    "feedback_memory_key": "editorial/feedback"
+  }
+}

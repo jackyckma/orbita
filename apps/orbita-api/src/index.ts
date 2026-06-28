@@ -66,13 +66,19 @@ import {
   logTrajectoryEvent,
 } from "@orbita/trajectory";
 import { createProfileRoutes } from "@orbita/profiles";
+import {
+  HARNESS_CAPABILITIES,
+  createHarnessDb,
+  createHarnessRoutes,
+  startHarnessTick,
+} from "@orbita/harness";
 import { createInboundEmailRoutes } from "./inbound-email.js";
 import { runMigrations } from "./migrate.js";
 import { createE2eMockTurnRunner } from "./e2e-mock.js";
 
 const E2E_MOCK = process.env.ORBITA_E2E_MOCK === "1";
 
-const VERSION = "0.0.1-w26";
+const VERSION = "0.0.1-w27";
 const env = loadPlatformEnv();
 const agentEnv = loadAgentEnv();
 const memoryEnv = loadMemoryEnv();
@@ -101,6 +107,7 @@ const sessionsDb = createSessionsDb(env.DATABASE_URL);
 const memoryDb = createMemoryDb(env.DATABASE_URL);
 const trajectoryDb = createTrajectoryDb(env.DATABASE_URL);
 const schedulerDb = createSchedulerDb(env.DATABASE_URL);
+const harnessDb = createHarnessDb(env.DATABASE_URL);
 const credentialsDb = createCredentialsDb(env.DATABASE_URL);
 const adminDb = createAdminDb(env.DATABASE_URL);
 const waitlistDb = createWaitlistDb(env.DATABASE_URL);
@@ -242,7 +249,13 @@ protectedApp.get("/whoami", (c) => {
 });
 
 protectedApp.get("/capabilities", (c) =>
-  c.json(createCapabilitiesResponse(publicBaseUrl), 200),
+  c.json(
+    {
+      ...createCapabilitiesResponse(publicBaseUrl),
+      harness: HARNESS_CAPABILITIES,
+    },
+    200,
+  ),
 );
 
 protectedApp.route("/", createSessionRoutes(sessionsDb, runTurn, sessionSummarizer, {
@@ -252,6 +265,17 @@ protectedApp.route("/", createSessionRoutes(sessionsDb, runTurn, sessionSummariz
 protectedApp.route("/", createMemoryRoutes(memoryDb, memoryEnv));
 protectedApp.route("/", createTrajectoryRoutes(trajectoryDb, assertSessionOwner));
 protectedApp.route("/", createSchedulerRoutes(schedulerDb, assertSessionOwner));
+protectedApp.route(
+  "/",
+  createHarnessRoutes({
+    harnessDb,
+    sessionsDb,
+    memoryDb,
+    memoryEnv,
+    runTurn,
+    summarizer: sessionSummarizer,
+  }),
+);
 protectedApp.route("/", createCredentialListRoutes(credentialsDb));
 
 app.route("/v1", protectedApp);
@@ -299,6 +323,14 @@ startSchedulerTick(
       );
     }
   },
+  logger,
+);
+
+startHarnessTick(
+  harnessDb,
+  sessionsDb,
+  runTurn,
+  sessionSummarizer,
   logger,
 );
 

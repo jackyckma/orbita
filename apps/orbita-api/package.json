@@ -16,6 +16,7 @@
     "@orbita/agent": "workspace:*",
     "@orbita/auth": "workspace:*",
     "@orbita/credentials": "workspace:*",
+    "@orbita/harness": "workspace:*",
     "@orbita/memory": "workspace:*",
     "@orbita/platform": "workspace:*",
     "@orbita/profiles": "workspace:*",
