@@ -3,7 +3,7 @@ import { computeNextCronRun, isJobDue, runScheduledAgentMessage } from "@orbita/
 import type { AgentTurnRunner, SessionSummarizer, SessionsDb } from "@orbita/sessions";
 import type { HarnessDb } from "./db/client.js";
 import { harnessRuns, harnesses } from "./db/schema.js";
-import { resolveAgentMessage } from "./templates.js";
+import { resolveHarnessRunMessage } from "./templates.js";
 import type { HarnessConfig } from "./types.js";
 
 function cronFingerprint(cron: string, dueAt: Date): string {
@@ -46,7 +46,10 @@ export async function executeHarnessRun(
     })
     .returning();
 
-  const message = resolveAgentMessage(harness.config as HarnessConfig);
+  const message = resolveHarnessRunMessage(harness.config as HarnessConfig, {
+    templateId: harness.templateId,
+    dueAt,
+  });
   const agentResult = await runScheduledAgentMessage(
     sessionsDb,
     harness.sessionId,

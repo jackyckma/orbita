@@ -88,6 +88,41 @@ export function mergeHarnessConfig(
   return { template, config: parsed.data };
 }
 
+export function refreshEditorialRunDates(message: string, dueAt: Date): string {
+  const today = dueAt.toISOString().slice(0, 10);
+  const marker = "# Daily run (";
+  const idx = message.indexOf(marker);
+  if (idx === -1) return message;
+
+  const before = message.slice(0, idx);
+  const after = message.slice(idx);
+  const staleMatch = after.match(/# Daily run \((\d{4}-\d{2}-\d{2}) UTC\)/);
+  if (!staleMatch) return message;
+
+  const stale = staleMatch[1];
+  if (stale === today) return message;
+
+  const refreshedAfter = after.replaceAll(stale, today);
+  return (
+    before +
+    refreshedAfter.replace(
+      /# Daily run \(\d{4}-\d{2}-\d{2} UTC\)/,
+      `# Daily run (${today} UTC)`,
+    )
+  );
+}
+
+export function resolveHarnessRunMessage(
+  config: HarnessConfig,
+  options?: { templateId?: string; dueAt?: Date },
+): string {
+  let message = resolveAgentMessage(config);
+  if (options?.templateId === "editorial-supply" && options.dueAt) {
+    message = refreshEditorialRunDates(message, options.dueAt);
+  }
+  return message;
+}
+
 export function resolveAgentMessage(config: HarnessConfig): string {
   const task = config.loops.agent.task;
   if (task.mode === "message") {
