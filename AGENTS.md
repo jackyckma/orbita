@@ -31,7 +31,7 @@ After each **shipped wave**, update the marketing site version log (`apps/orbita
 
 ## Marketing agent workspace
 
-Local folder **`marketing-agent/`** (gitignored except `README.md`) holds brand voice, runbooks, and Orbita **caller** setup — not platform code. **`at-agent/`** is the parallel workspace for **ai-transformation.org** dogfood (`docs/at-track-plan.md`). **Cross-project handoff with ai-transformation-io:** read/write **`/home/jackyma/Orbiter-AT-dogfood/`** (`state/STATUS.md`, `inbox/*`) — see `PROTOCOL.md` there; not in git. On demand: skill **`orbiter-handoff-check`** or say「檢查 handoff」. Auto: `.cursor/hooks.json` `stop` hook polls every **30 min** (or new AT files). For marketing tasks: read that folder and operate `api.get-orbita.com` as a user; do not modify `packages/*` unless fixing the platform.
+Local folder **`marketing-agent/`** (gitignored except `README.md`) holds brand voice, runbooks, and Orbita **caller** setup — not platform code. **`at-agent/`** is the parallel workspace for **ai-transformation.org** dogfood (`docs/at-track-plan.md`). **Cross-project handoff with ai-transformation-io:** `~/Orbiter-AT-dogfood/` (`state/STATUS.md`, `inbox/*`) — see `PROTOCOL.md` there; not in git. **On demand only:** skill **`orbiter-handoff-check`** or user says「檢查 handoff」/「讀 Orbiter-AT-dogfood」— **do not** auto-read each turn (stop hook disabled in `.cursor/hooks.json`). For marketing tasks: read that folder only when user requests handoff check; operate `api.get-orbita.com` as a user; do not modify `packages/*` unless fixing the platform.
 
 ## Learned User Preferences
 
@@ -43,7 +43,7 @@ Local folder **`marketing-agent/`** (gitignored except `README.md`) holds brand 
 - Always respond in 繁體中文 for user-facing communication (English for code/commits unless asked otherwise).
 - Prefer Zeabur ZSend (`api.zeabur.com`) over Resend for outbound instance email.
 - Marketing beyond X; evaluate skills catalog vs plugins; dogfood **ai-transformation.org** first — proof batch then ramp (~5/day max), not weekly 1+1 steady state; MA brand: **AI Business Life** next, **Agent Mindset** when book ships (~2–3 weeks); apprenticeship under Powerhouse + AT.org.
-- Handoff/inbox polls: read `~/Orbiter-AT-dogfood/`; **do NOT POST probe drafts** to AT on auth checks (avoids `/editorial` noise).
+- Handoff/inbox polls: **`~/Orbiter-AT-dogfood/` on demand only** (skill `orbiter-handoff-check` or explicit user request); **do NOT** auto-read each turn; **do NOT POST probe drafts** to AT on auth checks (avoids `/editorial` noise).
 - Social posting: meaningful draft→approve only (prior X spam ban); MA depth via per-project workspaces + shared/tested skills catalog — not plugins.
 - Prefer agent-operated Zeabur CLI (`npx zeabur@latest`) and Orbita Admin API over asking user to run prod SQL or Dashboard steps; Postgres `service exec`/`psql` often 524-times out.
 - Commit continual-learning outputs directly (`AGENTS.md`, `.cursor/hooks/state/continual-learning*.json`) without asking.
