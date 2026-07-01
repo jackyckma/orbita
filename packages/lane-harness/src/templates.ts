@@ -100,9 +100,9 @@ export function refreshEditorialRunDates(message: string, dueAt: Date): string {
   if (!staleMatch) return message;
 
   const stale = staleMatch[1];
-  if (stale === today) return message;
+  if (!stale || stale === today) return message;
 
-  const refreshedAfter = after.replaceAll(stale, today);
+  const refreshedAfter = after.split(stale).join(today);
   return (
     before +
     refreshedAfter.replace(
