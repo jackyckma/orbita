@@ -4,6 +4,7 @@
   "extends": "cron-agent",
   "description": "AT.org editorial supply preset — extends cron-agent with at-editorial profile and daily cron defaults.",
   "defaults": {
+    "session_policy": "per_run",
     "loops": {
       "agent": {
         "enabled": true,

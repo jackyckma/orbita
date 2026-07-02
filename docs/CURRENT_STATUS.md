@@ -1,44 +1,32 @@
 # Current status
 
-**Last updated:** 2026-06-26
+**Last updated:** 2026-07-01
+
+**Navigation:** see **`docs/DEVELOPMENT_LANES.md`** for the four-lane map and what is off your radar.
 
 ## Summary
 
-Orbita **W0–W26 shipped**; API version **0.0.1-w26** adds W17 daily quota hard-stop (`quota_exceeded`), API key metering, waitlist invite E2E.
+Orbita **W0–W31** in progress; API target **0.0.1-w31** (harness `session_policy: per_run` for editorial supply).
 
-**Parallel:** MA track MA0–MA4 complete. X publish blocked until Bearer token.
+**Focus lane:** **L2 AT dogfood loop** — daily supply + outcome poll + feedback memory.
 
-**Next:** Enable hosted quotas on prod (optional env); W15 multi-user (deferred); Stripe/billing (W17 full).
+## Dogfood — AT1b
 
-## Waves
-
-| Wave | Status |
-|------|--------|
-| W0–W14 | ✅ Shipped |
-| **w15–w20** | ✅ Waitlist, inbound email, ZSend, approve→invite |
-| **w21–w26** | ✅ Admin observability, metering, quotas, invite E2E |
-| **W15–W16** (roadmap) | 📋 Multi-user accounts, system admin |
-| **W17+** | 🔄 Quota prep shipped; billing/abuse TBD |
-
-## Product phases (`docs/api-as-product.md`)
-
-| Phase | Status |
+| Piece | Status |
 |-------|--------|
-| **Phase 0** | 🔄 Self-use stabilize (ongoing polish) |
-| **Phase 1** | ✅ Waitlist + approve → key + invite email |
-| **Phase 2** | 📋 Paid SaaS |
+| AT1a proof E2E | ✅ |
+| Harness supply 07:00 UTC | ⚠️ w31 per_run fix deploying |
+| Agent poll 18:00 UTC | 📋 `at1b-setup-poll-harness.sh` |
+| Operator poll fallback | 📋 `at1b-sync-review-outcomes.sh` |
+| Human `/editorial` | ongoing |
 
 ## Infrastructure
 
 | URL | Role |
 |-----|------|
-| https://get-orbita.com | Marketing site |
-| https://get-orbita.com/waitlist.html | Hosted API waitlist |
 | https://api.get-orbita.com | Production API |
+| https://ai-transformation.io | AT write + editorial target |
 
-## Key docs
+## Deferred (off radar)
 
-- `docs/product-architecture.md` — lanes + W waves
-- `docs/api-as-product.md` — invite-only → SaaS (decided)
-- `docs/marketing-agent-plan.md` — MA0–MA4 ✅
-- `docs/self-host.md` — self-host guide
+W15 multi-user · W17 billing · AT webhooks Phase 2 · Orbita Loop 4 auto-improve

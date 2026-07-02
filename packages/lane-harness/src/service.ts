@@ -129,11 +129,42 @@ export async function getHarnessRecord(
   return rowToJson(row);
 }
 
+export async function resolveHarnessSessionForRun(
+  harnessDb: HarnessDb,
+  sessionsDb: SessionsDb,
+  memoryDb: MemoryDb,
+  memoryEnv: MemoryEnv,
+  harness: typeof harnesses.$inferSelect,
+): Promise<string> {
+  const config = harness.config as HarnessConfig;
+  if (config.session_policy !== "per_run") {
+    return harness.sessionId;
+  }
+
+  const session = await createSession(sessionsDb, harness.clientId, config.loops.agent.profile_id);
+  if (harness.sessionMemoryKey) {
+    await upsertMemory(
+      memoryDb,
+      harness.clientId,
+      harness.sessionMemoryKey,
+      session.id,
+      memoryEnv,
+    );
+  }
+
+  await harnessDb.db
+    .update(harnesses)
+    .set({ sessionId: session.id, updatedAt: new Date() })
+    .where(eq(harnesses.id, harness.id));
+
+  return session.id;
+}
+
 export async function patchHarnessRecord(
   harnessDb: HarnessDb,
   clientId: string,
   harnessId: string,
-  patch: { enabled?: boolean; cron?: string },
+  patch: { enabled?: boolean; cron?: string; session_policy?: "sticky" | "per_run" },
 ) {
   const [existing] = await harnessDb.db
     .select()
@@ -145,11 +176,20 @@ export async function patchHarnessRecord(
     updatedAt: new Date(),
   };
   if (patch.enabled !== undefined) updates.enabled = patch.enabled;
+  const config = { ...existing.config } as HarnessConfig;
+  let configChanged = false;
+
   if (patch.cron !== undefined) {
     updates.cron = patch.cron;
     updates.nextRunAt = initialNextRunAt(patch.cron, new Date());
-    const config = { ...existing.config } as HarnessConfig;
     config.loops.trigger.cron = patch.cron;
+    configChanged = true;
+  }
+  if (patch.session_policy !== undefined) {
+    config.session_policy = patch.session_policy;
+    configChanged = true;
+  }
+  if (configChanged) {
     updates.config = config;
     updates.configVersion = String(Number(existing.configVersion) + 1);
   }

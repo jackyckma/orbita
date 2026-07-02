@@ -160,6 +160,7 @@ export function createHarnessRoutes(deps: {
             schema: z.object({
               enabled: z.boolean().optional(),
               cron: z.string().min(1).optional(),
+              session_policy: z.enum(["sticky", "per_run"]).optional(),
             }),
           },
         },
@@ -223,6 +224,7 @@ export function createHarnessRoutes(deps: {
       "manual",
       new Date(),
       deps.runTurn,
+      { memoryDb: deps.memoryDb, memoryEnv: deps.memoryEnv },
       deps.summarizer,
     );
     return c.json({ ok: result.ran, run_id: result.runId, error: result.error }, 200);

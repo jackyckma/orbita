@@ -17,6 +17,7 @@ describe("harness templates", () => {
       },
     });
     expect(template.id).toBe("editorial-supply");
+    expect(config.session_policy).toBe("per_run");
     expect(config.loops.agent.profile_id).toBe("at-editorial");
     expect(config.loops.trigger.cron).toBe("0 7 * * *");
     expect(config.loops.agent.task.message).toBe("Daily run override");

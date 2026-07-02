@@ -1,8 +1,9 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { ApiErrorBodySchema } from "@orbita/platform";
 import { getAuth } from "@orbita/auth";
+import { notFound } from "@orbita/platform";
 import type { MemoryDb } from "../db/client.js";
-import { listMemories, upsertMemory } from "../service.js";
+import { getMemoryByKey, listMemories, upsertMemory } from "../service.js";
 import type { MemoryEnv } from "../config.js";
 
 export function createMemoryRoutes(
@@ -39,6 +40,37 @@ export function createMemoryRoutes(
     const auth = getAuth(c);
     const items = await listMemories(db, auth.clientId);
     return c.json({ memories: items }, 200);
+  });
+
+  const getRoute = createRoute({
+    method: "get",
+    path: "/memories/{key}",
+    tags: ["Memory"],
+    summary: "Read a client-scoped memory entry",
+    request: { params: z.object({ key: z.string().min(1) }) },
+    responses: {
+      200: {
+        description: "Memory entry",
+        content: {
+          "application/json": {
+            schema: z.object({
+              key: z.string(),
+              content: z.string(),
+              updated_at: z.string().optional(),
+            }),
+          },
+        },
+      },
+      404: { description: "Not found", content: { "application/json": { schema: ApiErrorBodySchema } } },
+    },
+  });
+
+  app.openapi(getRoute, async (c) => {
+    const auth = getAuth(c);
+    const { key } = c.req.valid("param");
+    const content = await getMemoryByKey(db, auth.clientId, decodeURIComponent(key));
+    if (content === null) throw notFound("Memory not found");
+    return c.json({ key, content }, 200);
   });
 
   const upsertRoute = createRoute({

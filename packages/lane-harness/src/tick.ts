@@ -1,10 +1,18 @@
 import { and, eq } from "drizzle-orm";
+import type { MemoryDb } from "@orbita/memory";
+import type { MemoryEnv } from "@orbita/memory";
 import { computeNextCronRun, isJobDue, runScheduledAgentMessage } from "@orbita/scheduler";
 import type { AgentTurnRunner, SessionSummarizer, SessionsDb } from "@orbita/sessions";
 import type { HarnessDb } from "./db/client.js";
 import { harnessRuns, harnesses } from "./db/schema.js";
+import { resolveHarnessSessionForRun } from "./service.js";
 import { resolveHarnessRunMessage } from "./templates.js";
 import type { HarnessConfig } from "./types.js";
+
+export type HarnessRunDeps = {
+  memoryDb: MemoryDb;
+  memoryEnv: MemoryEnv;
+};
 
 function cronFingerprint(cron: string, dueAt: Date): string {
   return `${cron}:${dueAt.toISOString().slice(0, 16)}`;
@@ -17,6 +25,7 @@ export async function executeHarnessRun(
   trigger: "cron" | "manual",
   dueAt: Date,
   runTurn: AgentTurnRunner,
+  deps: HarnessRunDeps,
   summarizer?: SessionSummarizer,
 ): Promise<{ ran: boolean; runId?: string; error?: string }> {
   const fingerprint = trigger === "cron" && harness.cron ? cronFingerprint(harness.cron, dueAt) : null;
@@ -34,12 +43,20 @@ export async function executeHarnessRun(
     if (existing) return { ran: false };
   }
 
+  const sessionId = await resolveHarnessSessionForRun(
+    harnessDb,
+    sessionsDb,
+    deps.memoryDb,
+    deps.memoryEnv,
+    harness,
+  );
+
   const [run] = await harnessDb.db
     .insert(harnessRuns)
     .values({
       harnessId: harness.id,
       clientId: harness.clientId,
-      sessionId: harness.sessionId,
+      sessionId,
       status: "agent_running",
       trigger,
       cronFingerprint: fingerprint,
@@ -52,7 +69,7 @@ export async function executeHarnessRun(
   });
   const agentResult = await runScheduledAgentMessage(
     sessionsDb,
-    harness.sessionId,
+    sessionId,
     harness.clientId,
     { type: "agent_message", message },
     runTurn,
@@ -91,6 +108,7 @@ export function startHarnessTick(
   harnessDb: HarnessDb,
   sessionsDb: SessionsDb,
   runTurn: AgentTurnRunner,
+  deps: HarnessRunDeps,
   summarizer?: SessionSummarizer,
   logger?: { info: (obj: object, msg: string) => void; warn: (obj: object, msg: string) => void },
 ) {
@@ -122,6 +140,7 @@ export function startHarnessTick(
         "cron",
         harness.nextRunAt ?? now,
         runTurn,
+        deps,
         summarizer,
       );
       if (result.error) {

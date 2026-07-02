@@ -30,12 +30,16 @@ at-agent/
     at1b-run-daily-submit.sh     # manual trigger
     at1b-init-editorial-memory.sh  # seed backlog/feedback memory
     at1b-ingest-feedback.sh      # append founder feedback
+    at1b-sync-review-outcomes.sh # operator fallback — poll AT → feedback memory
+    at1b-setup-poll-harness.sh   # agent-initiated poll harness (18:00 UTC)
+    at1b-patch-harness-per-run.sh # one-time — fix sticky session on supply harness
     at1b-setup-research.sh       # Tavily allow-list + vault
     at1b-build-daily-prompt.py   # prompt composer
     at-verify-published-object.sh  # post-approve verify (objects API)
   prompts/
     series-brief.md              # framework + consistency rules
     daily-submit.md              # daily workflow prompt
+    poll-outcomes.md             # poll AT review outcomes → feedback memory
   data/
     editorial-backlog-seed.json
     research-recommendations.json
