@@ -16,7 +16,7 @@ describe("profiles", () => {
 
   it("loads research, coding, marketing, and at-editorial profiles", () => {
     expect(listProfileIds()).toEqual(
-      expect.arrayContaining(["research", "coding", "marketing", "at-editorial", "at-editorial-poll"]),
+      expect.arrayContaining(["research", "coding", "marketing", "at-editorial", "at-editorial-poll", "personal-steward"]),
     );
     const research = bindProfileSnapshot("research");
     expect(research.skills).toEqual(["core", "research", "api_http"]);

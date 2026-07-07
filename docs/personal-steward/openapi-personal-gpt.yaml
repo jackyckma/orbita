@@ -1,0 +1,87 @@
+openapi: 3.1.0
+info:
+  title: Orbita Personal Steward (subset)
+  version: 0.0.1-pa0
+  description: Minimal schema for ChatGPT Custom GPT Actions — personal-jacky tenant.
+servers:
+  - url: https://api.get-orbita.com/v1
+paths:
+  /notes/search:
+    get:
+      operationId: searchNotes
+      summary: Semantic search over personal notes
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema: { type: string }
+        - name: top_k
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 10, default: 5 }
+      responses:
+        "200":
+          description: Search hits
+  /notes/{id}:
+    get:
+      operationId: getNote
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Note
+    put:
+      operationId: upsertNote
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [body]
+              properties:
+                title: { type: string, nullable: true }
+                body: { type: string }
+                frontmatter:
+                  type: object
+                  additionalProperties: true
+      responses:
+        "200":
+          description: Note stored
+  /memories/{key}:
+    get:
+      operationId: getMemory
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Memory entry
+    put:
+      operationId: putMemory
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [content]
+              properties:
+                content: { type: string }
+      responses:
+        "200":
+          description: Memory stored
