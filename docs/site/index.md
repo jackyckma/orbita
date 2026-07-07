@@ -15,6 +15,7 @@ Orbita is an **agent-native HTTP API** — sessions, memory, tools, trajectory, 
 | [Setup](./setup.html) | Prerequisites, env vars, Postgres, admin console |
 | [Quick start](./quick-start.html) | First API key, session, and message in minutes |
 | [Examples](./examples.html) | Echo, HTTP tools, memory, inbound email |
+| [Embed as backend](./embed-as-backend.html) | Run Orbita as your app's agent layer |
 | [Technical reference](./technical.html) | Auth model, profiles, OpenAPI, deployment split |
 
 ## Live endpoints
