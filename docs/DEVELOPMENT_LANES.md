@@ -37,8 +37,8 @@ L1 Platform ──► L2 AT loop (dogfood proof) ──► L3 MA / marketing
 |------|-------|-----------|--------|
 | Supply ~5 drafts/day | **Agent** (harness 07:00 UTC) | Loop 1+3, `session_policy: per_run` | ✅ w31 verified |
 | Human review | **You** | AT `/editorial` | ongoing |
-| Poll outcomes | **Agent** (harness 18:00 UTC) | poll-outcomes prompt | 📋 verify cron 7/2–7/7 |
-| Poll fallback | **Operator script** | `at1b-sync-review-outcomes.sh` | 📋 ready |
+| Poll outcomes | **Agent** (harness 18:00 UTC) | poll-outcomes + `at-editorial-poll` profile | ✅ manual poll 7/7 |
+| Poll fallback | **Operator script** | `scripts/at1b-poll-editorial-outcomes.sh` | ✅ |
 | Manual notes | **You** (optional) | `at1b-ingest-feedback.sh` | ✅ |
 
 **Design note:** Daily automation is **agent-initiated** via Harness cron. Shell scripts are **bootstrap + fallback**, not the steady-state loop.
@@ -49,8 +49,8 @@ L1 Platform ──► L2 AT loop (dogfood proof) ──► L3 MA / marketing
 
 | Wave | Status |
 |------|--------|
-| W32 notes + links + tools | 🚧 in progress |
-| W33 neighbors + search | 📋 planned |
+| W32 notes + links + tools | ✅ shipped |
+| W33 neighbors + search | ✅ shipped |
 | W34 harness pre-inject | 📋 planned |
 | W35 export + AT graph dogfood | 📋 planned |
 
@@ -64,12 +64,14 @@ Flat `client_memories` stays for small keys; notes for prose + graph.
 
 - [x] w31 `session_policy: per_run` wired + prod patch
 - [x] Poll harness + sync scripts documented
-- [ ] W32 notes schema + API + tools
+- [x] W32 notes schema + API + tools
+- [x] W33 note neighbors + search
+- [x] Editorial poll sync after founder review (2026-07-07)
 - [ ] Spot-check prod cron since 7/1 (supply + poll)
 
 ### Needs you (human gate)
 
-- [ ] Review pending/rejected drafts on `/editorial`
+- [x] Review pending/rejected drafts on `/editorial`
 - [ ] AT: `editorial_comment` on reject (optional backlog)
 - [ ] Marketing case study copy when L2 is green 7 days
 

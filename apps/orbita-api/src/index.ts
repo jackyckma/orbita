@@ -38,6 +38,7 @@ import {
   getMemoryContext,
   getNoteById,
   loadMemoryEnv,
+  searchNotes,
   upsertMemory,
   upsertNote,
 } from "@orbita/memory";
@@ -82,7 +83,7 @@ import { createE2eMockTurnRunner } from "./e2e-mock.js";
 
 const E2E_MOCK = process.env.ORBITA_E2E_MOCK === "1";
 
-const VERSION = "0.0.1-w32";
+const VERSION = "0.0.1-w33";
 const env = loadPlatformEnv();
 const agentEnv = loadAgentEnv();
 const memoryEnv = loadMemoryEnv();
@@ -172,6 +173,8 @@ const baseTurnRunner = E2E_MOCK
           rel: link.rel,
         };
       },
+      searchNotes: async (clientId, query, topK) =>
+        searchNotes(memoryDb, clientId, query, memoryEnv, topK ?? memoryEnv.MEMORY_TOP_K ?? 8),
       onToolTrace: (event) => {
         logTrajectoryEvent(trajectoryDb, {
           sessionId: event.sessionId,

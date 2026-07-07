@@ -2,15 +2,13 @@
 
 **Last updated:** 2026-07-07
 
-**Navigation:** `docs/DEVELOPMENT_LANES.md` (lanes) · `docs/development-plan.md` (W32–W35 roadmap)
+**Navigation:** `docs/DEVELOPMENT_LANES.md` · `docs/development-plan.md` · `docs/at-editorial-poll.md`
 
 ## Summary
 
-Orbita **W0–W32** in progress; API target **0.0.1-w32** (memory graph foundation: notes + links).
+Orbita **W0–W33** in progress; API target **0.0.1-w33** (note graph traverse + vector search).
 
-**Focus lane:** **L2 AT dogfood loop** — daily supply + outcome poll + feedback memory.
-
-**Platform lane:** **L1 W32** — `notes` / `note_links` tables, `/v1/notes` API, agent tools.
+**Focus lane:** **L2 AT dogfood loop** — editorial poll sync ran after founder review (**12 outcomes** → `editorial/feedback`).
 
 ## Dogfood — AT1b
 
@@ -18,15 +16,15 @@ Orbita **W0–W32** in progress; API target **0.0.1-w32** (memory graph foundati
 |-------|--------|
 | AT1a proof E2E | ✅ |
 | Harness supply 07:00 UTC | ✅ w31 per_run verified |
-| Agent poll 18:00 UTC | 📋 verify cron stability |
-| Operator poll fallback | 📋 `at1b-sync-review-outcomes.sh` |
-| Human `/editorial` | ongoing |
+| Editorial poll (GET /objects/{id}) | ✅ `scripts/at1b-poll-editorial-outcomes.sh` + poll harness |
+| Agent poll 18:00 UTC | 📋 cron verify |
+| Human `/editorial` | ✅ review complete (2026-07-07) |
 
 ## Infrastructure
 
 | URL | Role |
 |-----|------|
-| https://api.get-orbita.com | Production API (w31 → w32 deploying) |
+| https://api.get-orbita.com | Production API (w33 deploying) |
 | https://ai-transformation.io | AT write + editorial target |
 
 ## Deferred (off radar)

@@ -36,6 +36,9 @@ export type ToolExecutionContext = {
     to_id: string;
     rel: string;
   }>;
+  searchNotes?: (query: string, topK?: number) => Promise<
+    Array<{ id: string; title: string | null; body: string; updated_at: string }>
+  >;
   onToolTrace?: (event: ToolTraceEvent) => void;
 };
 
@@ -376,6 +379,32 @@ const noteLinkTool: ToolDefinition = {
   },
 };
 
+const noteSearchTool: ToolDefinition = {
+  name: "note_search",
+  description: "Semantic search over markdown notes (pgvector). Use for rubrics, long-form knowledge, or linked prose.",
+  parameters: {
+    type: "object",
+    properties: {
+      query: { type: "string", description: "Natural language search query" },
+      top_k: { type: "number", description: "Max results (1–20, default 8)" },
+    },
+    required: ["query"],
+  },
+  execute: async (args, ctx) => {
+    if (!ctx.searchNotes) {
+      throw new Error("Note search is not configured for this deployment");
+    }
+    const query = String(args.query ?? "").trim();
+    if (!query) {
+      throw new Error("query is required");
+    }
+    const topK =
+      args.top_k !== undefined ? Math.min(Math.max(Number(args.top_k), 1), 20) : undefined;
+    const notes = await ctx.searchNotes(query, topK);
+    return { query, count: notes.length, notes };
+  },
+};
+
 const dockerEchoTool: ToolDefinition = {
   name: "docker_echo",
   description:
@@ -408,6 +437,7 @@ const registry: Record<string, ToolDefinition> = {
   note_put: notePutTool,
   note_get: noteGetTool,
   note_link: noteLinkTool,
+  note_search: noteSearchTool,
   web_search: webSearchTool,
 };
 

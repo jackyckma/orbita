@@ -74,6 +74,11 @@ export type AgentTurnRunnerDeps = {
     toId: string,
     rel: string,
   ) => Promise<{ from_id: string; to_id: string; rel: string }>;
+  searchNotes?: (
+    clientId: string,
+    query: string,
+    topK?: number,
+  ) => Promise<Array<{ id: string; title: string | null; body: string; updated_at: string }>>;
   onToolTrace?: ToolTraceCallback;
 };
 
@@ -328,6 +333,9 @@ export function createAgentTurnRunner(
       linkNotes: deps.linkNotes
         ? async (fromId, toId, rel) =>
             deps.linkNotes!(session.clientId, fromId, toId, rel)
+        : undefined,
+      searchNotes: deps.searchNotes
+        ? async (query, topK) => deps.searchNotes!(session.clientId, query, topK)
         : undefined,
       onToolTrace: deps.onToolTrace
         ? (event) =>

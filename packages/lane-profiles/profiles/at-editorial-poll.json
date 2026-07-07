@@ -1,0 +1,22 @@
+{
+  "id": "at-editorial-poll",
+  "description": "AT.org editorial outcome poll — refetch review status and comments into Orbita memory",
+  "model": {
+    "provider": "minimax",
+    "model": "MiniMax-M3"
+  },
+  "fallback_model": {
+    "provider": "anthropic",
+    "model": "claude-sonnet-4-6"
+  },
+  "system_prompt": "You poll ai-transformation.io for human editorial outcomes on drafts Orbita previously submitted. Capture editorial_comment and decisions into editorial/feedback memory. Never submit new drafts or change publish state on AT.",
+  "skills": ["core", "api_http", "at-editorial-poll"],
+  "allowed_tools": [
+    "echo",
+    "http_get",
+    "json_parse",
+    "json_stringify",
+    "memory_put",
+    "memory_get"
+  ]
+}

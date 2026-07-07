@@ -19,7 +19,7 @@ related: docs/DEVELOPMENT_LANES.md, docs/CURRENT_STATUS.md, usr/memory-design-fr
 | Wave | Deliverable | Depends on |
 |------|-------------|------------|
 | **W32** | `notes` + `note_links` schema; `PUT/GET /v1/notes`; tools `note_put`, `note_get`, `note_link` | w31 flat memory ✅ |
-| **W33** | `GET /v1/notes/{id}/neighbors` (graph traverse); `GET /v1/notes/search` (vector); hybrid retrieval helper | W32 |
+| **W33** | `GET /v1/notes/{id}/neighbors` (graph traverse); `GET /v1/notes/search` (vector); `getNoteContext()`; tool `note_search` | W32 ✅ |
 | **W34** | Harness pre-inject config (`memory_keys`, `graph_from`, `depth`, `vector_query`) | W33 |
 | **W35** | Export `.md` + wikilinks; AT1b dogfood (rubric note ↔ rejected draft edges) | W34 + L2 green |
 
@@ -60,8 +60,8 @@ See **`docs/DEVELOPMENT_LANES.md`** for the live lane table.
 
 | Lane | Focus | Now |
 |------|-------|-----|
-| **L1 Platform** | Harness, memory, API | W32 in progress |
-| **L2 AT dogfood** | Closed editorial loop | **PRIMARY** — human `/editorial` review |
+| **L1 Platform** | Harness, memory, API | W33 ✅; W34 harness pre-inject next |
+| **L2 AT dogfood** | Closed editorial loop | **PRIMARY** — poll sync ✅ after review |
 | **L3 GTM/MA** | AI Business Life | ⏸️ after L2 green 7 days |
 | **L4 Ops** | Deploy, docs | Sync plan + deploy on platform waves |
 

@@ -15,9 +15,23 @@ export { createNoteRoutes } from "./routes/notes.js";
 export { embedText } from "./embed.js";
 export {
   createNoteLink,
+  formatNoteContextLines,
   getNoteById,
+  getNoteContext,
+  getNoteNeighbors,
   listNoteLinksFrom,
+  listNoteLinksTo,
   listNotes,
+  searchNotes,
   upsertNote,
 } from "./notes-service.js";
-export type { NoteLinkRecord, NoteListItem, NoteRecord, UpsertNoteInput } from "./notes-service.js";
+export type {
+  GetNoteNeighborsOptions,
+  NoteContextOptions,
+  NoteLinkRecord,
+  NoteListItem,
+  NoteNeighbor,
+  NoteRecord,
+  NoteSearchHit,
+  UpsertNoteInput,
+} from "./notes-service.js";

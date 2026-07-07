@@ -7,8 +7,10 @@ import type { MemoryEnv } from "../config.js";
 import {
   createNoteLink,
   getNoteById,
+  getNoteNeighbors,
   listNoteLinksFrom,
   listNotes,
+  searchNotes,
   upsertNote,
 } from "../notes-service.js";
 
@@ -61,6 +63,45 @@ export function createNoteRoutes(db: MemoryDb, env: MemoryEnv): OpenAPIHono {
     const auth = getAuth(c);
     const items = await listNotes(db, auth.clientId);
     return c.json({ notes: items }, 200);
+  });
+
+  const searchRoute = createRoute({
+    method: "get",
+    path: "/notes/search",
+    tags: ["Notes"],
+    summary: "Semantic search over note embeddings",
+    request: {
+      query: z.object({
+        q: z.string().min(1),
+        top_k: z.coerce.number().int().min(1).max(20).optional(),
+      }),
+    },
+    responses: {
+      200: {
+        description: "Search hits",
+        content: {
+          "application/json": {
+            schema: z.object({
+              notes: z.array(
+                z.object({
+                  id: z.string().uuid(),
+                  title: z.string().nullable(),
+                  body: z.string(),
+                  updated_at: z.string(),
+                }),
+              ),
+            }),
+          },
+        },
+      },
+    },
+  });
+
+  app.openapi(searchRoute, async (c) => {
+    const auth = getAuth(c);
+    const { q, top_k: topK } = c.req.valid("query");
+    const notes = await searchNotes(db, auth.clientId, q, env, topK ?? 8);
+    return c.json({ notes }, 200);
   });
 
   const getRoute = createRoute({
@@ -215,6 +256,66 @@ export function createNoteRoutes(db: MemoryDb, env: MemoryEnv): OpenAPIHono {
     if (!note) throw notFound("Note not found");
     const links = await listNoteLinksFrom(db, auth.clientId, id);
     return c.json({ links }, 200);
+  });
+
+  const neighborsRoute = createRoute({
+    method: "get",
+    path: "/notes/{id}/neighbors",
+    tags: ["Notes"],
+    summary: "Graph neighbors within depth (BFS)",
+    request: {
+      params: z.object({ id: z.string().uuid() }),
+      query: z.object({
+        depth: z.coerce.number().int().min(1).max(4).optional(),
+        include_incoming: z
+          .enum(["true", "false"])
+          .optional()
+          .transform((v) => v !== "false"),
+      }),
+    },
+    responses: {
+      200: {
+        description: "Neighbor notes",
+        content: {
+          "application/json": {
+            schema: z.object({
+              root_id: z.string().uuid(),
+              neighbors: z.array(
+                z.object({
+                  id: z.string().uuid(),
+                  title: z.string().nullable(),
+                  body: z.string(),
+                  depth: z.number(),
+                  rel: z.string(),
+                  direction: z.enum(["out", "in"]),
+                }),
+              ),
+            }),
+          },
+        },
+      },
+      404: {
+        description: "Not found",
+        content: { "application/json": { schema: ApiErrorBodySchema } },
+      },
+    },
+  });
+
+  app.openapi(neighborsRoute, async (c) => {
+    const auth = getAuth(c);
+    const { id } = c.req.valid("param");
+    const query = c.req.valid("query");
+    try {
+      const neighbors = await getNoteNeighbors(db, auth.clientId, id, {
+        depth: query.depth,
+        includeIncoming: query.include_incoming,
+      });
+      return c.json({ root_id: id, neighbors }, 200);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      if (message === "Note not found") throw notFound(message);
+      throw badRequest(message);
+    }
   });
 
   return app;

@@ -6,7 +6,7 @@ import {
 } from "./registry.js";
 
 describe("tool registry", () => {
-  it("lists thirteen tools", () => {
+  it("lists fourteen tools", () => {
     expect(listRegisteredTools()).toEqual([
       "echo",
       "http_get",
@@ -20,6 +20,7 @@ describe("tool registry", () => {
       "note_put",
       "note_get",
       "note_link",
+      "note_search",
       "web_search",
     ]);
   });
