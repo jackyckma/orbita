@@ -18,6 +18,24 @@ export type ToolExecutionContext = {
   resolveCredential: (name: string) => Promise<string>;
   putMemory?: (key: string, content: string) => Promise<void>;
   getMemory?: (key: string) => Promise<string | null>;
+  putNote?: (input: {
+    id?: string;
+    title?: string | null;
+    body: string;
+    frontmatter?: Record<string, unknown>;
+  }) => Promise<{ id: string; title: string | null; updated_at: string }>;
+  getNote?: (id: string) => Promise<{
+    id: string;
+    title: string | null;
+    body: string;
+    frontmatter: Record<string, unknown>;
+    updated_at: string;
+  } | null>;
+  linkNotes?: (fromId: string, toId: string, rel: string) => Promise<{
+    from_id: string;
+    to_id: string;
+    rel: string;
+  }>;
   onToolTrace?: (event: ToolTraceEvent) => void;
 };
 
@@ -262,6 +280,102 @@ const memoryGetTool: ToolDefinition = {
   },
 };
 
+const notePutTool: ToolDefinition = {
+  name: "note_put",
+  description:
+    "Create or update a markdown note with optional YAML frontmatter. Use for long-form knowledge, rubrics, or linked prose.",
+  parameters: {
+    type: "object",
+    properties: {
+      id: { type: "string", description: "Note UUID (omit to create a new note)" },
+      title: { type: "string", description: "Optional note title" },
+      body: { type: "string", description: "Markdown body" },
+      frontmatter: {
+        type: "object",
+        description: "Optional YAML frontmatter as JSON object",
+      },
+    },
+    required: ["body"],
+  },
+  execute: async (args, ctx) => {
+    if (!ctx.putNote) {
+      throw new Error("Note write is not configured for this deployment");
+    }
+    const body = String(args.body ?? "");
+    if (!body) {
+      throw new Error("body is required");
+    }
+    const id = args.id !== undefined ? String(args.id).trim() : undefined;
+    const title =
+      args.title !== undefined && args.title !== null
+        ? String(args.title)
+        : undefined;
+    const frontmatter =
+      args.frontmatter && typeof args.frontmatter === "object" && !Array.isArray(args.frontmatter)
+        ? (args.frontmatter as Record<string, unknown>)
+        : undefined;
+    const note = await ctx.putNote({ id, title, body, frontmatter });
+    return { id: note.id, title: note.title, stored: true, updated_at: note.updated_at };
+  },
+};
+
+const noteGetTool: ToolDefinition = {
+  name: "note_get",
+  description: "Read a markdown note by id.",
+  parameters: {
+    type: "object",
+    properties: {
+      id: { type: "string", description: "Note UUID" },
+    },
+    required: ["id"],
+  },
+  execute: async (args, ctx) => {
+    if (!ctx.getNote) {
+      throw new Error("Note read is not configured for this deployment");
+    }
+    const id = String(args.id ?? "").trim();
+    if (!id) {
+      throw new Error("id is required");
+    }
+    const note = await ctx.getNote(id);
+    return {
+      id,
+      found: note !== null,
+      title: note?.title ?? null,
+      body: note?.body ?? null,
+      frontmatter: note?.frontmatter ?? {},
+      updated_at: note?.updated_at ?? null,
+    };
+  },
+};
+
+const noteLinkTool: ToolDefinition = {
+  name: "note_link",
+  description: "Create a directed link between two notes (e.g. relates_to, rejected_because).",
+  parameters: {
+    type: "object",
+    properties: {
+      from_id: { type: "string", description: "Source note UUID" },
+      to_id: { type: "string", description: "Target note UUID" },
+      rel: { type: "string", description: "Relationship label" },
+    },
+    required: ["from_id", "to_id", "rel"],
+  },
+  execute: async (args, ctx) => {
+    if (!ctx.linkNotes) {
+      throw new Error("Note linking is not configured for this deployment");
+    }
+    const fromId = String(args.from_id ?? "").trim();
+    const toId = String(args.to_id ?? "").trim();
+    const rel = String(args.rel ?? "").trim();
+    if (!fromId || !toId || !rel) {
+      throw new Error("from_id, to_id, and rel are required");
+    }
+    const link = await ctx.linkNotes(fromId, toId, rel);
+    return { linked: true, ...link };
+  },
+};
+
 const dockerEchoTool: ToolDefinition = {
   name: "docker_echo",
   description:
@@ -291,6 +405,9 @@ const registry: Record<string, ToolDefinition> = {
   uuid_v4: uuidV4Tool,
   memory_put: memoryPutTool,
   memory_get: memoryGetTool,
+  note_put: notePutTool,
+  note_get: noteGetTool,
+  note_link: noteLinkTool,
   web_search: webSearchTool,
 };
 

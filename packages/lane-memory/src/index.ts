@@ -11,4 +11,13 @@ export {
 } from "./service.js";
 export type { MemoryContextOptions } from "./service.js";
 export { createMemoryRoutes } from "./routes/memories.js";
+export { createNoteRoutes } from "./routes/notes.js";
 export { embedText } from "./embed.js";
+export {
+  createNoteLink,
+  getNoteById,
+  listNoteLinksFrom,
+  listNotes,
+  upsertNote,
+} from "./notes-service.js";
+export type { NoteLinkRecord, NoteListItem, NoteRecord, UpsertNoteInput } from "./notes-service.js";

@@ -49,6 +49,31 @@ export type AgentTurnRunnerDeps = {
   resolveCredential?: CredentialResolver;
   putMemory?: (clientId: string, key: string, content: string) => Promise<void>;
   getMemory?: (clientId: string, key: string) => Promise<string | null>;
+  putNote?: (
+    clientId: string,
+    input: {
+      id?: string;
+      title?: string | null;
+      body: string;
+      frontmatter?: Record<string, unknown>;
+    },
+  ) => Promise<{ id: string; title: string | null; updated_at: string }>;
+  getNote?: (
+    clientId: string,
+    id: string,
+  ) => Promise<{
+    id: string;
+    title: string | null;
+    body: string;
+    frontmatter: Record<string, unknown>;
+    updated_at: string;
+  } | null>;
+  linkNotes?: (
+    clientId: string,
+    fromId: string,
+    toId: string,
+    rel: string,
+  ) => Promise<{ from_id: string; to_id: string; rel: string }>;
   onToolTrace?: ToolTraceCallback;
 };
 
@@ -293,6 +318,16 @@ export function createAgentTurnRunner(
         : undefined,
       getMemory: deps.getMemory
         ? async (key) => deps.getMemory!(session.clientId, key)
+        : undefined,
+      putNote: deps.putNote
+        ? async (input) => deps.putNote!(session.clientId, input)
+        : undefined,
+      getNote: deps.getNote
+        ? async (id) => deps.getNote!(session.clientId, id)
+        : undefined,
+      linkNotes: deps.linkNotes
+        ? async (fromId, toId, rel) =>
+            deps.linkNotes!(session.clientId, fromId, toId, rel)
         : undefined,
       onToolTrace: deps.onToolTrace
         ? (event) =>

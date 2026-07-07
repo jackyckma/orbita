@@ -32,10 +32,14 @@ import {
 import {
   createMemoryDb,
   createMemoryRoutes,
+  createNoteLink,
+  createNoteRoutes,
   getMemoryByKey,
   getMemoryContext,
+  getNoteById,
   loadMemoryEnv,
   upsertMemory,
+  upsertNote,
 } from "@orbita/memory";
 import {
   createErrorHandler,
@@ -78,7 +82,7 @@ import { createE2eMockTurnRunner } from "./e2e-mock.js";
 
 const E2E_MOCK = process.env.ORBITA_E2E_MOCK === "1";
 
-const VERSION = "0.0.1-w31";
+const VERSION = "0.0.1-w32";
 const env = loadPlatformEnv();
 const agentEnv = loadAgentEnv();
 const memoryEnv = loadMemoryEnv();
@@ -141,6 +145,33 @@ const baseTurnRunner = E2E_MOCK
       putMemory: (clientId, key, content) =>
         upsertMemory(memoryDb, clientId, key, content, memoryEnv),
       getMemory: (clientId, key) => getMemoryByKey(memoryDb, clientId, key),
+      putNote: async (clientId, input) => {
+        const note = await upsertNote(memoryDb, clientId, input, memoryEnv);
+        return {
+          id: note.id,
+          title: note.title,
+          updated_at: note.updated_at,
+        };
+      },
+      getNote: async (clientId, id) => {
+        const note = await getNoteById(memoryDb, clientId, id);
+        if (!note) return null;
+        return {
+          id: note.id,
+          title: note.title,
+          body: note.body,
+          frontmatter: note.frontmatter,
+          updated_at: note.updated_at,
+        };
+      },
+      linkNotes: async (clientId, fromId, toId, rel) => {
+        const link = await createNoteLink(memoryDb, clientId, fromId, toId, rel);
+        return {
+          from_id: link.from_id,
+          to_id: link.to_id,
+          rel: link.rel,
+        };
+      },
       onToolTrace: (event) => {
         logTrajectoryEvent(trajectoryDb, {
           sessionId: event.sessionId,
@@ -263,6 +294,7 @@ protectedApp.route("/", createSessionRoutes(sessionsDb, runTurn, sessionSummariz
   messagesPerDay: env.ORBITA_QUOTA_MESSAGES_PER_DAY,
 }));
 protectedApp.route("/", createMemoryRoutes(memoryDb, memoryEnv));
+protectedApp.route("/", createNoteRoutes(memoryDb, memoryEnv));
 protectedApp.route("/", createTrajectoryRoutes(trajectoryDb, assertSessionOwner));
 protectedApp.route("/", createSchedulerRoutes(schedulerDb, assertSessionOwner));
 protectedApp.route(

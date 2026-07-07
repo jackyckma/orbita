@@ -6,7 +6,7 @@ import {
 } from "./registry.js";
 
 describe("tool registry", () => {
-  it("lists ten tools", () => {
+  it("lists thirteen tools", () => {
     expect(listRegisteredTools()).toEqual([
       "echo",
       "http_get",
@@ -17,6 +17,9 @@ describe("tool registry", () => {
       "uuid_v4",
       "memory_put",
       "memory_get",
+      "note_put",
+      "note_get",
+      "note_link",
       "web_search",
     ]);
   });
@@ -68,6 +71,68 @@ describe("tool registry", () => {
     );
     expect(got.success).toBe(true);
     expect((got.result as { content: string }).content).toBe("hello");
+  });
+
+  it("note_put, note_get, and note_link", async () => {
+    type StoredNote = {
+      id: string;
+      title: string | null;
+      body: string;
+      frontmatter: Record<string, unknown>;
+      updated_at: string;
+    };
+    const notes = new Map<string, StoredNote>();
+    const links: Array<{ from_id: string; to_id: string; rel: string }> = [];
+    const ctx = {
+      clientId: "test",
+      resolveCredential: async () => "unused",
+      putNote: async (input: {
+        id?: string;
+        title?: string | null;
+        body: string;
+        frontmatter?: Record<string, unknown>;
+      }) => {
+        const id = input.id ?? "note-1";
+        const note: StoredNote = {
+          id,
+          title: input.title ?? null,
+          body: input.body,
+          frontmatter: input.frontmatter ?? {},
+          updated_at: new Date().toISOString(),
+        };
+        notes.set(id, note);
+        return { id: note.id, title: note.title, updated_at: note.updated_at };
+      },
+      getNote: async (id: string) => notes.get(id) ?? null,
+      linkNotes: async (fromId: string, toId: string, rel: string) => {
+        const link = { from_id: fromId, to_id: toId, rel };
+        links.push(link);
+        return link;
+      },
+    };
+    const put = await executeToolCall(
+      "note_put",
+      JSON.stringify({ id: "note-1", title: "Rubric", body: "# Rules" }),
+      ["note_put"],
+      ctx,
+    );
+    expect(put.success).toBe(true);
+    const got = await executeToolCall(
+      "note_get",
+      JSON.stringify({ id: "note-1" }),
+      ["note_get"],
+      ctx,
+    );
+    expect(got.success).toBe(true);
+    expect((got.result as { body: string }).body).toBe("# Rules");
+    const link = await executeToolCall(
+      "note_link",
+      JSON.stringify({ from_id: "note-1", to_id: "note-2", rel: "relates_to" }),
+      ["note_link"],
+      ctx,
+    );
+    expect(link.success).toBe(true);
+    expect(links).toHaveLength(1);
   });
 
   it("json_parse and json_stringify round-trip", async () => {
