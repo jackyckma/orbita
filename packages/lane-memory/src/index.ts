@@ -10,6 +10,14 @@ export {
   upsertMemory,
 } from "./service.js";
 export type { MemoryContextOptions } from "./service.js";
+export {
+  resolveHarnessMemoryInject,
+  resolveMemoryInject,
+} from "./memory-inject.js";
+export type {
+  MemoryInjectConfig,
+  ResolveMemoryInjectOptions,
+} from "./memory-inject.js";
 export { createMemoryRoutes } from "./routes/memories.js";
 export { createNoteRoutes } from "./routes/notes.js";
 export { embedText } from "./embed.js";

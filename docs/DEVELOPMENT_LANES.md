@@ -1,7 +1,7 @@
 ---
 status: active
 maintained_by: jacky + ai-agents
-last_updated: 2026-07-07
+last_updated: 2026-07-09
 purpose: Reduce parallel task sprawl — one page for lanes, loose ends, and what is off the radar.
 related: docs/CURRENT_STATUS.md, docs/development-plan.md, docs/harness-design.md, AGENTS.md
 ---
@@ -51,7 +51,7 @@ L1 Platform ──► L2 AT loop (dogfood proof) ──► L3 MA / marketing
 |------|--------|
 | W32 notes + links + tools | ✅ shipped |
 | W33 neighbors + search | ✅ shipped |
-| W34 harness pre-inject | 📋 planned |
+| W34 harness pre-inject | ✅ shipped |
 | W35 export + AT graph dogfood | 📋 planned |
 
 Flat `client_memories` stays for small keys; notes for prose + graph.

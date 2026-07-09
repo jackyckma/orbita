@@ -22,6 +22,7 @@ import {
   createAuthMiddleware,
   createRateLimitMiddleware,
   getAuth,
+  requireScope,
 } from "@orbita/auth";
 import {
   createCredentialAdminRoutes,
@@ -77,13 +78,14 @@ import {
   createHarnessRoutes,
   startHarnessTick,
 } from "@orbita/harness";
+import { createOrbitaMcpHandler } from "@orbita/mcp";
 import { createInboundEmailRoutes } from "./inbound-email.js";
 import { runMigrations } from "./migrate.js";
 import { createE2eMockTurnRunner } from "./e2e-mock.js";
 
 const E2E_MOCK = process.env.ORBITA_E2E_MOCK === "1";
 
-const VERSION = "0.0.1-w33";
+const VERSION = "0.0.1-w34";
 const env = loadPlatformEnv();
 const agentEnv = loadAgentEnv();
 const memoryEnv = loadMemoryEnv();
@@ -192,10 +194,13 @@ const baseTurnRunner = E2E_MOCK
       },
     });
 const runTurn: AgentTurnRunner = async (args) => {
-  const memoryContext = await getMemoryContext(memoryDb, args.session.clientId, {
-    queryText: inputToPromptText(args.userInput),
-    env: memoryEnv,
-  });
+  const memoryContext =
+    args.memoryContext !== undefined
+      ? args.memoryContext
+      : await getMemoryContext(memoryDb, args.session.clientId, {
+          queryText: inputToPromptText(args.userInput),
+          env: memoryEnv,
+        });
   const result = await baseTurnRunner({ ...args, memoryContext });
   await logTrajectoryEvent(trajectoryDb, {
     sessionId: args.session.id,
@@ -312,6 +317,19 @@ protectedApp.route(
   }),
 );
 protectedApp.route("/", createCredentialListRoutes(credentialsDb));
+
+protectedApp.all("/mcp", requireScope("sessions:use"), async (c) => {
+  const auth = getAuth(c);
+  const handler = createOrbitaMcpHandler({
+    clientId: auth.clientId,
+    keyPrefix: auth.apiKey.keyPrefix,
+    scopes: auth.apiKey.scopes,
+    memoryDb,
+    memoryEnv,
+    version: VERSION,
+  });
+  return handler(c.req.raw);
+});
 
 app.route("/v1", protectedApp);
 

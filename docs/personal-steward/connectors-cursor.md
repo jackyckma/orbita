@@ -89,7 +89,13 @@ and use curl against ORBITA_API_BASE with ORBITA_PERSONAL_* credentials.
 Follow docs/personal-steward/memory-conventions.md for project slugs.
 ```
 
-## PA1 (later): MCP
+## PA1: MCP (available)
 
-Remote MCP server wrapping the same endpoints → native tool calls without Shell.
-See `docs/personal-steward/README.md` roadmap.
+Remote MCP at `https://api.get-orbita.com/v1/mcp` (Streamable HTTP).
+
+- Auth: same as REST — `Authorization: Bearer <api_key>` + `x-orbita-client-id: personal-jacky`
+- Tools: `memory_*`, `note_*`, `orbita_whoami` (11 total)
+- Cursor: add to `~/.cursor/mcp.json` or project MCP config
+- No Shell/curl needed once connected
+
+See `docs/personal-steward/connectors-claude.md` and `connectors-chatgpt.md` for other clients.

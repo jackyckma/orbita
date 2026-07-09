@@ -37,7 +37,16 @@ Never invent API keys; use placeholder $ORBITA_PERSONAL_API_KEY.
 
 ChatGPT composes the task text; you POST one message to Orbita `personal-steward` session (see [setup.md](setup.md)). Good for long organize/summarize jobs.
 
-## What ChatGPT should not do in PA0
+### Mode 4: MCP (PA1 ✅ — when client supports remote MCP)
+
+If your ChatGPT / connector supports remote MCP:
+
+- URL: `https://api.get-orbita.com/v1/mcp`
+- Headers: `Authorization: Bearer …`, `x-orbita-client-id: personal-jacky`
+
+Same 11 tools as Claude MCP. Custom GPT Actions (Mode 2) remains an alternative.
+
+## What ChatGPT should not do without MCP/Actions
 
 - Assume it already has your cross-project memory
 - Auto-sync all chats (no export pipeline yet — PA2)

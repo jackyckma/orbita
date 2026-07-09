@@ -28,7 +28,7 @@ curl -sS -X POST "$ORBITA_API_BASE/v1/admin/api-keys" \
   -H "Content-Type: application/json" \
   -d '{
     "allowed_client_ids": ["personal-jacky"],
-    "scopes": ["sessions:write", "memory:write"],
+    "scopes": ["sessions:create", "sessions:use"],
     "label": "jacky personal steward PA0"
   }'
 ```

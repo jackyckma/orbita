@@ -39,9 +39,27 @@ When I ask to save/search Orbita personal memory:
 
 For frequent use, prefer **Claude Code** or **Cursor** where Shell is available.
 
-## C — Claude MCP (when you add PA1)
+## C — Claude MCP (PA1 ✅)
 
-Register Orbita MCP server (same tools as REST). Then Claude Desktop connects like any MCP.
+Add to Claude Desktop / Claude Code MCP config:
+
+```json
+{
+  "mcpServers": {
+    "orbita": {
+      "url": "https://api.get-orbita.com/v1/mcp",
+      "headers": {
+        "Authorization": "Bearer <ORBITA_PERSONAL_API_KEY>",
+        "x-orbita-client-id": "personal-jacky"
+      }
+    }
+  }
+}
+```
+
+Tools: `memory_list`, `memory_get`, `memory_put`, `note_list`, `note_get`, `note_put`, `note_link`, `note_search`, `note_neighbors`, `note_links`, `orbita_whoami`.
+
+Prefer MCP over curl when available. Curl (sections A/B) still works as fallback.
 
 ## Steward turn from terminal
 

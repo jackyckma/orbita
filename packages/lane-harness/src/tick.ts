@@ -1,12 +1,14 @@
 import { and, eq } from "drizzle-orm";
-import type { MemoryDb } from "@orbita/memory";
-import type { MemoryEnv } from "@orbita/memory";
 import { computeNextCronRun, isJobDue, runScheduledAgentMessage } from "@orbita/scheduler";
 import type { AgentTurnRunner, SessionSummarizer, SessionsDb } from "@orbita/sessions";
+import type { MemoryDb } from "@orbita/memory";
+import type { MemoryEnv } from "@orbita/memory";
+import { resolveMemoryInject } from "@orbita/memory";
 import type { HarnessDb } from "./db/client.js";
 import { harnessRuns, harnesses } from "./db/schema.js";
 import { resolveHarnessSessionForRun } from "./service.js";
 import { resolveHarnessRunMessage } from "./templates.js";
+import { resolveHarnessMemoryInjectForRun } from "./memory-inject.js";
 import type { HarnessConfig } from "./types.js";
 
 export type HarnessRunDeps = {
@@ -67,12 +69,29 @@ export async function executeHarnessRun(
     templateId: harness.templateId,
     dueAt,
   });
+  const injectConfig = resolveHarnessMemoryInjectForRun(harness);
+  const harnessRunTurn: AgentTurnRunner = async (args) => {
+    if (args.memoryContext !== undefined) {
+      return runTurn(args);
+    }
+    if (!injectConfig) {
+      return runTurn(args);
+    }
+    const memoryContext = await resolveMemoryInject(
+      deps.memoryDb,
+      harness.clientId,
+      injectConfig,
+      deps.memoryEnv,
+      { queryText: message },
+    );
+    return runTurn({ ...args, memoryContext });
+  };
   const agentResult = await runScheduledAgentMessage(
     sessionsDb,
     sessionId,
     harness.clientId,
     { type: "agent_message", message },
-    runTurn,
+    harnessRunTurn,
     summarizer,
   );
 

@@ -17,6 +17,7 @@
     "@orbita/auth": "workspace:*",
     "@orbita/credentials": "workspace:*",
     "@orbita/harness": "workspace:*",
+    "@orbita/mcp": "workspace:*",
     "@orbita/memory": "workspace:*",
     "@orbita/platform": "workspace:*",
     "@orbita/profiles": "workspace:*",

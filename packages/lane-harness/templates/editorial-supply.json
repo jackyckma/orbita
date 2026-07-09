@@ -19,6 +19,18 @@
         "cron": "0 7 * * *",
         "timezone": "UTC"
       }
+    },
+    "output": {
+      "mode": "poll",
+      "emit_trajectory": true
+    },
+    "memory_inject": {
+      "memory_keys": [
+        "editorial/feedback",
+        "editorial/backlog",
+        "editorial/published-log",
+        "editorial/research-recommendations"
+      ]
     }
   },
   "application": {

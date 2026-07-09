@@ -66,6 +66,6 @@ Same Orbita deployment; isolated by `client_id`.
 | Phase | Deliverable |
 |-------|-------------|
 | PA0 | Manual REST + connector docs ✅ |
-| PA1 | Cursor MCP server (thin wrapper over `/v1/notes/*`) |
+| PA1 MCP | ✅ `/v1/mcp` (11 tools) |
 | PA2 | Ingest harness (chat export, git hook) |
-| W34 | Pre-inject relevant notes on steward turns |
+| W34 | Pre-inject relevant notes on steward turns | ✅ harness runs |

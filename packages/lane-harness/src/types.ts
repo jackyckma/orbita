@@ -23,6 +23,17 @@ export const loopsSchema = z.object({
   improve: z.object({ enabled: z.boolean().default(false) }).default({ enabled: false }),
 });
 
+export const memoryInjectSchema = z
+  .object({
+    memory_keys: z.array(z.string().min(1)).optional(),
+    graph_from: z.string().uuid().optional(),
+    depth: z.number().int().min(0).max(5).optional(),
+    include_incoming: z.boolean().optional(),
+    vector_query: z.string().optional(),
+    top_k: z.number().int().min(1).max(32).optional(),
+  })
+  .optional();
+
 export const harnessConfigSchema = z.object({
   session_policy: z.enum(["sticky", "per_run"]).default("sticky"),
   loops: loopsSchema,
@@ -33,6 +44,7 @@ export const harnessConfigSchema = z.object({
       emit_trajectory: z.boolean().default(true),
     })
     .default({ mode: "poll", emit_trajectory: true }),
+  memory_inject: memoryInjectSchema,
   application: z.record(z.unknown()).optional(),
 });
 

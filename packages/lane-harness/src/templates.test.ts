@@ -22,6 +22,7 @@ describe("harness templates", () => {
     expect(config.loops.trigger.cron).toBe("0 7 * * *");
     expect(config.loops.agent.task.message).toBe("Daily run override");
     expect(config.loops.verify.enabled).toBe(false);
+    expect(config.memory_inject?.memory_keys).toContain("editorial/feedback");
   });
 
   it("accepts @vN version suffix from templatePublicId", () => {

@@ -1,0 +1,19 @@
+{
+  "name": "@orbita/mcp",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./dist/index.js" },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@orbita/memory": "workspace:*",
+    "zod": "^3.25.56"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}
