@@ -125,7 +125,7 @@ Ordered by severity. Each item is self-contained and actionable.
 18. [MED][DRY] `packages/lane-memory/src/service.ts:14-128`、`packages/lane-memory/src/notes-service.ts:119-374` — 共用 vector upsert 與 similarity query operations。
 19. [MED][DRY] `packages/lane-harness/src/types.ts:26-35`、`packages/lane-memory/src/memory-inject.ts:6-13` — 由單一 exported schema 推導 memory injection type。
 20. [MED][SST] `packages/lane-memory/src/db/schema.ts:3-25` — 把 deployed embedding columns 加入 canonical typed schema。
-21. [MED][SST] `packages/lane-agent/src/config.ts`、`packages/lane-memory/src/config.ts`、`packages/lane-waitlist/src/config.ts` — 集中重複 env schema fields。
+21. [MED][SST] `packages/lane-agent/src/config.ts`、`packages/lane-memory/src/config.ts`、`packages/lane-platform/src/config.ts`、`packages/lane-waitlist/src/config.ts` — 集中重複 env schema fields。
 22. [MED][SST] `scripts/smoke-prod.sh:5`、`scripts/setup-web-search-prod.sh:13` — 統一 API base env 名稱與 `api.get-orbita.com` production default。
 23. [MED][DEP] `packages/lane-agent/src/runtime.ts:1-230` — 定義 LLM provider port，將 Anthropic/OpenAI SDK 封裝到 adapters。
 24. [MED][DEP] `packages/lane-harness/src/tick.ts:1-96`、`packages/lane-harness/src/service.ts:1-87` — 以 scheduling/session/memory ports 取代 Harness 對具體 lane DB/services 的依賴。
@@ -141,7 +141,7 @@ Ordered by severity. Each item is self-contained and actionable.
 34. [MED][DOC] `docs/product-architecture.md:25-176` — 依實際 packages、OpenAPI routes 與 tool registry 更新 architecture inventory。
 35. [LOW][MOD] `packages/lane-trajectory/src/db/client.ts:12-64` — 將 trajectory operations/redaction 移至 service/repository。
 36. [LOW][PAT] `packages/lane-sessions/src/routes/sessions.ts:68-72` — 使用共用 scope middleware 取代 inline scope check。
-37. [LOW][PAT] `apps/orbita-api/src/index.ts:281-332` — 讓 Auth/Agent/MCP 提供一致 route factories。
+37. [LOW][PAT] `apps/orbita-api/src/index.ts:281-332` — 讓 whoami、capabilities 與 MCP 的擁有模組提供一致 route factories。
 38. [LOW][SOC] `packages/lane-harness/src/routes/harnesses.ts:212-230` — 透過 harness service 執行 ownership lookup 與 manual trigger。
 39. [LOW][DRY] `apps/orbita-web/public/*.html`、`scripts/build-web-docs.mjs:71-126` — 共用 marketing/docs page shell template。
 40. [LOW][DRY] `packages/lane-scheduler/src/routes/jobs.ts:15-32`、`packages/lane-scheduler/src/schedule.ts:32-60` — 將 schedule validation 收斂到單一來源。
