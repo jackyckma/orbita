@@ -32,7 +32,7 @@ Generated: 2026-07-13T01:09:42Z
 | Severity | File | Issue |
 |---|---|---|
 | MED | `packages/lane-memory/src/embed.ts:15-23`; `packages/lane-memory/src/service.ts:61-72,90-133`; `packages/lane-memory/src/notes-service.ts:100-153,354-382` | Embedding provider 的所有例外都被無 log/trace 地轉成 `null`；寫入仍成功但缺少向量，讀取則悄悄退回 recent-memory。相同資料 API 會因不可觀測的外部失敗採不同 retrieval path。 |
-| MED | `packages/lane-platform/src/config.ts:3-34`; `packages/lane-tools/src/http-policy.ts:18-32`; `packages/lane-tools/src/web-search.ts:24-32`; `packages/lane-admin/src/routes.ts:147-148`; `apps/orbita-api/src/index.ts:86` | 設定載入模式不一致：部分值經 Zod 驗證，tools/admin/API 另行直接讀取 `process.env` 並使用不同 coercion/fallback，導致相同部署設定在不同模組可能被接受、拒絕或解讀成不同值。 |
+| MED | `packages/lane-platform/src/config.ts:3-34`; `packages/lane-tools/src/http-policy.ts:18-32`; `packages/lane-tools/src/web-search.ts:24-32`; `packages/lane-admin/src/routes.ts:147-148` | 設定載入模式不一致：部分值經 Zod 驗證，tools/admin 另行直接讀取 `process.env` 並使用不同 coercion/fallback，導致相同部署設定在不同模組可能被接受、拒絕或解讀成不同值。 |
 
 ### [SOC] Separation of Concerns
 | Severity | File | Issue |
@@ -46,7 +46,7 @@ Generated: 2026-07-13T01:09:42Z
 | Severity | File | Issue |
 |---|---|---|
 | MED | `packages/lane-auth/src/db/client.ts:7-14`; `packages/lane-sessions/src/db/client.ts:7-14`; `packages/lane-memory/src/db/client.ts:7-9`; `packages/lane-scheduler/src/db/client.ts:7-9`; `packages/lane-harness/src/db/client.ts:7-14`; `packages/lane-credentials/src/db/client.ts:7-9`; `packages/lane-trajectory/src/db/client.ts:12-15`; `packages/lane-waitlist/src/db/client.ts:11-17`; `packages/lane-admin/src/settings.ts:19-25` | 九份近乎相同的 Postgres/Drizzle factory 各自決定 pool 上限與 client 欄位命名；`apps/orbita-api/src/index.ts:112-120` 每進程建立九個 pool，連線治理與關閉生命週期重複且不一致。 |
-| MED | `packages/lane-agent/src/runtime.ts:97-202`; `packages/lane-agent/src/summarizer.ts:21-57`; `packages/lane-memory/src/embed.ts:4-23` | OpenAI/MiniMax 與 Anthropic client 建立、key 檢查及 provider 錯誤處理散落三處；runtime 與 summarizer 已各自實作 provider dispatch/failover，修正 SDK 初始化或錯誤分類需同步多份。 |
+| MED | `packages/lane-agent/src/runtime.ts:85-202`; `packages/lane-agent/src/summarizer.ts:21-57` | OpenAI/MiniMax 與 Anthropic client 建立、key 檢查及 provider 錯誤處理在 runtime 與 summarizer 各自實作；修正 chat provider 初始化、錯誤分類或 failover 規則需同步兩份。 |
 | LOW | `packages/lane-admin/src/settings.ts:73-80`; `packages/lane-tools/src/http-policy.ts:21-27` | HTTP allowed-domain 的逗號分隔、trim、lowercase 與 filter 邏輯在 Admin 與 Tools 重複；同一 policy parser 有兩個維護點。 |
 
 ### [SST] Single Source of Truth
@@ -76,7 +76,7 @@ Generated: 2026-07-13T01:09:42Z
 |---|---|---|
 | HIGH | `docs/product-architecture.md:25-44,57-81,144-176`; `apps/orbita-api/src/index.ts:281-332`; `packages/lane-tools/src/registry.ts:427-445` | 被 `docs/README.md:15` 列為 live architecture 的文件仍將 Harness/W27 標為設計中，只列舊 profiles、7 tools及 W26 前 HTTP surface；實作已到 W34，包含 notes graph、Harness、MCP 與 14 個常駐 tools。 |
 | HIGH | `docs/SESSION_HANDOFF.md:3-16,31-35`; `docs/CURRENT_STATUS.md:3-21`; `apps/orbita-api/src/index.ts:88` | 強制 resume 先讀的 handoff 仍記錄 2026-06-25、API w18 與 instance-email 任務；live status/code 已是 w34 與 AT editorial loop，會把下一個 agent 導向錯誤優先事項。 |
-| HIGH | `docs/traceability-index.md:11-23`; `.agents/instructions/lane-based-development.md:145-210` | Traceability index 宣稱存在 10 個 lane skill、INTERFACE、`contracts/` 與 `data/simulators/auth/`；實際只有 2 個 lane skill、7 個 INTERFACE、零 contracts/simulators，且 index 完全未列 admin、waitlist、harness、mcp。 |
+| HIGH | `docs/traceability-index.md:11-23`; `.agents/instructions/lane-based-development.md:145-210` | Traceability index 列出 10 個 lane skill/INTERFACE 路徑、2 個 contracts 路徑與 1 個 auth simulator；實際只有 2 個 lane skill，表內僅 5 個 INTERFACE 路徑有效（repo 全部 7 個），且零 contracts/simulators；index 也未列 admin、waitlist、harness、mcp。 |
 | MED | `packages/lane-agent/INTERFACE.md:1-6`; `packages/lane-sessions/INTERFACE.md:1-6`; `packages/lane-profiles/INTERFACE.md:1-6`; `packages/lane-harness/INTERFACE.md:1-23` | 四個已出貨 package 的 boundary contract 仍為 `status: planned`（前三個更寫「not yet implemented」）；memory、credentials、tools、scheduler、trajectory、waitlist、mcp 七個 package 則完全沒有 INTERFACE。 |
 | MED | `docs/dogfood-plan.md:7,14`; `docs/product-architecture.md:126`; `AGENTS.md:34`; `at-agent/README.md:6,53`; `docs/development-plan.md:6,13` | 多份 active 文件引用不存在的 `docs/loose-ends-checklist.md`、`docs/at-track-plan.md`、`docs/at-platform-answers.md` 與 `usr/memory-design-from-book.md`，造成 prerequisite 與設計依據無法追溯。 |
 | MED | `docs/harness-design.md:1-13,333-368`; `packages/lane-harness/src/routes/harnesses.ts:36-308`; `apps/orbita-api/src/index.ts:310-318,382-389` | Harness design 頂部仍寫「not implemented」，但同文件後段與程式已顯示 H1/H1.5 routes、templates、tick、feedback 與 memory injection 出貨，文件內部及文件對程式皆矛盾。 |
@@ -115,7 +115,7 @@ Ordered by severity. Each item is self-contained and actionable.
 22. [MED][DOC] `AGENTS.md:62-63` — 將 quota defaults 與 Admin UI capabilities 修正為程式實況。
 23. [LOW][MOD] `tests/e2e/tier-a-scheduler.test.ts:2` — 經 package public exports 或 HTTP contract 測試 scheduler/trajectory，不直接引用 lane `src/`。
 24. [LOW][SOC] `packages/lane-memory/src/routes/memories.ts:104-109` — 讓 service 回傳實際 persisted timestamp，route 不自行生成狀態值。
-25. [LOW][DRY] `packages/lane-tools/src/http-policy.ts:21-27` — 集中 HTTP allowed-domain parser供 Admin 與 Tools 共用。
+25. [LOW][DRY] `packages/lane-tools/src/http-policy.ts:21-27` — 集中 HTTP allowed-domain parser 供 Admin 與 Tools 共用。
 26. [LOW][SST] `packages/lane-harness/src/types.ts:26-35` — 從單一 exported schema 推導 `MemoryInjectConfig` type，避免跨 package 手寫雙定義。
 27. [LOW][CFG] `scripts/waitlist-invite-e2e-prod.sh:20-28` — 移除個人信箱 fallback，要求顯式設定測試收件地址。
 28. [LOW][DOC] `docs/DEVELOPMENT_LANES.md:19-24,87-93` — 將 active work 與 parallel matrix 更新至 W34/W35 現況。
