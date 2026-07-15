@@ -203,3 +203,42 @@ CREATE TABLE IF NOT EXISTS "note_links" (
 
 CREATE INDEX IF NOT EXISTS "note_links_from_idx" ON "note_links" ("client_id", "from_id");
 CREATE INDEX IF NOT EXISTS "note_links_to_idx" ON "note_links" ("client_id", "to_id");
+
+-- PA1.5: MCP OAuth for Claude Custom Connector
+CREATE TABLE IF NOT EXISTS "oauth_clients" (
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+  "client_id" text NOT NULL,
+  "client_name" text,
+  "redirect_uris" jsonb DEFAULT '[]'::jsonb NOT NULL,
+  "grant_types" jsonb DEFAULT '[]'::jsonb NOT NULL,
+  "response_types" jsonb DEFAULT '[]'::jsonb NOT NULL,
+  "token_endpoint_auth_method" text DEFAULT 'none' NOT NULL,
+  "client_secret_hash" text,
+  "created_at" timestamp with time zone DEFAULT now() NOT NULL,
+  CONSTRAINT "oauth_clients_client_id_unique" UNIQUE("client_id")
+);
+
+CREATE TABLE IF NOT EXISTS "oauth_authorization_codes" (
+  "code" text PRIMARY KEY NOT NULL,
+  "oauth_client_id" text NOT NULL,
+  "redirect_uri" text NOT NULL,
+  "orbita_client_id" text NOT NULL,
+  "scope" text NOT NULL,
+  "code_challenge" text NOT NULL,
+  "code_challenge_method" text DEFAULT 'S256' NOT NULL,
+  "expires_at" timestamp with time zone NOT NULL,
+  "used_at" timestamp with time zone,
+  "created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS "oauth_refresh_tokens" (
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+  "token_hash" text NOT NULL,
+  "oauth_client_id" text NOT NULL,
+  "orbita_client_id" text NOT NULL,
+  "scope" text NOT NULL,
+  "expires_at" timestamp with time zone NOT NULL,
+  "revoked_at" timestamp with time zone,
+  "created_at" timestamp with time zone DEFAULT now() NOT NULL,
+  CONSTRAINT "oauth_refresh_tokens_token_hash_unique" UNIQUE("token_hash")
+);

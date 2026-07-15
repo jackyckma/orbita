@@ -50,6 +50,9 @@ importers:
       '@orbita/memory':
         specifier: workspace:*
         version: link:../../packages/lane-memory
+      '@orbita/oauth':
+        specifier: workspace:*
+        version: link:../../packages/lane-oauth
       '@orbita/platform':
         specifier: workspace:*
         version: link:../../packages/lane-platform
@@ -301,6 +304,31 @@ importers:
       openai:
         specifier: ^5.3.0
         version: 5.23.2(ws@8.21.0)(zod@3.25.76)
+      postgres:
+        specifier: ^3.4.7
+        version: 3.4.9
+      zod:
+        specifier: ^3.25.56
+        version: 3.25.76
+    devDependencies:
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.6(@types/node@22.19.21)(tsx@4.22.4)(yaml@2.9.0)
+
+  packages/lane-oauth:
+    dependencies:
+      '@orbita/auth':
+        specifier: workspace:*
+        version: link:../lane-auth
+      '@orbita/platform':
+        specifier: workspace:*
+        version: link:../lane-platform
+      drizzle-orm:
+        specifier: ^0.44.2
+        version: 0.44.7(@cloudflare/workers-types@4.20260623.1)(postgres@3.4.9)
+      hono:
+        specifier: ^4.7.11
+        version: 4.12.26
       postgres:
         specifier: ^3.4.7
         version: 3.4.9

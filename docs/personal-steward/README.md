@@ -67,5 +67,6 @@ Same Orbita deployment; isolated by `client_id`.
 |-------|-------------|
 | PA0 | Manual REST + connector docs ✅ |
 | PA1 MCP | ✅ `/v1/mcp` (11 tools) |
+| PA1.5 MCP OAuth | ✅ Claude Custom Connector (OAuth + DCR) |
 | PA2 | Ingest harness (chat export, git hook) |
 | W34 | Pre-inject relevant notes on steward turns | ✅ harness runs |

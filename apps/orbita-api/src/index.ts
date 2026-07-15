@@ -22,7 +22,6 @@ import {
   createAuthMiddleware,
   createRateLimitMiddleware,
   getAuth,
-  requireScope,
 } from "@orbita/auth";
 import {
   createCredentialAdminRoutes,
@@ -79,13 +78,22 @@ import {
   startHarnessTick,
 } from "@orbita/harness";
 import { createOrbitaMcpHandler } from "@orbita/mcp";
+import {
+  buildOAuthConfig,
+  createMcpAuthMiddleware,
+  createOAuthDb,
+  createOAuthMetadataRoutes,
+  createOAuthRoutes,
+  loadOAuthEnv,
+  requireMcpScope,
+} from "@orbita/oauth";
 import { createInboundEmailRoutes } from "./inbound-email.js";
 import { runMigrations } from "./migrate.js";
 import { createE2eMockTurnRunner } from "./e2e-mock.js";
 
 const E2E_MOCK = process.env.ORBITA_E2E_MOCK === "1";
 
-const VERSION = "0.0.1-w34";
+const VERSION = "0.0.1-w35";
 const env = loadPlatformEnv();
 const agentEnv = loadAgentEnv();
 const memoryEnv = loadMemoryEnv();
@@ -115,6 +123,7 @@ const memoryDb = createMemoryDb(env.DATABASE_URL);
 const trajectoryDb = createTrajectoryDb(env.DATABASE_URL);
 const schedulerDb = createSchedulerDb(env.DATABASE_URL);
 const harnessDb = createHarnessDb(env.DATABASE_URL);
+const oauthDb = createOAuthDb(env.DATABASE_URL);
 const credentialsDb = createCredentialsDb(env.DATABASE_URL);
 const adminDb = createAdminDb(env.DATABASE_URL);
 const waitlistDb = createWaitlistDb(env.DATABASE_URL);
@@ -125,6 +134,9 @@ await loadDeploymentHttpPolicy(adminDb);
 
 const publicBaseUrl =
   env.ORBITA_PUBLIC_BASE_URL ?? `http://${env.HOST === "0.0.0.0" ? "127.0.0.1" : env.HOST}:${env.PORT}`;
+
+const oauthConfig = buildOAuthConfig(loadOAuthEnv(), publicBaseUrl);
+const mcpAuthMiddleware = createMcpAuthMiddleware(authDb, oauthConfig);
 
 const authMiddleware = createAuthMiddleware(authDb);
 const rateLimitMiddleware = createRateLimitMiddleware(
@@ -225,6 +237,25 @@ app.use("*", async (c, next) => {
 
 app.route("/", createAdminConsoleRoutes({ assetVersion: VERSION }));
 
+app.route("/", createOAuthMetadataRoutes(oauthConfig));
+app.route(
+  "/",
+  createOAuthRoutes({ oauthDb, authDb, config: oauthConfig }),
+);
+
+app.all("/v1/mcp", mcpAuthMiddleware, requireMcpScope("sessions:use"), async (c) => {
+  const auth = getAuth(c);
+  const handler = createOrbitaMcpHandler({
+    clientId: auth.clientId,
+    keyPrefix: auth.apiKey.keyPrefix,
+    scopes: auth.apiKey.scopes,
+    memoryDb,
+    memoryEnv,
+    version: VERSION,
+  });
+  return handler(c.req.raw);
+});
+
 app.route("/v1", createHealthRoutes(VERSION));
 app.route("/v1", createProfileRoutes());
 
@@ -317,19 +348,6 @@ protectedApp.route(
   }),
 );
 protectedApp.route("/", createCredentialListRoutes(credentialsDb));
-
-protectedApp.all("/mcp", requireScope("sessions:use"), async (c) => {
-  const auth = getAuth(c);
-  const handler = createOrbitaMcpHandler({
-    clientId: auth.clientId,
-    keyPrefix: auth.apiKey.keyPrefix,
-    scopes: auth.apiKey.scopes,
-    memoryDb,
-    memoryEnv,
-    version: VERSION,
-  });
-  return handler(c.req.raw);
-});
 
 app.route("/v1", protectedApp);
 
