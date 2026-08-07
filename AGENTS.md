@@ -50,6 +50,7 @@ Local folder **`marketing-agent/`** (gitignored except `README.md`) holds brand 
 - Social posting: meaningful draft→approve only (prior X spam ban); MA depth via per-project workspaces + shared/tested skills catalog — not plugins.
 - Prefer agent-operated Zeabur CLI (`npx zeabur@latest`) and Orbita Admin API over asking user to run prod SQL or Dashboard steps; Postgres `service exec`/`psql` often 524-times out; agent shells `source` gitignored env files (`orbita/.env`, `~/.orbita-personal.env`)—not user terminal `export`.
 - Commit continual-learning outputs directly (`AGENTS.md`, `.cursor/hooks/state/continual-learning*.json`) without asking.
+- When discussing options or asking for founder judgment: give enough context to decide without re-learning project internals—what this is about in one breath, what each option means at a high level, and especially the **impact** of each choice (mental load, what Autopilot/agents will/won't do, risk, reversibility, what stays deferred). Prefer impact-first framing over implementation detail.
 
 ## Learned Workspace Facts
 
