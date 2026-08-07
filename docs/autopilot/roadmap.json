@@ -51,7 +51,7 @@
       "phase": "l1-hardening",
       "decomposes_into": ["T-0030"],
       "decisions": [],
-      "notes": "If root cause needs new embedding provider spend or schema change, open decisions.json and mark needs_human."
+      "notes": "If root cause needs new embedding provider spend or schema change, open decisions.json and mark needs_human. BLOCKS the hub: until search is trustworthy, agents must resume sessions via flat memory keys and note ids."
     },
     {
       "id": "E-05",
@@ -81,7 +81,7 @@
       "phase": "midline",
       "decomposes_into": [],
       "decisions": [],
-      "notes": "Umbrella vision — stays proposed so Maker cannot invent hub direction. Sketch: docs/personal-steward/portfolio-hub.md (+ portfolio-hub-sketch.png). Decompose by approving concrete slices one at a time: E-08 is the first (H2 retrieval). Next candidate slices: report ingest contract (H1, blocked on ai-dev-methodologies contract), instruction dispatch (H3)."
+      "notes": "Umbrella vision — stays proposed so Maker cannot invent hub direction. Sketch: docs/personal-steward/portfolio-hub.md. Decompose by approving concrete slices: E-08 (H2 retrieval) and E-09 (collection) are the first two. Remaining: instruction dispatch (H3)."
     },
     {
       "id": "E-08",
@@ -91,7 +91,27 @@
       "phase": "hub-h2",
       "decomposes_into": ["T-0040", "T-0041"],
       "decisions": [],
-      "notes": "First approved slice of E-07 (portfolio-hub.md H2). Additive read-only API; do NOT remove or change semantic /notes/search. Founder rationale 2026-08-07: chat sessions get rotated to avoid context overflow, so durable cross-project state must be queryable out of Orbita by a fresh session. Structured retrieval is an agent tool, not a bypass of the agent layer."
+      "notes": "First approved slice of E-07 (portfolio-hub.md H2). Additive read-only API; do NOT remove or change semantic /notes/search. Founder rationale 2026-08-07: chat sessions get rotated to avoid context overflow, so durable cross-project state must be queryable out of Orbita by a fresh session."
+    },
+    {
+      "id": "E-09",
+      "title": "Portfolio collectors — pull the three report lines into Orbita",
+      "goal": "Orbita collects autopilot, deployment and (later) runtime state for every registered project on a schedule, so one agent session can brief across the portfolio without crawling repos and dashboards by hand.",
+      "status": "approved",
+      "phase": "hub-h1",
+      "decomposes_into": ["T-0050", "T-0051", "T-0052", "T-0053"],
+      "decisions": ["D-002"],
+      "notes": "Founder + Claude session 2026-08-07. ARCHITECTURE (decided, do not relitigate): collection lives in ORBITA, not in each product. Rationale — (1) the autopilot line is already committed to git by Maker/Checker every run, so a product service would have to read its own repo to serve it, which is staler and inverts ownership; (2) the deploy line lives in Zeabur, one shared platform, so one credential covers all projects, whereas per-project reporting would put a Zeabur token inside each app; (3) only the runtime line genuinely requires the app, and no project has runtime signals worth reporting yet. Consequence: lines 1+2 cover all five projects with ZERO work in any product repo, and onboarding a new project is a registry row. CORRELATION KEY: git commit sha ties the lines together (task → PR → sha → deployment → serving version); without it we are correlating on timestamps, which is guesswork. Runtime line stays E-10 (proposed) until a product has real signals."
+    },
+    {
+      "id": "E-10",
+      "title": "Runtime report endpoints (per project)",
+      "goal": "Live products expose their own operational signals (signups, logins, queue depth) so the hub can see whether shipped work is actually being used.",
+      "status": "proposed",
+      "phase": "hub-h1",
+      "decomposes_into": [],
+      "decisions": [],
+      "notes": "The only line that genuinely needs per-project work — an app's own database is the only source. Deliberately NOT approved: no product has meaningful runtime signals yet (ai-business is pre-beta, ViOS is pre-UI). Building endpoints now buys a public surface and a credential per project in exchange for reporting zeroes. Approve per project when that project has users. Contract: ai-dev-methodologies portfolio-hub-reporting.md, edge=runtime."
     }
   ]
 }
