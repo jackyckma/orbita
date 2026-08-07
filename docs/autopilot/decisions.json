@@ -45,9 +45,9 @@
       "opened_at": "2026-08-07",
       "sla_days": 7,
       "unblocks": [],
-      "status": "open",
-      "decided_option": null,
-      "decided_note": null
+      "status": "decided",
+      "decided_option": "A",
+      "decided_note": "Founder 2026-08-07: seed via Claude Desktop / manual; Autopilot must not invent personal note bodies."
     }
   ]
 }

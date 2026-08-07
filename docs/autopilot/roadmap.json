@@ -41,7 +41,7 @@
       "phase": "l2-ops",
       "decomposes_into": ["T-0020"],
       "decisions": [],
-      "notes": "Read-only report + optional script. Do not change harness cron without founder."
+      "notes": "Read-only report + optional script. Do not change harness cron without founder. L2 dogfood resume deferred 2026-08-07 (founder mid-term portfolio hub takes priority for attention)."
     },
     {
       "id": "E-04",
@@ -61,7 +61,7 @@
       "phase": "pa0-content",
       "decomposes_into": [],
       "decisions": ["D-001"],
-      "notes": "Content authorship — founder chooses what to write. Not for unattended Maker until D-001 decided."
+      "notes": "D-001 → A (2026-08-07): founder + Claude Desktop seed manually. Keep proposed; no Maker tasks."
     },
     {
       "id": "E-06",
@@ -72,6 +72,16 @@
       "decomposes_into": [],
       "decisions": [],
       "notes": "Blocked on L2 green + real rejection corpus. Re-approve when dogfood resumes."
+    },
+    {
+      "id": "E-07",
+      "title": "Portfolio hub — multi-project reports + instruction dispatch",
+      "goal": "Orbita as Jacky’s central hub: ingest project reports, brief via chatbot, dispatch agent instructions into each repo for Cursor Autopilot.",
+      "status": "proposed",
+      "phase": "midline",
+      "decomposes_into": [],
+      "decisions": [],
+      "notes": "Sketch: docs/personal-steward/portfolio-hub.md (+ portfolio-hub-sketch.png). Not for Maker until decomposed into approved epics. Near-term Autopilot stays E-02→E-04."
     }
   ]
 }

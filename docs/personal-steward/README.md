@@ -27,6 +27,7 @@ One canonical store agents can read/write:
    - [ChatGPT](connectors-chatgpt.md)
 3. **Conventions** — [memory & note layout](memory-conventions.md)
 4. **Project map** — [registry](project-registry.md)
+5. **Mid-line hub** — [portfolio hub vision](portfolio-hub.md) (reports + instruction dispatch; not near-term Autopilot)
 
 ## Architecture
 
