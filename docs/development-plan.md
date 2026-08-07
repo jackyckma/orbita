@@ -14,7 +14,7 @@ related: docs/DEVELOPMENT_LANES.md, docs/CURRENT_STATUS.md, usr/memory-design-fr
 
 ---
 
-## Wave roadmap (W32–W35)
+## Wave roadmap (W32–W36)
 
 | Wave | Deliverable | Depends on |
 |------|-------------|------------|
@@ -47,12 +47,12 @@ note_links:
 
 **Coexistence:** Flat memory for small JSON/state keys; notes for long prose, YAML frontmatter, and graph edges.
 
-### W33–W35 (planned)
+### W33–W36
 
 - **W33:** BFS/depth-limited neighbor walk + pgvector search on `notes.embedding`; combine into `getNoteContext()` for turns.
 - **W34:** Harness `config.memory_inject` — platform pulls keys + graph slice before agent turn (book: "memory as infrastructure"). ✅ shipped
 - **W35:** PA1.5 MCP OAuth + DCR for Claude Custom Connector. ✅ shipped (`0.0.1-w35`)
-- **W36:** `GET /v1/notes/export` → Obsidian-friendly `.md` + wikilinks (Autopilot E-02). AT graph dogfood deferred (E-06).
+- **W36:** `GET /v1/notes/export` → Obsidian-friendly `.md` + wikilinks (Autopilot E-02 / T-0010). ✅ implemented (`0.0.1-w36`). AT graph dogfood deferred (E-06).
 
 ---
 
@@ -62,7 +62,7 @@ See **`docs/DEVELOPMENT_LANES.md`** for the live lane table.
 
 | Lane | Focus | Now |
 |------|-------|-----|
-| **L1 Platform** | Harness, memory, API | W35 ✅; W36 notes export next (Autopilot) |
+| **L1 Platform** | Harness, memory, API | W36 notes export ✅ (`0.0.1-w36`); follow-ups T-0011/T-0012 |
 | **L2 AT dogfood** | Closed editorial loop | **PRIMARY** — poll sync ✅ after review |
 | **L3 GTM/MA** | AI Business Life | ⏸️ after L2 green 7 days |
 | **L4 Ops** | Deploy, docs | Sync plan + deploy on platform waves |
@@ -133,9 +133,9 @@ Safe to run in parallel:
 
 ## Current prod target
 
-- API version: **0.0.1-w35** (PA1.5 MCP OAuth)
-- Next Autopilot ship: **0.0.1-w36** (notes export)
-- Previous: **0.0.1-w34** — harness `memory_inject` + PA1 MCP
+- API version: **0.0.1-w36** (notes Markdown export)
+- Previous: **0.0.1-w35** — PA1.5 MCP OAuth
+- Earlier: **0.0.1-w34** — harness `memory_inject` + PA1 MCP
 
 ---
 
@@ -146,5 +146,6 @@ Safe to run in parallel:
 | W32 | Notes CRUD + tools in prod; migration idempotent |
 | W33 | Hybrid retrieve returns linked rubric + similar notes |
 | W34 | Harness run injects graph without agent calling `note_get` |
-| W35 | AT1b rejection reasons linked in graph; export opens in Obsidian |
+| W35 | MCP OAuth for Claude Custom Connector live |
+| W36 | `GET /v1/notes/export` returns Markdown + `[[wikilinks]]` |
 | L2 green | 7 consecutive days: supply + poll + feedback consumed |

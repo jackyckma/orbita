@@ -34,11 +34,22 @@
         <h1>Project updates</h1>
         <p class="section-intro">
           What shipped recently. Orbita is under active development — API version
-          <code>0.0.1-w35</code> on
+          <code>0.0.1-w36</code> on
           <a href="https://api.get-orbita.com/v1/health" rel="noopener">api.get-orbita.com</a>.
         </p>
 
         <div class="changelog">
+          <article class="changelog-day">
+            <h2 class="changelog-date">2026-08-07</h2>
+            <ul class="changelog-list">
+              <li>
+                <strong>Notes Markdown export (w36)</strong> —
+                <code>GET /v1/notes/export</code> returns Obsidian-friendly
+                <code>{ files: [{ path, body }] }</code> with
+                <code>[[wikilinks]]</code> from <code>note_links</code>.
+              </li>
+            </ul>
+          </article>
           <article class="changelog-day">
             <h2 class="changelog-date">2026-07-15</h2>
             <ul class="changelog-list">
