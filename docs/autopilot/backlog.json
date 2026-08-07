@@ -117,6 +117,42 @@
       "status": "ready",
       "retries": 0,
       "feedback": []
+    },
+    {
+      "id": "T-0040",
+      "lane": "platform",
+      "phase": "hub-h2",
+      "title": "Add structured list filters to notes: project, type, since, until",
+      "description": "Epic E-08. In packages/lane-memory (notes routes + notes-service): support query params project, type, since, until on the client-scoped notes list surface — either as filters on the existing list route or a dedicated filtered list route, implementer's call (decide-and-log in the PR body). Semantics: project and type match frontmatter fields exactly (case-insensitive); since/until are ISO-8601 timestamps filtered on updated_at, inclusive of since, exclusive of until; omitted params mean no constraint; unknown params are ignored, not errors. Auth stays client-scoped exactly as today — a client must never see another client's notes. Results ordered by updated_at descending. DO NOT remove, rename, or change the behaviour of semantic GET /v1/notes/search — this is purely additive. Do not add pagination in this task unless the existing list route already has it. Add or extend unit tests in packages/lane-memory covering: filter by project, filter by type, since/until boundary, and combined filters. Prefer extracting a pure predicate/query-builder helper so tests do not require live Postgres.",
+      "acceptance": [
+        "pnpm --filter @orbita/memory test",
+        "pnpm --filter @orbita/memory build",
+        "pnpm --filter @orbita/api typecheck",
+        "rg -n \"since|until|project\" packages/lane-memory/src/routes/notes.ts"
+      ],
+      "deps": [],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": []
+    },
+    {
+      "id": "T-0041",
+      "lane": "docs",
+      "phase": "hub-h2",
+      "title": "Document notes list/filter contract for hub briefs",
+      "description": "Epic E-08. Document the T-0040 filter contract in docs/personal-steward/memory-conventions.md (create the file if absent): the exact param names, their semantics, and at least one working curl example using personal-jacky headers that answers the real hub question 'reports for project X since date Y'. Also state the frontmatter convention a note must follow to be findable this way: project (slug) and type (one of report / instruction / decision / taxonomy, per docs/personal-steward/portfolio-hub.md H0). This doc is what a fresh Claude session reads to rediscover the contract without re-reading source — write it for that reader. Docs only; do not change code.",
+      "acceptance": [
+        "test -f docs/personal-steward/memory-conventions.md",
+        "rg -n \"project\" docs/personal-steward/memory-conventions.md",
+        "rg -n \"since\" docs/personal-steward/memory-conventions.md",
+        "rg -n \"curl\" docs/personal-steward/memory-conventions.md"
+      ],
+      "deps": ["T-0040"],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": []
     }
   ]
 }
