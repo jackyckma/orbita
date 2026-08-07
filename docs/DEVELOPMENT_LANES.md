@@ -1,16 +1,16 @@
 ---
 status: active
 maintained_by: jacky + ai-agents
-last_updated: 2026-07-09
+last_updated: 2026-08-07
 purpose: Reduce parallel task sprawl — one page for lanes, loose ends, and what is off the radar.
-related: docs/CURRENT_STATUS.md, docs/development-plan.md, docs/harness-design.md, AGENTS.md
+related: docs/CURRENT_STATUS.md, docs/development-plan.md, docs/harness-design.md, docs/autopilot/, AGENTS.md
 ---
 
 # Development lanes
 
 **Goal:** Fewer mental tabs. Work rolls up into **four lanes**; waves (W*) and tracks (AT*, MA*) are implementation detail inside a lane.
 
-**Full wave plan:** `docs/development-plan.md` (W32–W35 memory graph).
+**Full wave plan:** `docs/development-plan.md`. **Autopilot fuel:** `docs/autopilot/roadmap.json`.
 
 ---
 
@@ -18,10 +18,10 @@ related: docs/CURRENT_STATUS.md, docs/development-plan.md, docs/harness-design.m
 
 | Lane | Outcome | Active work | Off radar when |
 |------|---------|-------------|----------------|
-| **L1 — Platform core** | Reliable API for agents | W32 notes graph; W33 hybrid retrieve | Stable prod + docs match code |
-| **L2 — AT dogfood loop** | ai-transformation.org daily supply + learn | Human `/editorial`; cron stability check | 7-day green: supply + poll + feedback |
-| **L3 — GTM / MA** | Portfolio brands via Orbita | AI Business Life after AT loop green | MA cadence self-serve |
-| **L4 — Ops / infra** | Deploy, handoff, admin | Zeabur deploys, docs sync | No stale STATUS / no failed builds |
+| **L1 — Platform core** | Reliable API for agents | W35 notes export (Autopilot E-02 → w36) | Stable prod + docs match code |
+| **L2 — AT dogfood loop** | ai-transformation.org daily supply + learn | Re-verify cron after pause (T-0020) | 7-day green: supply + poll + feedback |
+| **L3 — GTM / MA** | Portfolio brands via Orbita | ⏸️ after L2 green | MA cadence self-serve |
+| **L4 — Ops / infra** | Deploy, handoff, Autopilot | Maker/Checker twice daily; docs sync | No stale STATUS / no failed builds |
 
 ```text
 L1 Platform ──► L2 AT loop (dogfood proof) ──► L3 MA / marketing
@@ -31,74 +31,45 @@ L1 Platform ──► L2 AT loop (dogfood proof) ──► L3 MA / marketing
 
 ---
 
-## L2 — AT editorial loop (current focus)
+## L2 — AT editorial loop
 
 | Step | Owner | Mechanism | Status |
 |------|-------|-----------|--------|
-| Supply ~5 drafts/day | **Agent** (harness 07:00 UTC) | Loop 1+3, `session_policy: per_run` | ✅ w31 verified |
-| Human review | **You** | AT `/editorial` | ongoing |
-| Poll outcomes | **Agent** (harness 18:00 UTC) | poll-outcomes + `at-editorial-poll` profile | ✅ manual poll 7/7 |
+| Supply ~5 drafts/day | **Agent** (harness 07:00 UTC) | Loop 1+3, `session_policy: per_run` | ✅ historically; re-verify |
+| Human review | **You** | AT `/editorial` | when dogfood resumes |
+| Poll outcomes | **Agent** (harness 18:00 UTC) | poll harness | ✅ historically; re-verify |
 | Poll fallback | **Operator script** | `scripts/at1b-poll-editorial-outcomes.sh` | ✅ |
-| Manual notes | **You** (optional) | `at1b-ingest-feedback.sh` | ✅ |
-
-**Design note:** Daily automation is **agent-initiated** via Harness cron. Shell scripts are **bootstrap + fallback**, not the steady-state loop.
 
 ---
 
-## L1 — Memory graph (in progress)
+## L1 — Memory graph
 
 | Wave | Status |
 |------|--------|
-| W32 notes + links + tools | ✅ shipped |
-| W33 neighbors + search | ✅ shipped |
-| W34 harness pre-inject | ✅ shipped |
-| W35 export + AT graph dogfood | 📋 planned |
-
-Flat `client_memories` stays for small keys; notes for prose + graph.
-
----
-
-## Loose ends — close or defer
-
-### Close now (no founder judgment)
-
-- [x] w31 `session_policy: per_run` wired + prod patch
-- [x] Poll harness + sync scripts documented
-- [x] W32 notes schema + API + tools
-- [x] W33 note neighbors + search
-- [x] Editorial poll sync after founder review (2026-07-07)
-- [ ] Spot-check prod cron since 7/1 (supply + poll)
-
-### Needs you (human gate)
-
-- [x] Review pending/rejected drafts on `/editorial`
-- [ ] AT: `editorial_comment` on reject (optional backlog)
-- [ ] Marketing case study copy when L2 is green 7 days
-
-### Defer / off radar
-
-- Webhooks to AT (Phase 2 poll)
-- Orbita Loop 4 auto-improve (H2/H3)
-- W15 multi-user, W17 billing
-- X publish (blocked)
+| W32 notes + links + tools | ✅ |
+| W33 neighbors + search | ✅ |
+| W34 harness pre-inject | ✅ |
+| PA1 MCP + PA1.5 OAuth | ✅ (w35) |
+| W35 export (+ later AT graph) | 📋 Autopilot E-02 (API export); E-06 paused |
 
 ---
 
-## Parallel OK this week
+## Loose ends
 
-| Stream | Work |
-|--------|------|
-| A | You: `/editorial` + AT UI |
-| B | Orbita: W32–W33 memory graph |
-| C | Docs: `development-plan.md`, STATUS sync |
+### Close now
 
----
+- [x] Stale Cursor architecture-audit draft PRs (#2–#5) closed 2026-08-07
+- [x] Autopilot Checker filters on `T-xxxx` PR titles
+- [ ] Spot-check prod cron after pause (T-0020)
 
-## How to use this doc
+### Needs you
 
-1. **Weekly:** Pick **one lane** primary (now: L2).
-2. **Daily:** L2 table + `/editorial` queue.
-3. **When something ships:** Update `CURRENT_STATUS.md` — don't duplicate task lists.
+- [ ] D-001 personal notes seed approach (`docs/autopilot/decisions.json`)
+- [ ] Resume `/editorial` when ready for L2 green streak
+
+### Defer
+
+- Webhooks to AT · Loop 4 · W15 · W17 · X publish · E-06 AT graph
 
 ---
 
@@ -108,5 +79,4 @@ Flat `client_memories` stays for small keys; notes for prose + graph.
 |----------|-----|
 | Supply harness | `dd839025-1200-4df4-b69b-b3454625416f` |
 | Poll harness | `e4c0de60-9db6-4bb8-9845-b5c586afcc36` |
-| Session (rotates with per_run) | see harness `session_id` |
 | API | `https://api.get-orbita.com` |

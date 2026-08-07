@@ -96,7 +96,7 @@ if (laneArg === "maker") {
   // Learner proposals change the loop's own governance and must be founder-gated,
   // so branches containing "learner" are excluded from the review/merge queue.
   const raw = sh(
-    `gh pr list --state open --json number,title,headRefName,isDraft,createdAt --jq '[.[] | select((.headRefName | test("^cursor/")) and (.headRefName | test("learner") | not))] | sort_by(.createdAt)'`,
+    `gh pr list --state open --json number,title,headRefName,isDraft,createdAt --jq '[.[] | select((.headRefName | test("^cursor/")) and (.title | test("T-[0-9]{4}")) and (.headRefName | test("learner") | not))] | sort_by(.createdAt)'`,
   );
   if (raw) {
     try {

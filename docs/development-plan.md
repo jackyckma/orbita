@@ -1,8 +1,8 @@
 ---
 status: active
 maintained_by: jacky + ai-agents
-last_updated: 2026-07-09
-purpose: Wave roadmap for memory graph (W32–W35), lane dependencies, and parallel work matrix.
+last_updated: 2026-08-07
+purpose: Wave roadmap for memory graph (W32–W36), lane dependencies, and parallel work matrix.
 related: docs/DEVELOPMENT_LANES.md, docs/CURRENT_STATUS.md, usr/memory-design-from-book.md, AGENTS.md
 ---
 
@@ -21,7 +21,8 @@ related: docs/DEVELOPMENT_LANES.md, docs/CURRENT_STATUS.md, usr/memory-design-fr
 | **W32** | `notes` + `note_links` schema; `PUT/GET /v1/notes`; tools `note_put`, `note_get`, `note_link` | w31 flat memory ✅ |
 | **W33** | `GET /v1/notes/{id}/neighbors` (graph traverse); `GET /v1/notes/search` (vector); `getNoteContext()`; tool `note_search` | W32 ✅ |
 | **W34** | Harness pre-inject config (`memory_keys`, `graph_from`, `depth`, `vector_query`) | W33 ✅ |
-| **W35** | Export `.md` + wikilinks; AT1b dogfood (rubric note ↔ rejected draft edges) | W34 + L2 green |
+| **W35** | MCP OAuth (PA1.5) for Claude Custom Connector | W34 ✅ / PA1 |
+| **W36** | Export `.md` + wikilinks (`GET /v1/notes/export`); later AT graph dogfood | W34 + (AT graph needs L2 green) |
 
 ### W32 schema (Postgres only)
 
@@ -50,7 +51,8 @@ note_links:
 
 - **W33:** BFS/depth-limited neighbor walk + pgvector search on `notes.embedding`; combine into `getNoteContext()` for turns.
 - **W34:** Harness `config.memory_inject` — platform pulls keys + graph slice before agent turn (book: "memory as infrastructure"). ✅ shipped
-- **W35:** `GET /v1/notes/export` → Obsidian-friendly `.md`; AT1b links editorial rubric notes to rejected drafts.
+- **W35:** PA1.5 MCP OAuth + DCR for Claude Custom Connector. ✅ shipped (`0.0.1-w35`)
+- **W36:** `GET /v1/notes/export` → Obsidian-friendly `.md` + wikilinks (Autopilot E-02). AT graph dogfood deferred (E-06).
 
 ---
 
@@ -60,7 +62,7 @@ See **`docs/DEVELOPMENT_LANES.md`** for the live lane table.
 
 | Lane | Focus | Now |
 |------|-------|-----|
-| **L1 Platform** | Harness, memory, API | W34 ✅; W35 export next |
+| **L1 Platform** | Harness, memory, API | W35 ✅; W36 notes export next (Autopilot) |
 | **L2 AT dogfood** | Closed editorial loop | **PRIMARY** — poll sync ✅ after review |
 | **L3 GTM/MA** | AI Business Life | ⏸️ after L2 green 7 days |
 | **L4 Ops** | Deploy, docs | Sync plan + deploy on platform waves |
@@ -131,8 +133,9 @@ Safe to run in parallel:
 
 ## Current prod target
 
-- API version: **0.0.1-w34** (after W34 deploy + PA1 MCP)
-- Previous: **0.0.1-w33** — note neighbors + vector search
+- API version: **0.0.1-w35** (PA1.5 MCP OAuth)
+- Next Autopilot ship: **0.0.1-w36** (notes export)
+- Previous: **0.0.1-w34** — harness `memory_inject` + PA1 MCP
 
 ---
 

@@ -24,18 +24,99 @@
       "id": "T-0001",
       "lane": "docs",
       "phase": "bootstrap",
-      "title": "Example: confirm autopilot scaffolds are present",
-      "description": "EXAMPLE ONLY — replace or mark done after setup. Verify docs/autopilot/playbook.md and scripts/autopilot/decide-next-action.mjs exist. Do not change product code.",
+      "title": "Confirm autopilot scaffolds are present",
+      "description": "Bootstrap smoke — already verified 2026-08-07. Keep done.",
       "acceptance": [
         "test -f docs/autopilot/playbook.md",
-        "test -f scripts/autopilot/decide-next-action.mjs",
-        "node scripts/autopilot/decide-next-action.mjs --lane maker >/dev/null"
+        "test -f scripts/autopilot/decide-next-action.mjs"
+      ],
+      "deps": [],
+      "flag": null,
+      "status": "done",
+      "retries": 0,
+      "feedback": ["Verified in founder session 2026-08-07; stale cursor/* audit PRs closed."]
+    },
+    {
+      "id": "T-0010",
+      "lane": "platform",
+      "phase": "w35",
+      "title": "Implement GET /v1/notes/export as Markdown + wikilinks",
+      "description": "In packages/lane-memory: add exportNotes(db, clientId) that lists all notes for the client and emits Obsidian-friendly Markdown: each note as a file section or multi-file zip is NOT required — return JSON { files: [{ path, body }] } or a single concatenated .md with clear H1 titles. Convert note_links to [[wikilinks]] using note titles (fallback to id). Wire GET /v1/notes/export on createNoteRoutes (auth client scoped). Do not break existing note routes. No feature flag needed (read-only additive). Update docs/development-plan.md W35 status when done. Bump apps/orbita-api VERSION to 0.0.1-w36 and add a changelog bullet in apps/orbita-web/public/updates.html.",
+      "acceptance": [
+        "pnpm --filter @orbita/memory test",
+        "pnpm --filter @orbita/memory build",
+        "pnpm --filter @orbita/api typecheck",
+        "rg -n \"notes/export|/export\" packages/lane-memory/src/routes/notes.ts",
+        "rg -n \"0\\.0\\.1-w36\" apps/orbita-api/src/index.ts"
       ],
       "deps": [],
       "flag": null,
       "status": "ready",
       "retries": 0,
-      "feedback": ["Template seed — delete or complete after first successful Maker tick."]
+      "feedback": []
+    },
+    {
+      "id": "T-0011",
+      "lane": "platform",
+      "phase": "w35",
+      "title": "Unit tests for note export + wikilink formatting",
+      "description": "Add focused vitest coverage in packages/lane-memory for export formatting: title heading, body, and [[Title]] links from note_links. Prefer pure format helpers if extractable. Do not require live Postgres.",
+      "acceptance": [
+        "pnpm --filter @orbita/memory test",
+        "rg -n \"export|wikilink\" packages/lane-memory/src/*.test.ts packages/lane-memory/src/**/*.test.ts"
+      ],
+      "deps": ["T-0010"],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": []
+    },
+    {
+      "id": "T-0012",
+      "lane": "docs",
+      "phase": "w35",
+      "title": "Document notes export in personal-steward + site status",
+      "description": "Document GET /v1/notes/export in docs/personal-steward/ (README or memory-conventions) with curl example using personal-jacky headers. Ensure docs/CURRENT_STATUS.md mentions w36 export when T-0010 shipped. Do not invent OAuth changes.",
+      "acceptance": [
+        "rg -n \"notes/export\" docs/personal-steward docs/CURRENT_STATUS.md"
+      ],
+      "deps": ["T-0010"],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": []
+    },
+    {
+      "id": "T-0020",
+      "lane": "ops",
+      "phase": "l2-ops",
+      "title": "Add harness cron status script for AT1b supply+poll",
+      "description": "Add scripts/at1b-harness-status.sh that uses ORBITA admin or AT client credentials from env (source gitignored files; never print secrets) to GET the two known harnesses (supply dd839025-1200-4df4-b69b-b3454625416f, poll e4c0de60-9db6-4bb8-9845-b5c586afcc36) and print last_run_at / next_run_at / enabled. Write a short report under docs/autopilot/reports/ or docs/at-harness-status.md summarizing freshness. Do not PATCH harnesses. If credentials missing, exit non-zero with clear message.",
+      "acceptance": [
+        "test -f scripts/at1b-harness-status.sh",
+        "bash -n scripts/at1b-harness-status.sh"
+      ],
+      "deps": [],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": []
+    },
+    {
+      "id": "T-0030",
+      "lane": "platform",
+      "phase": "l1-hardening",
+      "title": "Investigate prod note_search empty results; fix or document",
+      "description": "Reproduce: personal-jacky or test client — note_put with body, then note_search / GET /v1/notes/search. If embeddings null, check loadMemoryEnv / MiniMax embed path and whether upsertNote always embeds. Prefer a clear code fix (e.g. missing embed on put) with test; else write docs/note-search-troubleshooting.md with findings and mark needs_human for env-only issues. Do not rotate secrets in chat.",
+      "acceptance": [
+        "pnpm --filter @orbita/memory test",
+        "test -f docs/note-search-troubleshooting.md || rg -n \"embedText|embedding\" packages/lane-memory/src/notes-service.ts"
+      ],
+      "deps": [],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": []
     }
   ]
 }

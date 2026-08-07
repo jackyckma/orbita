@@ -17,5 +17,37 @@
     },
     "autonomy": "log_veto — reversible calls are decided by Maker and logged in backlog feedback; only product-direction / contract / compliance land here."
   },
-  "decisions": []
+  "decisions": [
+    {
+      "id": "D-001",
+      "title": "How should personal-jacky project notes be seeded?",
+      "type": "product-direction",
+      "context": "Claude Desktop MCP works; portfolio notes (ViOS, melody-thesis, …) are still thin. Autopilot should not invent personal content.",
+      "options": [
+        {
+          "id": "A",
+          "label": "Founder + Claude Desktop seed manually (recommended)",
+          "implication": "E-05 stays proposed; no Maker tasks until you ask."
+        },
+        {
+          "id": "B",
+          "label": "Approve a Maker task that only creates stub notes with titles + links from project-registry.md",
+          "implication": "Low-risk stubs; you fill bodies later."
+        },
+        {
+          "id": "C",
+          "label": "Defer indefinitely",
+          "implication": "E-05 paused."
+        }
+      ],
+      "recommendation": "A — content quality matters more than stubs for a personal knowledge hub.",
+      "default_if_silent": "A",
+      "opened_at": "2026-08-07",
+      "sla_days": 7,
+      "unblocks": [],
+      "status": "open",
+      "decided_option": null,
+      "decided_note": null
+    }
+  ]
 }

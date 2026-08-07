@@ -1,62 +1,39 @@
 # Session handoff
 
-**Last updated:** 2026-06-25
+**Last updated:** 2026-08-07
 
 ## Metadata
 
 | Item | Value |
 |------|--------|
 | Branch | `main` |
-| Latest commit | (pending) — ZSend prod setup executed |
-| Prod API | https://api.get-orbita.com — **`0.0.1-w18`** |
-| Marketing site | https://get-orbita.com/docs/ |
+| Prod API | https://api.get-orbita.com — **`0.0.1-w35`** |
+| Marketing site | https://get-orbita.com |
+| Autopilot | Maker/Checker twice daily — see `docs/autopilot/` |
 
-## Active task
+## Active focus
 
-**Instance email closed loop** — mostly complete; optional real-mail E2E to `orbita@get-orbita.com`.
+1. **Autopilot fuel** — E-02 notes export (T-0010…), E-03 harness status (T-0020), E-04 note_search (T-0030).
+2. **Founder decision D-001** — personal notes seed approach (default: manual via Claude Desktop).
+3. **L2 dogfood** — re-verify supply/poll after pause when ready.
 
-## Current status
+## Do not
 
-| Area | Status |
-|------|--------|
-| Inbound Worker + routing `orbita@` | ✅ |
-| Inbound API smoke | ✅ ~23s turn |
-| ZSend API key `orbita` | ✅ created (token in local `.env` only) |
-| ZSend domain `get-orbita.com` | ✅ verified (DKIM/SPF/MX on Cloudflare) |
-| Vault credential `zsend` (`orbita-instance`) | ✅ |
-| HTTP allow-list | ✅ includes `api.zeabur.com` (+ X/Twitter/resend legacy) |
-| ZSend outbound smoke | ✅ `orbita@get-orbita.com` → test recipient HTTP 200 |
-| Real mail → Worker → agent | ⏸ not tested — send manual email to `orbita@get-orbita.com` |
+- Merge unrelated `cursor/*` PRs without `T-xxxx` in title (Checker filter enforces this).
+- Invent personal-jacky note content in Maker without D-001 → B.
 
-## Top priority next
-
-1. Send real email to `orbita@get-orbita.com` and confirm Worker + trajectory (`inbound_email` event).
-2. Optional: agent reply E2E — session should use `http_post` + `credential_ref: zsend`.
-3. Store `ZEABUR_ZSEND_API_KEY` on Zeabur API service if you want it outside vault-only (optional; vault already has `zsend`).
-
-## How to verify
+## Verify
 
 ```bash
-source .env   # ZEABUR_ZSEND_API_KEY, ORBITA_INBOUND_EMAIL_TOKEN added locally
-./scripts/smoke-inbound-email.sh
-
-# ZSend domain status
-npx zeabur@latest email domains list -i=false
-
-# Admin credentials (prod admin token required)
-curl -sS https://api.get-orbita.com/v1/admin/credentials -H "x-orbita-admin-token: $ORBITA_ADMIN_TOKEN"
+curl -fsS https://api.get-orbita.com/v1/health
+node scripts/autopilot/decide-next-action.mjs --lane maker
+node scripts/autopilot/queue-status.mjs
 ```
 
 ## Key paths
 
 | Topic | Path |
 |-------|------|
-| ZSend setup script | `scripts/setup-instance-email-prod.sh` |
-| Instance email design | `docs/instance-email.md` |
-| Inbound worker | `apps/orbita-email-worker/` |
-
-## Warnings
-
-- ZSend API key shown once at creation — saved to **gitignored** `.env`; rotate in Zeabur if concerned.
-- Prod `ORBITA_ADMIN_TOKEN` ≠ local dev token — use Zeabur Dashboard or `variable list`.
-- `setup-instance-email-prod.sh` now auto-loads prod admin from Zeabur CLI when unset.
+| Autopilot | `docs/autopilot/` |
+| Personal steward | `docs/personal-steward/` |
+| Lanes | `docs/DEVELOPMENT_LANES.md` |

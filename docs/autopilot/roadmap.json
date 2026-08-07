@@ -15,13 +15,63 @@
   "epics": [
     {
       "id": "E-01",
-      "title": "Bootstrap Autopilot (example)",
+      "title": "Bootstrap Autopilot",
       "goal": "Prove Maker/Checker can run one docs-only task end-to-end.",
-      "status": "approved",
+      "status": "done",
       "phase": "bootstrap",
       "decomposes_into": ["T-0001"],
       "decisions": [],
-      "notes": "Replace with real product epics after first green loop."
+      "notes": "Completed by founder session 2026-08-07 (scaffolds verified; stale audit PRs closed)."
+    },
+    {
+      "id": "E-02",
+      "title": "W35 notes export API",
+      "goal": "Callers can export a client’s notes as Obsidian-friendly Markdown with wikilinks from note_links.",
+      "status": "approved",
+      "phase": "w35",
+      "decomposes_into": ["T-0010", "T-0011", "T-0012"],
+      "decisions": [],
+      "notes": "Additive GET only. No AT graph dogfood in this epic (needs L2 rejection data). Bump API to 0.0.1-w35 already used for PA1.5 OAuth — use 0.0.1-w36 for this ship."
+    },
+    {
+      "id": "E-03",
+      "title": "Ops: AT1b cron visibility",
+      "goal": "Operator can confirm supply+poll harnesses are still ticking without Dashboard archaeology.",
+      "status": "approved",
+      "phase": "l2-ops",
+      "decomposes_into": ["T-0020"],
+      "decisions": [],
+      "notes": "Read-only report + optional script. Do not change harness cron without founder."
+    },
+    {
+      "id": "E-04",
+      "title": "note_search empty-results investigation",
+      "goal": "Document why prod note_search can return empty while GET-by-id works; fix if a clear env/code bug.",
+      "status": "approved",
+      "phase": "l1-hardening",
+      "decomposes_into": ["T-0030"],
+      "decisions": [],
+      "notes": "If root cause needs new embedding provider spend or schema change, open decisions.json and mark needs_human."
+    },
+    {
+      "id": "E-05",
+      "title": "Personal steward project notes seed",
+      "goal": "Seed high-value personal-jacky notes for ViOS / melody-thesis / etc.",
+      "status": "proposed",
+      "phase": "pa0-content",
+      "decomposes_into": [],
+      "decisions": ["D-001"],
+      "notes": "Content authorship — founder chooses what to write. Not for unattended Maker until D-001 decided."
+    },
+    {
+      "id": "E-06",
+      "title": "W35b AT graph dogfood (rubric ↔ draft edges)",
+      "goal": "Link editorial rubric notes to rejected draft notes in AT client graph.",
+      "status": "paused",
+      "phase": "w35",
+      "decomposes_into": [],
+      "decisions": [],
+      "notes": "Blocked on L2 green + real rejection corpus. Re-approve when dogfood resumes."
     }
   ]
 }

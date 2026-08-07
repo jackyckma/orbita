@@ -67,6 +67,8 @@ Stop.
 ## CHECKER lane actions
 
 > Exclude branches containing `learner` from auto-merge (founder-gated process PRs).
+> Only review open PRs whose **title includes a task id** (`T-xxxx`) — Maker must put
+> the task id in the PR title. Unrelated `cursor/*` drafts are ignored.
 
 ### `CLOSE_STALE` (`pr`, `branch`, `taskId?`)
 
