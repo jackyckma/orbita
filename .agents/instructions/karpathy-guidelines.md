@@ -17,6 +17,12 @@ Before implementing:
 - If a simpler approach exists, say so. Push back when warranted.
 - If something is unclear, stop, name what is confusing, and ask.
 
+**How to "ask":** route through `decision-authority.md` — reversible choices
+are decided and logged (Tier 1); important-but-not-blocking questions are
+queued as decision briefs and batched (Tier 2); only hard stops interrupt
+immediately (Tier 3). Uncertainty means *classify the question*, not stop
+all work.
+
 ### Auto-clarity (when brevity risks misread)
 
 Prefer concise replies, but use **full, unambiguous sentences** when:

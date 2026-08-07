@@ -1,0 +1,41 @@
+{
+  "_schema": {
+    "task": {
+      "id": "T-0001",
+      "lane": "optional owning area",
+      "phase": "optional grouping",
+      "title": "one-line summary",
+      "description": "specific enough for an unattended agent; include paths and constraints",
+      "acceptance": ["shell commands that exit 0 from repo root"],
+      "deps": [],
+      "flag": "FEATURE_FLAG_NAME or null",
+      "status": "ready | in_progress | in_review | blocked | done | needs_human",
+      "retries": 0,
+      "feedback": []
+    },
+    "defaults": {
+      "retry_budget": 2,
+      "merge_gate": "green-only",
+      "base_acceptance": ["./scripts/agent-verify.sh"]
+    }
+  },
+  "tasks": [
+    {
+      "id": "T-0001",
+      "lane": "docs",
+      "phase": "bootstrap",
+      "title": "Example: confirm autopilot scaffolds are present",
+      "description": "EXAMPLE ONLY — replace or mark done after setup. Verify docs/autopilot/playbook.md and scripts/autopilot/decide-next-action.mjs exist. Do not change product code.",
+      "acceptance": [
+        "test -f docs/autopilot/playbook.md",
+        "test -f scripts/autopilot/decide-next-action.mjs",
+        "node scripts/autopilot/decide-next-action.mjs --lane maker >/dev/null"
+      ],
+      "deps": [],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": ["Template seed — delete or complete after first successful Maker tick."]
+    }
+  ]
+}

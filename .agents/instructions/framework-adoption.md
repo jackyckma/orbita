@@ -40,6 +40,12 @@ Bootstrap writes `.agents/METHODOLOGY.lock` recording which bundle version the p
 
 ## 2. File tiers (what to touch on update)
 
+> **Canonical list.** This section is the single source of truth for which
+> paths are framework-owned. Other docs (e.g. `CHANGELOG-GUIDE.md`) link
+> here — if you find a second copy elsewhere, that copy is the bug.
+> Path mapping: framework repo `instructions/x.md` ↔ project
+> `.agents/instructions/x.md`; framework `templates/<p>` ↔ project `<p>`.
+
 When the founder says the methodology was updated, apply changes **by tier** — not by re-importing everything.
 
 ### Framework-owned — safe to replace from upstream
@@ -49,12 +55,18 @@ Copy from a fresh clone of `ai-dev-methodologies` at the target version (tag or 
 ```text
 .agents/instructions/METHODOLOGIES.md
 .agents/instructions/karpathy-guidelines.md
+.agents/instructions/judgment-rubrics.md
 .agents/instructions/session-handoff.md
 .agents/instructions/decision-authority.md
 .agents/instructions/agent-tooling-guardrails.md
+.agents/instructions/model-orchestration.md
+.agents/instructions/autonomous-loop.md
+.agents/instructions/cursor-autopilot.md          # optional practice; still sync the file
+.agents/instructions/agent-native-practices.md
 .agents/instructions/issue-quality.md
 .agents/instructions/lane-based-development.md   # if project uses lanes
 .agents/instructions/framework-adoption.md
+.agents/instructions/framework-evolution.md
 .agents/defaults/*.md
 .agents/README.md
 .agents/skills/**/SKILL.md                        # bundled skills only, not lane-* skills
@@ -62,9 +74,15 @@ AGENTS.md
 CLAUDE.md
 .cursor/rules/shared-instructions.mdc
 scripts/setup-cloud-agent-env.sh
+scripts/autopilot/*.mjs                           # Cursor Autopilot helpers (if project uses them)
+docs/autopilot/README.md
+docs/autopilot/playbook.md
+docs/autopilot/automations.md
 ```
 
-Replace the project's copy with the upstream file. If the project never adopted a new file (e.g. no `framework-adoption.md` yet), **add** it.
+Replace the project's copy with the upstream file. If the project never adopted a new file (e.g. no `judgment-rubrics.md` yet), **add** it.
+
+**Cursor Autopilot JSON state** (`backlog.json`, `decisions.json`, `roadmap.json`, `locks.json`, `pause-state.json`, `reports/*`, filled `planner-preferences.md`) is **project-owned** — sync scripts/playbook/README/automations only; never overwrite a live backlog from upstream.
 
 ### Project-owned — never overwrite from upstream
 
@@ -89,6 +107,9 @@ Keep the project's version. If upstream adds a **new optional** section to a tem
 | `scripts/agent-verify.sh` | Keep project's `VERIFY_L0` / `VERIFY_L1`; take upstream structural changes only if CHANGELOG says so |
 | `docs/AGENT_ENV.md` | Keep project-specific matrix; merge new rows from [agent-capability-matrix.template.md](../compatibility/agent-capability-matrix.template.md) if needed |
 | `.cursor/rules/shared-instructions.mdc` | Keep project-specific bullets (e.g. language); merge new shared rules from upstream |
+| `docs/README.md`, `docs/SESSION_HANDOFF.md` (structure) | Project-owned content; adopt new upstream template **sections** (not content) when CHANGELOG names them |
+| `docs/autopilot/project-hooks.json` | Keep project's `prod_smoke_cmd`; merge new keys from upstream template if CHANGELOG adds them |
+| `docs/autopilot/backlog.json` / `roadmap.json` / `decisions.json` | **Never** replace from upstream on an active loop — project task/decision data |
 
 If the project edited a **framework-owned** file locally, treat it as hybrid: note the path in `METHODOLOGY.lock` → `customized_files` and merge by hand on update.
 
@@ -186,4 +207,4 @@ When notifying a project:
 
 ## 7. Version
 
-See [VERSION](../VERSION), [CHANGELOG.md](../CHANGELOG.md), and maintainer [CHANGELOG-GUIDE.md](../CHANGELOG-GUIDE.md) in the canonical repo.
+See [VERSION](../VERSION), [CHANGELOG.md](../CHANGELOG.md), and maintainer [CHANGELOG-GUIDE.md](../CHANGELOG-GUIDE.md) in the canonical repo. Maintainer change process: [framework-evolution.md](framework-evolution.md).

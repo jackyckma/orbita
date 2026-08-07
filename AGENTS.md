@@ -1,19 +1,22 @@
 # Agent Instructions (Codex / OpenAI coding agents)
 
-Read **`.agents/instructions/`** before non-trivial work:
+Before non-trivial work, read (in order):
 
-1. [METHODOLOGIES.md](https://github.com/jackyckma/ai-dev-methodologies/blob/main/METHODOLOGIES.md) — or local copy if vendored
-2. `.agents/instructions/karpathy-guidelines.md`
-3. `.agents/instructions/project-guidelines.md`
-4. `.agents/instructions/agent-tooling-guardrails.md`
-5. `.agents/instructions/session-handoff.md` — when resuming or ending a session
-6. `.agents/instructions/framework-adoption.md` — when bootstrapping or syncing methodology
+1. `.agents/instructions/karpathy-guidelines.md` — coding discipline
+2. `.agents/instructions/judgment-rubrics.md` — done / stuck / escalate / ask
+3. `.agents/instructions/project-guidelines.md` — stack, git, deploy, language
+4. `.agents/instructions/agent-tooling-guardrails.md` — MCP-first browser; no silent E2E deps
+
+Then consult **`.agents/README.md`** — it maps every other instruction file
+to its trigger (decisions, handoff, model dispatch, loops, issues,
+methodology sync).
 
 When **resuming**, read `docs/SESSION_HANDOFF.md` first.
 
-Optional: `.agents/instructions/lane-based-development.md` for multi-module products.
-
-Do not duplicate long policy here — keep this file a thin pointer.
+Do not duplicate long policy here — keep this file a thin pointer. The
+three entry points (`AGENTS.md`, `CLAUDE.md`,
+`.cursor/rules/shared-instructions.mdc`) must name the **same** core list;
+if you change one, change all three.
 
 ## Git workflow
 
@@ -53,7 +56,7 @@ Local folder **`marketing-agent/`** (gitignored except `README.md`) holds brand 
 - Orbita is an agent-native **Agent System Backend** — API-first HTTP agent runtime for AI callers and low-coupling application backends (not human chat); aligns with `usr/ORBITA_DESIGN.md`, not a product pivot.
 - Authoritative design spec: `usr/ORBITA_DESIGN.md`; W0–W35 in progress (w35 MCP OAuth for Claude Connector); wave roadmap `docs/development-plan.md`; editorial poll `docs/at-editorial-poll.md`; Loop 2/4 deferred (H2/H3); `@orbita/harness` = Loop Engineering API (no `/v1/loops`); optional future `/v1/goals` semantic layer above harness; four-lane map in `docs/DEVELOPMENT_LANES.md`.
 - Not related to Jacky's OpenClaw orchestration or the public `openclaw/openclaw` repo.
-- pnpm monorepo (`apps/orbita-api`, `apps/orbita-web`, `@orbita/*`); Postgres + pgvector via Drizzle; split deploy: production API on Zeabur at `https://api.get-orbita.com` (service ID `6a37d3a09f5fe35a4aa63552`, version track `0.0.1-w34`), marketing site `get-orbita.com` on Cloudflare Pages (static HTML, not Workers routes); prod `web_search` via self-hosted SearXNG at `https://orbita-searxng.zeabur.app` (`deploy/searxng/`, default `ORBITA_WEB_SEARCH_PROVIDER=searxng`); public changelog at `get-orbita.com/updates`; GitHub `jackyckma/orbita`, branch `main`.
+- pnpm monorepo (`apps/orbita-api`, `apps/orbita-web`, `@orbita/*`); Postgres + pgvector via Drizzle; split deploy: production API on Zeabur at `https://api.get-orbita.com` (service ID `6a37d3a09f5fe35a4aa63552`, version track `0.0.1-w35`), marketing site `get-orbita.com` on Cloudflare Pages (static HTML, not Workers routes); prod `web_search` via self-hosted SearXNG at `https://orbita-searxng.zeabur.app` (`deploy/searxng/`, default `ORBITA_WEB_SEARCH_PROVIDER=searxng`); public changelog at `get-orbita.com/updates`; GitHub `jackyckma/orbita`, branch `main`.
 - Personal steward PA0 (`docs/personal-steward/`, `client_id: personal-jacky`): cross-project knowledge hub; prod setup complete (`~/.orbita-personal.env`); Cursor user-level skill; PA1 MCP `GET/POST /v1/mcp` (11 tools); PA1.5 OAuth+DCR for Claude Custom Connector; Claude Code uses `type:http` or CLI headers; API key auth unchanged for Cursor/scripts.
 - API-as-product phased launch: Phase 1 waitlist live at `get-orbita.com/waitlist`; invite-only before billing SaaS; see `docs/api-as-product.md`.
 - Marketing Agent track (MA0–MAn) parallel to W waves; gitignored `marketing-agent/` (`docs/marketing-agent-plan.md`); **`at-agent/`** for ai-transformation.org dogfood — **AT1a ✅** (proof E2E, 2 knowledge articles live), **AT1b harness-only** (Migration A: legacy `session_jobs` disabled; agent-initiated supply harness **07:00 UTC** + poll harness **18:00 UTC**, ~5 drafts/run; `at1b-*.sh` scripts are bootstrap/fallback only); AT prod SQLite on Zeabur volume (`SQLITE_PATH=/data/app.db`); writes via `POST /api/v1/objects/drafts` + vault `atx_write_org`; Wave 19 dedup via AT `GET /objects/catalog`; editorial feedback loop **application-layer** (`editorial/feedback` + `at1b-ingest-feedback.sh` or H1.5 `POST /v1/harnesses/{id}/feedback`—not Orbita Loop 4 auto-improve; AT editorial-review agent is **AT-side**, separate from Orbita Loop 2); cross-project handoff `~/Orbiter-AT-dogfood/`; caller secrets in gitignored `.env.local`.

@@ -2,7 +2,7 @@
 status: active
 maintained_by: ai-agents
 created: 2026-06-12
-last_updated: 2026-06-12
+last_updated: 2026-07-10
 purpose: Portable methodology for lane-based planning, implementation, and status reporting with AI coding agents. Canonical copy in jackyckma/ai-dev-methodologies.
 archive_when: Superseded by a newer methodology version with explicit migration notes.
 ---
@@ -304,25 +304,26 @@ When shipping lane work:
 1. Update `lastShipped` / `nextUp` for affected lanes.
 2. Bump `deployRef` and `updatedAt` when deployed.
 3. Sync `project-progress.md` for waves and decisions — the short table is for quick founder reads; progress doc is for history.
-4. Update `apps/orbita-web/public/updates.html` (version log by date) and run `./scripts/deploy-web.sh` — see `project-guidelines.md` **Wave completion checklist**.
 
 ---
 
 ## 10. Decision authority
 
-Bias toward progress, but do not silently change architecture.
+Follow [decision-authority.md](decision-authority.md) — the three-tier model
+(decide-and-log / queue-for-batch / block-and-ask), decision briefs, and
+deferral tactics apply unchanged to lane work. Do not duplicate that policy
+here or in lane skills.
 
-### Non-critical — decide and proceed
+Lane-specific mapping:
 
-Minor, reversible choices (naming inside conventions, test fixture shape, doc typos, order of two small tasks in one lane): **implement without asking**. Note briefly if useful.
+- Lane boundary changes and `INTERFACE.md` / JSON Schema breaks consumed by
+  other lanes: **Tier 3** — block and ask.
+- Scope shifts, milestone changes, cross-lane priority calls: **Tier 2** —
+  queue a decision brief.
+- Internal refactors and additive changes that keep the published INTERFACE
+  intact: usually **Tier 1** — decide and log.
 
-### Important — ask with options + recommendation
-
-Architecture, lane boundaries, public API / JSON Schema breaks, major milestones, compliance, irreversible migrations: **stop and ask**. Present 2–4 options with tradeoffs and a clear recommendation.
-
-### Record decisions
-
-When the user chooses, log in `project-progress.md` § Decisions Log with date, options, and chosen path.
+Record chosen options in `project-progress.md` § Decisions Log.
 
 ---
 

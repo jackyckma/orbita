@@ -1,0 +1,27 @@
+{
+  "_schema": {
+    "purpose": "Founder-approved product direction. Maker REPLAN only decomposes status:approved epics.",
+    "epic": {
+      "id": "E-01",
+      "title": "one line",
+      "goal": "outcome",
+      "status": "approved | proposed | done | paused",
+      "phase": "optional",
+      "decomposes_into": ["T-0001"],
+      "decisions": [],
+      "notes": "constraints / flags"
+    }
+  },
+  "epics": [
+    {
+      "id": "E-01",
+      "title": "Bootstrap Autopilot (example)",
+      "goal": "Prove Maker/Checker can run one docs-only task end-to-end.",
+      "status": "approved",
+      "phase": "bootstrap",
+      "decomposes_into": ["T-0001"],
+      "decisions": [],
+      "notes": "Replace with real product epics after first green loop."
+    }
+  ]
+}

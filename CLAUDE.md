@@ -2,17 +2,27 @@
 
 These instructions apply to **Claude Code** and **Claude cloud** sessions.
 
-## Shared instructions
+## Core instructions (always loaded)
 
 @.agents/instructions/karpathy-guidelines.md
+
+@.agents/instructions/judgment-rubrics.md
 
 @.agents/instructions/project-guidelines.md
 
 @.agents/instructions/agent-tooling-guardrails.md
 
-@.agents/instructions/session-handoff.md
+## Everything else — load by trigger
 
-For lane-based products, also read `.agents/instructions/lane-based-development.md`.
+Read **`.agents/README.md`** for the file → trigger map: decision-authority
+(decisions, batched briefs), session-handoff (pause/resume),
+model-orchestration (subagent dispatch), autonomous-loop (unattended runs),
+issue-quality (writing issues), framework-adoption (methodology sync),
+lane-based-development (lane projects).
+
+The three entry points (`AGENTS.md`, `CLAUDE.md`,
+`.cursor/rules/shared-instructions.mdc`) must name the **same** core list;
+if you change one, change all three.
 
 ## Session resume
 

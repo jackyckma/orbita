@@ -1,0 +1,21 @@
+{
+  "_schema": {
+    "decision": {
+      "id": "D-001",
+      "title": "question",
+      "type": "product-direction | contract | compliance",
+      "context": "why human input is needed",
+      "options": [{ "id": "A", "label": "...", "implication": "..." }],
+      "recommendation": "option + why",
+      "default_if_silent": "A or null",
+      "opened_at": "YYYY-MM-DD",
+      "sla_days": 3,
+      "unblocks": ["T-0002"],
+      "status": "open | decided",
+      "decided_option": null,
+      "decided_note": null
+    },
+    "autonomy": "log_veto — reversible calls are decided by Maker and logged in backlog feedback; only product-direction / contract / compliance land here."
+  },
+  "decisions": []
+}

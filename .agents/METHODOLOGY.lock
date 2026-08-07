@@ -1,12 +1,19 @@
 # Methodology bundle pin — update only after a manual sync (see framework-adoption.md).
 
 source: https://github.com/jackyckma/ai-dev-methodologies
-version: "1.1.0"
-source_commit: 61f94d4
-synced_at: 2026-06-20
-synced_by: bootstrap
+version: "1.3.0"
+source_commit: af32f3a
+synced_at: 2026-08-07
+synced_by: agent session (manual sync 1.1.0 → 1.3.0)
 customized_files:
   - .agents/instructions/project-guidelines.md
   - docs/AGENT_ENV.md
   - scripts/agent-verify.sh
-notes: Initial bootstrap. Customize project-owned files before serious agent work.
+  - AGENTS.md
+notes: >-
+  Synced framework-owned instructions (incl. judgment-rubrics, model-orchestration,
+  autonomous-loop, cursor-autopilot, agent-native-practices, framework-evolution),
+  compatibility/local-vs-cloud-agents.md, Autopilot scaffolds under docs/autopilot +
+  scripts/autopilot. Preserved project-owned guidelines/AGENT_ENV/agent-verify;
+  AGENTS.md merged (upstream core list + Orbita Wave/Marketing/Learned sections).
+  Traditional Chinese kept in shared-instructions.mdc quick rules.

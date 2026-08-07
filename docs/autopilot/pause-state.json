@@ -1,0 +1,7 @@
+{
+  "_doc": "Kill-switch. paused=true → Maker IDLE. Checker only runs WATCHDOG recovery when by=deploy-watchdog; otherwise Checker IDLEs too.",
+  "paused": false,
+  "reason": null,
+  "since": null,
+  "by": null
+}

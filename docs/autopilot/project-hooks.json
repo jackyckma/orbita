@@ -1,0 +1,5 @@
+{
+  "_doc": "Optional project hooks for Autopilot scripts. Safe to customize; not overwritten blindly on methodology sync if listed in METHODOLOGY.lock customized_files.",
+  "prod_smoke_cmd": null,
+  "notes": "Set prod_smoke_cmd to a shell command that exits 0 when production is healthy, e.g. \"curl -fsS https://example.com/health\". Or set env PROD_SMOKE_CMD. Leave null to skip live smoke (watchdog still records main sha)."
+}

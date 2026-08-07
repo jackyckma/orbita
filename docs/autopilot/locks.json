@@ -1,0 +1,4 @@
+{
+  "_doc": "Task lease lock on main. Maker writes lock + in_progress on main BEFORE branching. Checker clears on merge or bounce.",
+  "locks": {}
+}

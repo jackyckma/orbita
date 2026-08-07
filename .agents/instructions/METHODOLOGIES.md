@@ -32,6 +32,8 @@ Then customize `.agents/instructions/project-guidelines.md`.
 | A5 | Session handoff | [session-handoff.md](instructions/session-handoff.md) |
 | A6 | Decision authority | [decision-authority.md](instructions/decision-authority.md) |
 | A7 | Framework adoption and manual updates | [framework-adoption.md](instructions/framework-adoption.md) |
+| A8 | Judgment rubrics (done / stuck / escalate / ask) | [judgment-rubrics.md](instructions/judgment-rubrics.md) |
+| A9 | Framework evolution (maintainer process) | [framework-evolution.md](instructions/framework-evolution.md) |
 
 ### Tier B — Planning & coordination (multi-module projects)
 
@@ -40,6 +42,8 @@ Then customize `.agents/instructions/project-guidelines.md`.
 | B1 | Lane-based development | [lane-based-development.md](instructions/lane-based-development.md) |
 | B2 | Issue quality (AC + allowed paths) | [issue-quality.md](instructions/issue-quality.md) |
 | B3 | API-first / thin UI | Lane doc §3 layer order |
+| B4 | Autonomous work loop (batch execution, stop conditions) | [autonomous-loop.md](instructions/autonomous-loop.md) |
+| B5 | Cursor Automations Autopilot (Maker/Checker, optional) | [cursor-autopilot.md](instructions/cursor-autopilot.md) · [templates/docs/autopilot/](templates/docs/autopilot/) |
 
 ### Tier C — Agent tooling & verification
 
@@ -50,6 +54,7 @@ Then customize `.agents/instructions/project-guidelines.md`.
 | C3 | Verification ladder (L0–L5) | Same |
 | C4 | Complexity review (optional skill) | [templates/.agents/skills/complexity-review/](templates/.agents/skills/complexity-review/) |
 | C5 | Deferred shortcuts ledger (optional skill) | [templates/.agents/skills/deferred-shortcuts/](templates/.agents/skills/deferred-shortcuts/) |
+| C6 | Model orchestration (dispatch, escalation, verify-not-self) | [model-orchestration.md](instructions/model-orchestration.md) |
 
 ### Tier D — Optional founder defaults
 
@@ -58,6 +63,14 @@ Then customize `.agents/instructions/project-guidelines.md`.
 | D1 | Zeabur deploy | [defaults/zeabur.md](defaults/zeabur.md) |
 | D2 | Cloudflare DNS/email | [defaults/cloudflare.md](defaults/cloudflare.md) |
 | D3 | AI providers (Minimax default) | [defaults/ai-providers.md](defaults/ai-providers.md) |
+
+### Tier E — Agent-native practices (optional, per-project adoption)
+
+| # | Practice | File |
+|---|----------|------|
+| E1–E4 | Structured state file, AI-first formats, machine-verifiable docs, fixture-first | [agent-native-practices.md](instructions/agent-native-practices.md) |
+
+A Tier E practice is active **only** if listed in the project's `project-guidelines.md` § Adopted optional practices.
 
 ---
 
@@ -69,14 +82,16 @@ Then customize `.agents/instructions/project-guidelines.md`.
 2. `docs/CURRENT_STATUS.md`
 3. `docs/SESSION_HANDOFF.md` (if resuming)
 4. `.agents/instructions/karpathy-guidelines.md`
-5. `.agents/instructions/project-guidelines.md`
-6. `docs/AGENT_ENV.md` (if present — especially when using Cloud Agents)
+5. `.agents/instructions/judgment-rubrics.md`
+6. `.agents/instructions/agent-tooling-guardrails.md`
+7. `.agents/instructions/project-guidelines.md`
+8. `docs/AGENT_ENV.md` (if present — especially when using Cloud Agents)
 
 ### Lane-based project (add)
 
-7. `docs/traceability-index.md`
-8. `docs/product-architecture.md`
-9. Target lane `INTERFACE.md` + lane `SKILL.md`
+9. `docs/traceability-index.md`
+10. `docs/product-architecture.md`
+11. Target lane `INTERFACE.md` + lane `SKILL.md`
 
 ---
 
@@ -84,10 +99,11 @@ Then customize `.agents/instructions/project-guidelines.md`.
 
 | Project profile | Adopt |
 |-----------------|-------|
-| Solo script / tiny app | A1–A3, A5, C1 |
+| Solo script / tiny app | A1–A3, A5, A8, C1 |
 | Small product (1 agent) | A + B2 + C + D (optional) |
 | Multi-module product | A + B1 + B2 + C + live docs |
 | Local + Cloud Agents | A + C2 + `agent-verify.sh` + Zeabur staging (D1) |
+| Multi-tool parallel agents | A + B + C + consider Tier E (E1 state file) |
 
 ---
 
@@ -103,6 +119,7 @@ Then customize `.agents/instructions/project-guidelines.md`.
 | `VERSION` | Current bundle semver |
 | `CHANGELOG.md` | Release notes for manual project sync |
 | `CHANGELOG-GUIDE.md` | Maintainer release checklist and entry template |
+| `docs/fable5-audit/` | 2026-07-10 framework diagnosis and letter to future maintenance sessions |
 
 ---
 
@@ -110,7 +127,7 @@ Then customize `.agents/instructions/project-guidelines.md`.
 
 | Field | Value |
 |-------|-------|
-| Bundle version | 1.1.0 |
+| Bundle version | 1.2.0 |
 | Created | 2026-06-15 |
 | Source | Practices from OrbitaDev + Powerhouse, generalized |
 
