@@ -53,12 +53,12 @@
       "id": "D-002",
       "title": "Which credentials does the hub get, and scoped how?",
       "type": "compliance",
-      "context": "E-09 collectors need two credentials the founder must create by hand. (1) A GitHub token that can READ jackyckma/{orbita,ai-transformation-io,powerhouse,ai-business,ViOS} — three of these are private, and an unauthenticated read returns 404, which a naive collector would record as 'no activity' rather than 'no access'. (2) A Zeabur API key for https://api.zeabur.com/graphql, created at Dashboard > Settings > API Keys; per Zeabur docs the key is tied to a personal account and carries that account's permissions across any team, so it cannot be narrowed to one project. Both belong in packages/lane-credentials, never in source, env examples, or logs. Until they exist, T-0051 and T-0052 can be built and unit-tested against fixtures but cannot be verified against real data.",
+      "context": "E-09 collectors need two credentials the founder must create by hand. (1) A GitHub token that can READ jackyckma/{orbita,ai-transformation-io,powerhouse,ai-business,ViOS} — three are private, and an unauthenticated read returns 404, which a naive collector would record as 'no activity' rather than 'no access'. (2) A Zeabur API key for https://api.zeabur.com/graphql, created at Dashboard > Settings > API Keys; per Zeabur docs the key is tied to a personal account and carries that account's permissions across any team, so it cannot be narrowed to one project. NO BUILD REQUIRED: the credential vault already exists and runs in production — packages/lane-credentials, mounted at POST /v1/admin/credentials, write-once (409 on duplicate client_id+name), AES-encrypted with ORBITA_SECRETS_KEY, and the secret is never returned by any read route. Agents resolve secrets server-side via resolveCredentialSecret(clientId, name), already wired into the agent turn runner. Until the two rows exist, T-0051 and T-0052 can be built and unit-tested against fixtures but cannot be verified against real data.",
       "options": [
         {
           "id": "A",
           "label": "Fine-grained GitHub PAT (contents: read-only, those 5 repos) + Zeabur API key (recommended)",
-          "implication": "Least privilege available on both platforms. The Zeabur key is still account-wide — that is a platform limit, not a choice — so treat it as sensitive and rotate if the hub is ever exposed."
+          "implication": "Least privilege available on both platforms. The Zeabur key is still account-wide — a platform limit, not a choice — so treat it as sensitive and rotate if the hub is ever exposed."
         },
         {
           "id": "B",
@@ -78,7 +78,29 @@
       "unblocks": ["T-0051", "T-0052"],
       "status": "open",
       "decided_option": null,
-      "decided_note": null
+      "decided_note": null,
+      "_procedure": {
+        "_doc": "CANONICAL credential names live here, not duplicated into task descriptions — T-0051/T-0052 unblock from this decision, so they inherit these. If a name changes, change it here only.",
+        "endpoint": "POST https://api.get-orbita.com/v1/admin/credentials",
+        "auth_header": "x-orbita-admin-token: $ORBITA_ADMIN_TOKEN",
+        "client_id": "personal-jacky",
+        "write_once": "Duplicate client_id+name returns 409. To replace a credential you must delete the row first — there is no update route. Get the value right before posting.",
+        "credentials": [
+          {
+            "name": "github_read",
+            "scope": ["repo:read"],
+            "used_by": "T-0051 git collector",
+            "source": "GitHub > Settings > Developer settings > Personal access tokens > Fine-grained. Repository access: only jackyckma/{orbita,ai-transformation-io,powerhouse,ai-business,ViOS}. Permission: Contents = Read-only. Nothing else."
+          },
+          {
+            "name": "zeabur_api",
+            "scope": ["deploy:read"],
+            "used_by": "T-0052 zeabur collector",
+            "source": "https://zeabur.com/account/api-keys > Generate new API key."
+          }
+        ],
+        "verify": "GET https://api.get-orbita.com/v1/admin/credentials with the same admin header — returns metadata only (name, client_id, scopes, created_at). Secrets are never returned; seeing the two names listed is the confirmation."
+      }
     }
   ]
 }
