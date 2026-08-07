@@ -21,6 +21,8 @@ Reduce founder mental load across portfolio projects by making Orbita the **agen
 
 Near-term Autopilot fuel remains E-02…E-04. This doc is the mid-line contract.
 
+**How to execute (founder):** [`docs/autopilot/founder-guide.md`](../autopilot/founder-guide.md) — feeding Orbita Autopilot tasks + coordinating other repos / Claude / framework.
+
 ## Founder leanings (2026-08-07)
 
 | Topic | Decision / lean |

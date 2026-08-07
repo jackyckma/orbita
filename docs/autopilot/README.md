@@ -40,6 +40,8 @@ Dispatcher: `node scripts/autopilot/decide-next-action.mjs --lane maker|checker`
 5. Create **two** Cursor Automations from `automations.md`.
 6. Confirm `gh` auth and merge permissions for the Checker automation.
 
+**Founder-facing how-to (Traditional Chinese):** [`founder-guide.md`](./founder-guide.md) — feed tasks in this repo + what to do in other projects / Claude / framework.
+
 ## Files
 
 | File | Purpose |
