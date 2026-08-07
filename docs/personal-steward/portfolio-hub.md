@@ -25,33 +25,62 @@ Near-term Autopilot fuel remains E-02…E-04. This doc is the mid-line contract.
 
 | Topic | Decision / lean |
 |-------|-----------------|
-| Tag / type vocabulary | Prefer **explicit metadata** (description + scope) so agents know intent — curated registry, not every free string |
+| Tag / type vocabulary | **A** — curated registry with description + scope (not free-string tags as first-class) |
+| Hub note `type` (v1) | **Decided:** `report` · `instruction` · `decision` · `taxonomy` (+ keep existing knowledge types: `chapter`/`spec`/`field-note`/`meeting`/`registry`) |
+| Report body (v1) | **Decided:** six fixed sections below — same for PH / AT / Orbita first pull |
 | Report direction | **Pull**: projects expose a report API; Orbita fetches. Protocol lives in **AI Dev Framework** (opt-in per project) |
 | Human gate | At **Claude discussion** layer (macro dispatch), not per-repo PR review as the primary UX |
 | Write path after gate | Allowed to update repo Autopilot fuel / `main` once Claude-level intent is settled; staging/prod split later when public production matters |
 | Autopilot coverage | Goal: **all** framework projects get Autopilot via methodology sync |
 | Deploy | Stays per-repo CI (GitHub → Zeabur etc.); Orbita does not orchestrate deploy |
-| First report projects | **Powerhouse**, **ai-transformation**, **Orbita** (dev-steering reports first; content schema still open) |
+| First report projects | **Powerhouse**, **ai-transformation**, **Orbita** |
 | Runtime loop | Future: runtime not only reports **out** but can receive **runtime instructions** in (e.g. AT editorial). Lower urgency, design for extension |
 | AT L2 | Same hub frame: AT is one project edge (report + later runtime instruction), not a separate product story |
 | Failure / recover | Prefer next pull cycle to surface failed Autopilot work in reports; Claude/Orbita can adjust tasks — occasional manual recover OK |
+| H2 retrieval | Structured **list/filter** is an agent **tool**, not a bypass of the agent layer (see below) |
+
+## H0 vocabulary (decided)
+
+Store a living `taxonomy` note (and/or framework doc) agents should read. Each entry needs: `id`, one-line **purpose**, **scope** (when to use), **not-for** (common misuse).
+
+| `type` | Purpose | Scope |
+|--------|---------|--------|
+| `taxonomy` | Describes the vocabulary itself | One (or few) canonical notes; update when types change |
+| `report` | Period snapshot pulled from a project | Hub ingest; always set `project` + period |
+| `instruction` | Approved (or draft) dispatch intent | After Claude-layer discussion; may target repo and/or runtime |
+| `decision` | Founder call with impact | Durable “why we chose X”; links to what it unblocked |
+| `registry` / `chapter` / `spec` / `field-note` / `meeting` | Knowledge (PA0) | Unchanged; not hub workflow types |
+
+Optional freeform `tags[]` may exist but **are not** required to have metadata until promoted into the taxonomy.
+
+## H2 — list/filter vs “we are an agent platform”
+
+Orbita is an **Agent System Backend**: primary callers are agents (Claude, Cursor, harnesses). That does **not** mean every read must go through an LLM session.
+
+| Kind of need | Right primitive | Why |
+|--------------|-----------------|-----|
+| “Reports for `powerhouse` since Monday” | **Structured list/filter tool** | Deterministic, cheap, auditable |
+| “Anything related to matching UX drift?” | **Semantic `note_search`** | Fuzzy / conceptual |
+| “Summarize and propose next instructions” | **Agent turn** (Claude or Orbita session) | Judgment, cross-project synthesis |
+
+Adding list/filter does **not** bypass the agent: Claude (your gate) **calls** that API as a tool, then reasons. What would be wrong is (a) forcing “list since date” through a billable reasoning loop, or (b) building a human-only dashboard that never uses agents. Structured retrieval + agent judgment is the intended stack (API-first tools; see `usr/ORBITA_DESIGN.md`).
+
+**Platform gap (still real):** today `GET /v1/notes/search` is mainly `q` + `top_k`. Hub briefs need e.g. `project` + `type` + `since`/`until` on list or search. Ship as additive tool surface for agents — not a second product.
 
 ## Open design choices (still soft)
 
 | Topic | Lean | Notes |
 |-------|------|-------|
 | Security for pull | Shared REST contract + per-project read credential in Orbita vault + domain allow-list | See “Report API sketch” below |
-| H2 query | Need Orbita list/filter by `project` + date range (today search is semantic `q` only) | Platform gap before Claude briefs are reliable |
-| Report body | Dev-steering oriented while projects are pre-scale | See “What should a report contain?” |
 
 ## Stages
 
 | Stage | Outcome | Status of thinking |
 |-------|---------|-------------------|
-| **H0** | Controlled vocabulary: types/tags with descriptions; note frontmatter conventions | Agreed direction |
-| **H1** | Framework opt-in → project report API; Orbita pull harness for PH / AT / Orbita | Protocol + content schema |
-| **H2** | Claude brief over filtered notes | Needs query API |
-| **H3** | Claude-level dispatch → Autopilot tasks; failure visible on next report pull | Gate placement agreed |
+| **H0** | Controlled vocabulary with descriptions (`taxonomy` note) | **Decided** (types above) |
+| **H1** | Framework opt-in → project report API; Orbita pull for PH / AT / Orbita | Six-section body **decided**; protocol next |
+| **H2** | Claude brief via list/filter **tools** + optional semantic search | Platform list/filter still to ship |
+| **H3** | Claude-level dispatch → Autopilot tasks; failure on next report pull | Gate placement agreed |
 | **H4** | Close the loop to git/`main` (high value, failure-tolerant now; staging later) | Priority for design, not panic on risk |
 
 ## Two edges per project
@@ -81,20 +110,20 @@ Today’s sketch emphasizes runtime **reports**. Later: runtime **instructions**
 
 **Extensibility:** same endpoint grows `sections` kinds (`dev`, `ops`, `editorial`, …) without new URLs at first; split routes later if needed.
 
-## What should a report contain? (dev-steering era)
+## What a report contains (v1 — decided)
 
-While products are still in development, reports are less “uptime dashboards” and more **steering signals**:
+Same six sections for Powerhouse / AT / Orbita. Keep each short; empty section = `"none"` / omit body, not omit the key (so briefs stay comparable).
 
-| Section | Why it helps you at Claude altitude |
-|---------|-------------------------------------|
-| **Intent vs last period** | What we said we’d move; what actually moved |
-| **Shipped / merged** | Concrete deltas (PRs, deploys) — proof of motion |
-| **Blocked / needs founder** | Only items that need *your* judgment (impact-tagged) |
-| **Autopilot health** | Maker/Checker last run, open tasks, failed tasks + links |
-| **Risks / drift** | “We wandered from the agreed goal” |
-| **Ask** | One recommended next instruction (optional) |
+| `section` id | Title | Why |
+|--------------|-------|-----|
+| `intent_vs_actual` | Intent vs last period | Steering: did we do what we said |
+| `shipped` | Shipped / merged | Proof of motion |
+| `needs_founder` | Blocked / needs founder | Only judgment items (with impact one-liners) |
+| `autopilot` | Autopilot health | Last runs, open/failed tasks + links |
+| `risks` | Risks / drift | Goal wander |
+| `ask` | Ask | At most one recommended next instruction |
 
-Project-flavored extras later: AT editorial queue depth; Powerhouse matching/signal health; Orbita API version + failed prod smokes.
+Project-specific color goes **inside** these sections (e.g. AT queue depth under `needs_founder` or `shipped`), not as parallel competing schemas in v1.
 
 ## Non-goals (for now)
 

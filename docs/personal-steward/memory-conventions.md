@@ -20,10 +20,14 @@ created: 2026-07-07
 ```yaml
 ---
 project: vios          # slug from project-registry.md
-type: chapter|spec|field-note|meeting|registry
-tags: [ui, research]
-source: cursor|claude|chatgpt|manual
+type: report|instruction|decision|taxonomy|chapter|spec|field-note|meeting|registry
+# Hub workflow types (report/instruction/decision/taxonomy): see portfolio-hub.md — each has purpose/scope in the taxonomy note.
+# Knowledge types (chapter/spec/…): long-form PA0 content.
+tags: [ui, research]   # optional freeform; promote into taxonomy before agents must rely on them
+source: cursor|claude|chatgpt|manual|orbita-pull
 updated: 2026-07-07
+period_since: 2026-08-01   # required for type=report when known
+period_until: 2026-08-07
 ---
 ```
 
