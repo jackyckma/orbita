@@ -48,6 +48,37 @@
       "status": "decided",
       "decided_option": "A",
       "decided_note": "Founder 2026-08-07: seed via Claude Desktop / manual; Autopilot must not invent personal note bodies."
+    },
+    {
+      "id": "D-002",
+      "title": "Which credentials does the hub get, and scoped how?",
+      "type": "compliance",
+      "context": "E-09 collectors need two credentials the founder must create by hand. (1) A GitHub token that can READ jackyckma/{orbita,ai-transformation-io,powerhouse,ai-business,ViOS} — three of these are private, and an unauthenticated read returns 404, which a naive collector would record as 'no activity' rather than 'no access'. (2) A Zeabur API key for https://api.zeabur.com/graphql, created at Dashboard > Settings > API Keys; per Zeabur docs the key is tied to a personal account and carries that account's permissions across any team, so it cannot be narrowed to one project. Both belong in packages/lane-credentials, never in source, env examples, or logs. Until they exist, T-0051 and T-0052 can be built and unit-tested against fixtures but cannot be verified against real data.",
+      "options": [
+        {
+          "id": "A",
+          "label": "Fine-grained GitHub PAT (contents: read-only, those 5 repos) + Zeabur API key (recommended)",
+          "implication": "Least privilege available on both platforms. The Zeabur key is still account-wide — that is a platform limit, not a choice — so treat it as sensitive and rotate if the hub is ever exposed."
+        },
+        {
+          "id": "B",
+          "label": "GitHub token only; defer Zeabur",
+          "implication": "Line 1 works for all five projects; the merged-but-never-deployed blind spot stays open. T-0052 blocks."
+        },
+        {
+          "id": "C",
+          "label": "Use a GitHub App instead of a PAT",
+          "implication": "Better rotation and per-repo scoping, but meaningfully more setup for a single-operator portfolio."
+        }
+      ],
+      "recommendation": "A — B leaves open the specific failure that is hardest to notice by eye (build fails, task still says done, prod smoke passes on the previous deployment). C is the right answer at larger scale, not at five repos with one operator.",
+      "default_if_silent": null,
+      "opened_at": "2026-08-07",
+      "sla_days": 7,
+      "unblocks": ["T-0051", "T-0052"],
+      "status": "open",
+      "decided_option": null,
+      "decided_note": null
     }
   ]
 }
