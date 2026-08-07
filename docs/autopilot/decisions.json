@@ -100,6 +100,17 @@
           }
         ],
         "verify": "GET https://api.get-orbita.com/v1/admin/credentials with the same admin header — returns metadata only (name, client_id, scopes, created_at). Secrets are never returned; seeing the two names listed is the confirmation."
+      },
+      "_why_read_only": {
+        "_doc": "Founder asked 2026-08-07 whether to grant Contents:write now, since instruction dispatch into each repo is coming (E-07 H3). Decision: NO. Recorded so a future session does not widen this token by reflex.",
+        "reasons": [
+          "DIFFERENT TRIGGER, DIFFERENT RISK. github_read is used by an UNATTENDED job on a schedule. Every repo it touches auto-deploys to production on merge to main. An unattended scheduled process holding write to five production repos is the single worst place to put that permission. Dispatch, by contrast, only ever runs after a founder gate.",
+          "NOTHING WRITES YET. Every task in E-09 (T-0050..T-0053) is read-only by design. E-07 H3 (dispatch) is not even an approved epic — it has not been decomposed.",
+          "THE GATE IS AT THE CONVERSATION LAYER BY DESIGN (portfolio-hub.md). Writes are supposed to happen with a human present. That path already works today: Claude writes each repo's backlog during a session with the founder. Automating it is an optimization, not a missing capability — and a scheduled unattended writer would move the gate to the wrong place.",
+          "BLAST RADIUS. Read-only means a buggy or looping collector produces a wrong report. Write means wrong commits on main of five auto-deploying repos. The first is a bad afternoon; the second is a bad week.",
+          "UPGRADING IS CHEAP. A fine-grained PAT's permissions can be edited without regenerating the token, so the stored secret stays valid and the write-once vault row does NOT need replacing. There is no lock-in penalty for starting narrow."
+        ],
+        "when_dispatch_ships": "Create a SEPARATE credential named github_dispatch with contents:write (and pull_requests:write if dispatch goes via PR), used only by the gated dispatch path — never by the collectors. Note that fine-grained PATs cannot scope to paths: any write token can modify source code, not just docs/autopilot/*.json. That is a further argument for PR-based dispatch, so the target repo's own Checker reviews what the hub proposes rather than the hub pushing straight to main."
       }
     }
   ]
