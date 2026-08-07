@@ -81,7 +81,17 @@
       "phase": "midline",
       "decomposes_into": [],
       "decisions": [],
-      "notes": "Sketch: docs/personal-steward/portfolio-hub.md (+ portfolio-hub-sketch.png). Not for Maker until decomposed into approved epics. Near-term Autopilot stays E-02→E-04."
+      "notes": "Umbrella vision — stays proposed so Maker cannot invent hub direction. Sketch: docs/personal-steward/portfolio-hub.md (+ portfolio-hub-sketch.png). Decompose by approving concrete slices one at a time: E-08 is the first (H2 retrieval). Next candidate slices: report ingest contract (H1, blocked on ai-dev-methodologies contract), instruction dispatch (H3)."
+    },
+    {
+      "id": "E-08",
+      "title": "Notes list/filter for hub briefs",
+      "goal": "Agents can list notes by project, type, and date range without burning a reasoning loop or losing state across chat sessions.",
+      "status": "approved",
+      "phase": "hub-h2",
+      "decomposes_into": ["T-0040", "T-0041"],
+      "decisions": [],
+      "notes": "First approved slice of E-07 (portfolio-hub.md H2). Additive read-only API; do NOT remove or change semantic /notes/search. Founder rationale 2026-08-07: chat sessions get rotated to avoid context overflow, so durable cross-project state must be queryable out of Orbita by a fresh session. Structured retrieval is an agent tool, not a bypass of the agent layer."
     }
   ]
 }
