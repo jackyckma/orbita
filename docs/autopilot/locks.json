@@ -4,8 +4,8 @@
     "T-0010": {
       "by": "maker",
       "since": "2026-08-07T19:02:35Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/autopilot-maker-action-8447",
+      "pr": "https://github.com/jackyckma/orbita/pull/6"
     }
   }
 }
