@@ -9,8 +9,9 @@
 
 ## Maker automation
 
-**Trigger (suggested):** `0 */2 * * *` (every 2 hours at :00).  
-Slow on purpose — each tick costs tokens even on IDLE.
+**Trigger (Orbita):** `0 7,19 * * *` — twice daily at **07:00 and 19:00 UTC** (~09:00 / 21:00 Europe/UTC+2).
+
+Each tick costs tokens even on IDLE; Orbita is mature enough that hourly/bi-hourly is unnecessary. Change the schedule in **Cursor Automations UI** (repo docs only suggest the cron — the live trigger lives in the UI).
 
 **Agent Instruction (paste verbatim):**
 
@@ -24,7 +25,7 @@ You are the autopilot MAKER (Planner + Worker hats). You produce changes and ope
 
 ## Checker automation
 
-**Trigger (suggested):** `30 */2 * * *` (every 2 hours at :30).
+**Trigger (Orbita):** `0 8,20 * * *` — twice daily at **08:00 and 20:00 UTC** (~10:00 / 22:00 Europe/UTC+2), **one hour after** Maker so a PR opened on the Maker tick can be reviewed on the same cycle.
 
 **Agent Instruction (paste verbatim):**
 

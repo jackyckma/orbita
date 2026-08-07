@@ -91,10 +91,10 @@ scaffolds + playbook/automations/README** as framework-owned; treat
 
 ### 3.3 Cursor UI (manual — cannot be automated by this repo)
 
-1. Create automation **Maker** — cron e.g. `0 */2 * * *`; paste prompt from
-   `docs/autopilot/automations.md`.
-2. Create automation **Checker** — cron e.g. `30 */2 * * *`; paste Checker
-   prompt from the same file.
+1. Create automation **Maker** — cron from `docs/autopilot/automations.md`
+   (Orbita: `0 7,19 * * *`, twice daily); paste Maker prompt from that file.
+2. Create automation **Checker** — cron from the same file (Orbita:
+   `0 8,20 * * *`, one hour after Maker); paste Checker prompt.
 3. Grant repo permissions: push, open PR, merge (Checker), `gh` auth.
 4. Disable any older 5-role Planner/Worker/Reviewer/… automations.
 

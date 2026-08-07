@@ -4,7 +4,7 @@ Shared methodologies live in `.agents/instructions/` (from [ai-dev-methodologies
 
 ## Communication language
 
-- Respond to the user in **English** unless they ask for another language.
+- Respond to the user in **Traditional Chinese (繁體中文)** unless they ask for another language.
 - Keep code, commands, file paths, and quoted source in original language.
 
 ## What this project is
@@ -125,6 +125,12 @@ Update status docs in the same session when behavior or capabilities change mate
 | B (lane-based) | ✅ | Multi-module API product — adopt as implementation begins |
 | C (verification) | ✅ | `agent-verify.sh`, AGENT_ENV |
 | D (founder defaults) | ✅ | Zeabur, Cloudflare, AI providers |
+
+## Adopted optional practices
+
+| Practice | Notes |
+|----------|-------|
+| `cursor-autopilot` | Optional Maker/Checker; cadence **twice daily** (see `docs/autopilot/automations.md`). Not enabled until Cursor Automations are created in the UI. |
 
 ## Spec implementation notes
 
