@@ -107,7 +107,9 @@ export async function upsertNote(
   const title = input.title?.trim() ? input.title.trim() : null;
   const body = input.body;
   const frontmatter = input.frontmatter ?? {};
-  const embedding = env ? await embedText(env, noteEmbedText(title, body)) : null;
+  const embedding = env
+    ? await embedText(env, noteEmbedText(title, body), { purpose: "db" })
+    : null;
   const embeddingLiteral = embedding ? formatVectorLiteral(embedding) : null;
 
   const existing = await db.db
@@ -358,7 +360,7 @@ export async function searchNotes(
   env: MemoryEnv,
   topK = 8,
 ): Promise<NoteSearchHit[]> {
-  const embedding = await embedText(env, queryText.trim());
+  const embedding = await embedText(env, queryText.trim(), { purpose: "query" });
   if (!embedding) return [];
 
   const vector = formatVectorLiteral(embedding);

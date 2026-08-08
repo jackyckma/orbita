@@ -21,6 +21,7 @@ export type {
 export { createMemoryRoutes } from "./routes/memories.js";
 export { createNoteRoutes } from "./routes/notes.js";
 export { embedText } from "./embed.js";
+export type { EmbedPurpose, EmbedTextOptions } from "./embed.js";
 export {
   createNoteLink,
   formatNoteContextLines,
