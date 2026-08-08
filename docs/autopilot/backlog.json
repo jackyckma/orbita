@@ -110,9 +110,11 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
-      "feedback": []
+      "feedback": [
+        "PR https://github.com/jackyckma/orbita/pull/7 opened; acceptance green (test -f + bash -n). Missing-creds exit 1 verified (Maker 2026-08-08)."
+      ]
     },
     {
       "id": "T-0030",
