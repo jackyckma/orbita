@@ -128,9 +128,15 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
-      "feedback": []
+      "feedback": [
+      {
+        "at": "2026-08-08T19:07:08Z",
+        "by": "maker",
+        "note": "PR #8 opened: MiniMax-native embed texts+type; docs/note-search-troubleshooting.md; awaiting Checker review (re-index after deploy)."
+      }
+    ]
     },
     {
       "id": "T-0040",
