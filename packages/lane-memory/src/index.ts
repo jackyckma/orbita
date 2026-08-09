@@ -30,6 +30,8 @@ export {
   listNoteLinksFrom,
   listNoteLinksTo,
   listNotes,
+  noteMatchesListFilters,
+  parseNoteListFilters,
   searchNotes,
   upsertNote,
 } from "./notes-service.js";
@@ -37,6 +39,7 @@ export type {
   GetNoteNeighborsOptions,
   NoteContextOptions,
   NoteLinkRecord,
+  NoteListFilters,
   NoteListItem,
   NoteNeighbor,
   NoteRecord,
