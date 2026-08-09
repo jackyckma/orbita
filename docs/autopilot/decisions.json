@@ -53,7 +53,7 @@
       "id": "D-002",
       "title": "Which credentials does the hub get, and scoped how?",
       "type": "compliance",
-      "context": "E-09 collectors need two credentials the founder must create by hand. (1) A GitHub token that can READ jackyckma/{orbita,ai-transformation-io,powerhouse,ai-business,ViOS} — three are private, and an unauthenticated read returns 404, which a naive collector would record as 'no activity' rather than 'no access'. (2) A Zeabur API key for https://api.zeabur.com/graphql, created at Dashboard > Settings > API Keys; per Zeabur docs the key is tied to a personal account and carries that account's permissions across any team, so it cannot be narrowed to one project. NO BUILD REQUIRED: the credential vault already exists and runs in production — packages/lane-credentials, mounted at POST /v1/admin/credentials, write-once (409 on duplicate client_id+name), AES-encrypted with ORBITA_SECRETS_KEY, and the secret is never returned by any read route. Agents resolve secrets server-side via resolveCredentialSecret(clientId, name), already wired into the agent turn runner. Until the two rows exist, T-0051 and T-0052 can be built and unit-tested against fixtures but cannot be verified against real data.",
+      "context": "E-09 collectors need two credentials the founder must create by hand. (1) A GitHub token that can READ jackyckma/{orbita,ai-transformation-io,powerhouse,ai-business,ViOS} — three are private, and an unauthenticated read returns 404, which a naive collector would record as 'no activity' rather than 'no access'. (2) A Zeabur API key for https://api.zeabur.com/graphql. NO BUILD WAS REQUIRED: the credential vault already existed and runs in production — packages/lane-credentials, mounted at POST /v1/admin/credentials, write-once (409 on duplicate client_id+name), AES-encrypted with ORBITA_SECRETS_KEY, secret never returned by any read route. Agents resolve secrets server-side via resolveCredentialSecret(clientId, name), already wired into the agent turn runner.",
       "options": [
         {
           "id": "A",
@@ -76,33 +76,35 @@
       "opened_at": "2026-08-07",
       "sla_days": 7,
       "unblocks": ["T-0051", "T-0052"],
-      "status": "open",
-      "decided_option": null,
-      "decided_note": null,
+      "status": "decided",
+      "decided_option": "A",
+      "decided_note": "Founder 2026-08-09: both credentials created and stored under client_id personal-jacky, and verified present via GET /v1/admin/credentials — github_read (scopes: repo:read) and zeabur_api (scopes: deploy:read), both created 2026-08-09T18:45Z. GitHub token is a fine-grained PAT limited to the five registered repos with Contents=Read-only. T-0051 and T-0052 are unblocked and can now be verified against real data rather than fixtures. NOTE FOR THE IMPLEMENTER: resolve secrets by name via resolveCredentialSecret(db, secretsKey, 'personal-jacky', 'github_read' | 'zeabur_api'). Never read them into a log, a report body, an error message, or a committed file. A 404 from a registered private repo means the token lost access — surface it as a collector FAILURE, never as an empty report.",
       "_procedure": {
         "_doc": "CANONICAL credential names live here, not duplicated into task descriptions — T-0051/T-0052 unblock from this decision, so they inherit these. If a name changes, change it here only.",
         "endpoint": "POST https://api.get-orbita.com/v1/admin/credentials",
         "auth_header": "x-orbita-admin-token: $ORBITA_ADMIN_TOKEN",
         "client_id": "personal-jacky",
-        "write_once": "Duplicate client_id+name returns 409. To replace a credential you must delete the row first — there is no update route. Get the value right before posting.",
+        "write_once": "Duplicate client_id+name returns 409. To replace a credential you must delete the row first — there is no update route. NOTE: a fine-grained PAT's permissions can be edited on GitHub without regenerating the token, so widening or narrowing access does NOT require touching the vault row.",
         "credentials": [
           {
             "name": "github_read",
             "scope": ["repo:read"],
             "used_by": "T-0051 git collector",
+            "status": "STORED 2026-08-09",
             "source": "GitHub > Settings > Developer settings > Personal access tokens > Fine-grained. Repository access: only jackyckma/{orbita,ai-transformation-io,powerhouse,ai-business,ViOS}. Permission: Contents = Read-only. Nothing else."
           },
           {
             "name": "zeabur_api",
             "scope": ["deploy:read"],
             "used_by": "T-0052 zeabur collector",
+            "status": "STORED 2026-08-09",
             "source": "https://zeabur.com/account/api-keys > Generate new API key."
           }
         ],
-        "verify": "GET https://api.get-orbita.com/v1/admin/credentials with the same admin header — returns metadata only (name, client_id, scopes, created_at). Secrets are never returned; seeing the two names listed is the confirmation."
+        "verify": "GET https://api.get-orbita.com/v1/admin/credentials with the same admin header — returns metadata only. Secrets are never returned; seeing the two names listed is the confirmation."
       },
       "_why_read_only": {
-        "_doc": "Founder asked 2026-08-07 whether to grant Contents:write now, since instruction dispatch into each repo is coming (E-07 H3). Decision: NO. Recorded so a future session does not widen this token by reflex.",
+        "_doc": "Founder asked 2026-08-09 whether to grant Contents:write now, since instruction dispatch into each repo is coming (E-07 H3). Decision: NO. Recorded so a future session does not widen this token by reflex.",
         "reasons": [
           "DIFFERENT TRIGGER, DIFFERENT RISK. github_read is used by an UNATTENDED job on a schedule. Every repo it touches auto-deploys to production on merge to main. An unattended scheduled process holding write to five production repos is the single worst place to put that permission. Dispatch, by contrast, only ever runs after a founder gate.",
           "NOTHING WRITES YET. Every task in E-09 (T-0050..T-0053) is read-only by design. E-07 H3 (dispatch) is not even an approved epic — it has not been decomposed.",
