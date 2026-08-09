@@ -187,9 +187,15 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
-      "feedback": []
+      "feedback": [
+        {
+          "at": "2026-08-09T19:05:00Z",
+          "by": "maker",
+          "note": "PR #10 opened — docs/personal-steward/portfolio-registry.json + portfolio-collectors.md; acceptance green"
+        }
+      ]
     },
     {
       "id": "T-0051",

@@ -28,8 +28,8 @@
     "T-0050": {
       "by": "maker",
       "since": "2026-08-09T19:02:51Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/autopilot-maker-action-6e9a",
+      "pr": "https://github.com/jackyckma/orbita/pull/10"
     }
   }
 }
