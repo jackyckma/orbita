@@ -1,7 +1,7 @@
 {
   "_doc": "Kill-switch. paused=true → Maker IDLE. Checker only runs WATCHDOG recovery when by=deploy-watchdog; otherwise Checker IDLEs too.",
-  "paused": false,
-  "reason": null,
-  "since": null,
-  "by": null
+  "paused": true,
+  "reason": "Checker lane has performed no REVIEW since the loop started 2026-08-07. Five Maker PRs are open and unmerged (#6 T-0010, #7 T-0020, #8 T-0030, #9 T-0040, #10 T-0050), oldest 2 days. Each was branched from a main that lacks the previous PR's changes, so conflicts are compounding — #6 and #9 both edit packages/lane-memory/src/routes/notes.ts. Paused to stop the Maker adding more. TO RESUME: set paused=false. A repaired Checker will still IDLE while this is true, so unpausing is required before the queue can drain. Expected drain order is oldest PR first (#6), one per Checker tick. NOTE: PR #8 fixes the MiniMax embedding bug behind empty note_search results — merging it is the highest-value item in this queue.",
+  "since": "2026-08-09T19:20:00Z",
+  "by": "claude-hub-session"
 }
