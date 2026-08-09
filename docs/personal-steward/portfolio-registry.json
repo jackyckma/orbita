@@ -1,0 +1,60 @@
+{
+  "_doc": "Founder-owned list of projects the portfolio hub collects from. Edit in git — not a DB table. Collectors (T-0051+) read this file. See portfolio-collectors.md.",
+  "projects": [
+    {
+      "slug": "orbita",
+      "display_name": "Orbita",
+      "github": "jackyckma/orbita",
+      "github_default_branch": "main",
+      "zeabur_project_name": "orbita",
+      "runtime_report_url": null,
+      "expected_cadence_hours": 24,
+      "enabled": true,
+      "notes": "Agent System Backend; this repo. Autopilot + Zeabur API deploy."
+    },
+    {
+      "slug": "ai-transformation",
+      "display_name": "ai-transformation",
+      "github": "jackyckma/ai-transformation-io",
+      "github_default_branch": "main",
+      "zeabur_project_name": "ai-transformation",
+      "runtime_report_url": null,
+      "expected_cadence_hours": 24,
+      "enabled": true,
+      "notes": "AT org/io dogfood edge. Confirm Zeabur project name if Dashboard label differs."
+    },
+    {
+      "slug": "powerhouse",
+      "display_name": "Powerhouse",
+      "github": "jackyckma/powerhouse",
+      "github_default_branch": "main",
+      "zeabur_project_name": "powerhouse",
+      "runtime_report_url": null,
+      "expected_cadence_hours": 24,
+      "enabled": true,
+      "notes": "Private repo. Confirm Zeabur project name if Dashboard label differs."
+    },
+    {
+      "slug": "ai-business",
+      "display_name": "AI Business",
+      "github": "jackyckma/ai-business",
+      "github_default_branch": "main",
+      "zeabur_project_name": "ai-business",
+      "runtime_report_url": null,
+      "expected_cadence_hours": 24,
+      "enabled": true,
+      "notes": "Private repo; pre-beta. Confirm Zeabur project name if Dashboard label differs."
+    },
+    {
+      "slug": "vios",
+      "display_name": "ViOS",
+      "github": "jackyckma/ViOS",
+      "github_default_branch": "main",
+      "zeabur_project_name": null,
+      "runtime_report_url": null,
+      "expected_cadence_hours": 24,
+      "enabled": true,
+      "notes": "Private / slow background. No Zeabur deploy yet — deploy line skipped until zeabur_project_name is set."
+    }
+  ]
+}
