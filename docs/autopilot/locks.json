@@ -7,6 +7,12 @@
       "branch": "cursor/autopilot-maker-action-7767",
       "pr": 9,
       "note": "PR #9 conflicts with #6 (both touched packages/lane-memory/src/routes/notes.ts); #6 merged 2026-08-10 via claude-hub-session. #9 left open, unmerged, for a fresh Maker run to rebase — do not force-merge."
+    },
+    "T-0011": {
+      "by": "maker",
+      "since": "2026-08-10T19:01:09Z",
+      "branch": null,
+      "pr": null
     }
   }
 }
