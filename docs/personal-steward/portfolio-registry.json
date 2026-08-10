@@ -21,7 +21,7 @@
       "runtime_report_url": null,
       "expected_cadence_hours": 24,
       "enabled": true,
-      "notes": "AT org/io dogfood edge. Confirm Zeabur project name if Dashboard label differs."
+      "notes": "AT org/io dogfood edge. Paused 2026-08-10 for founder strategic market-position review — see docs/autopilot/pause-state.json. Confirm Zeabur project name if Dashboard label differs."
     },
     {
       "slug": "powerhouse",
@@ -55,6 +55,28 @@
       "expected_cadence_hours": 24,
       "enabled": true,
       "notes": "Private / slow background. No Zeabur deploy yet — deploy line skipped until zeabur_project_name is set."
+    },
+    {
+      "slug": "kongstory",
+      "display_name": "Kong Story",
+      "github": "jackyckma/kongstory",
+      "github_default_branch": "main",
+      "zeabur_project_name": "kongstory",
+      "runtime_report_url": null,
+      "expected_cadence_hours": 24,
+      "enabled": true,
+      "notes": "Personal/pet project — Cantonese story generation + TTS. Registered 2026-08-10 for hub visibility only. docs/autopilot/ scaffolding is present (ai-dev-methodologies template) but Maker/Checker Cursor Automations are NOT configured — all commits so far are direct interactive Jacky+Cursor sessions to main, not autonomous Autopilot PRs. roadmap.json still only has the bootstrap example epic. Do not read a quiet backlog.json here as an idling automation — none is running by design."
+    },
+    {
+      "slug": "tango-atelier",
+      "display_name": "TangoAtelier",
+      "github": "jackyckma/TangoAtelier",
+      "github_default_branch": "main",
+      "zeabur_project_name": "TangoAtelier",
+      "runtime_report_url": null,
+      "expected_cadence_hours": 24,
+      "enabled": true,
+      "notes": "Personal/pet project — rule-engine tango composition + piano learning webapp, first built for founder's own practice. Registered 2026-08-10 for hub visibility only. docs/autopilot/ scaffolding present but Maker/Checker Cursor Automations NOT configured — developed via direct interactive Jacky+Cursor sessions to main. Split frontend/backend Zeabur services per README; confirm exact Dashboard project name(s) before T-0052 relies on it. Deployed at https://tangoatelier.zeabur.app/atelier."
     }
   ]
 }
