@@ -78,9 +78,11 @@
         "T-0010"
       ],
       "flag": null,
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
-      "feedback": []
+      "feedback": [
+        "PR https://github.com/jackyckma/orbita/pull/11 opened; acceptance + agent-verify green (Maker 2026-08-10)."
+      ]
     },
     {
       "id": "T-0012",

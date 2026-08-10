@@ -11,8 +11,8 @@
     "T-0011": {
       "by": "maker",
       "since": "2026-08-10T19:01:09Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/autopilot-maker-action-5f87",
+      "pr": 11
     }
   }
 }
