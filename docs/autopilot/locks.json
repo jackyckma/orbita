@@ -1,35 +1,12 @@
 {
   "_doc": "Task lease lock on main. Maker writes lock + in_progress on main BEFORE branching. Checker clears on merge or bounce. FORMAT: 'pr' MUST be the PR NUMBER (integer), not a URL and not a '#123' string — the dispatcher compares it numerically to decide whether an open PR is superseded.",
   "locks": {
-    "T-0010": {
-      "by": "maker",
-      "since": "2026-08-07T19:02:35Z",
-      "branch": "cursor/autopilot-maker-action-8447",
-      "pr": 6
-    },
-    "T-0020": {
-      "by": "maker",
-      "since": "2026-08-08T07:01:47Z",
-      "branch": "cursor/autopilot-maker-action-2bb3",
-      "pr": 7
-    },
-    "T-0030": {
-      "by": "maker",
-      "since": "2026-08-08T19:04:38Z",
-      "branch": "cursor/autopilot-maker-action-db81",
-      "pr": 8
-    },
     "T-0040": {
       "by": "maker",
       "since": "2026-08-09T07:04:48Z",
       "branch": "cursor/autopilot-maker-action-7767",
-      "pr": 9
-    },
-    "T-0050": {
-      "by": "maker",
-      "since": "2026-08-09T19:02:51Z",
-      "branch": "cursor/autopilot-maker-action-6e9a",
-      "pr": 10
+      "pr": 9,
+      "note": "PR #9 conflicts with #6 (both touched packages/lane-memory/src/routes/notes.ts); #6 merged 2026-08-10 via claude-hub-session. #9 left open, unmerged, for a fresh Maker run to rebase — do not force-merge."
     }
   }
 }
