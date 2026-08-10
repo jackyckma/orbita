@@ -59,7 +59,7 @@ export async function getMemoryContext(
   const queryText = options?.queryText?.trim();
 
   if (queryText && options?.env) {
-    const embedding = await embedText(options.env, queryText);
+    const embedding = await embedText(options.env, queryText, { purpose: "query" });
     if (embedding) {
       const rows = await searchBySimilarity(db, clientId, embedding, topK);
       if (rows.length > 0) {
@@ -94,7 +94,9 @@ export async function upsertMemory(
   content: string,
   env?: MemoryEnv,
 ) {
-  const embedding = env ? await embedText(env, `${key}\n${content}`) : null;
+  const embedding = env
+    ? await embedText(env, `${key}\n${content}`, { purpose: "db" })
+    : null;
   const embeddingLiteral = embedding ? formatVectorLiteral(embedding) : null;
 
   const existing = await db.db
