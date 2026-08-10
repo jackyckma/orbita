@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatNoteExportBody, noteExportPath } from "./notes-service.js";
+import { formatNoteExportBody, noteExportPath } from "../notes-service.js";
 
 describe("noteExportPath", () => {
   it("uses trimmed title as filename", () => {
