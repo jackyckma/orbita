@@ -6,6 +6,7 @@ import type { MemoryDb } from "../db/client.js";
 import type { MemoryEnv } from "../config.js";
 import {
   createNoteLink,
+  exportNotes,
   getNoteById,
   getNoteNeighbors,
   listNoteLinksFrom,
@@ -102,6 +103,36 @@ export function createNoteRoutes(db: MemoryDb, env: MemoryEnv): OpenAPIHono {
     const { q, top_k: topK } = c.req.valid("query");
     const notes = await searchNotes(db, auth.clientId, q, env, topK ?? 8);
     return c.json({ notes }, 200);
+  });
+
+  const exportRoute = createRoute({
+    method: "get",
+    path: "/notes/export",
+    tags: ["Notes"],
+    summary: "Export all notes as Obsidian-friendly Markdown files",
+    responses: {
+      200: {
+        description: "Markdown export payload",
+        content: {
+          "application/json": {
+            schema: z.object({
+              files: z.array(
+                z.object({
+                  path: z.string(),
+                  body: z.string(),
+                }),
+              ),
+            }),
+          },
+        },
+      },
+    },
+  });
+
+  app.openapi(exportRoute, async (c) => {
+    const auth = getAuth(c);
+    const result = await exportNotes(db, auth.clientId);
+    return c.json(result, 200);
   });
 
   const getRoute = createRoute({

@@ -395,6 +395,94 @@ export function formatNoteContextLines(
     .join("\n\n");
 }
 
+export type NoteExportFile = {
+  path: string;
+  body: string;
+};
+
+export type NotesExport = {
+  files: NoteExportFile[];
+};
+
+/** Safe Obsidian-ish filename from title (fallback id). */
+export function noteExportPath(note: { id: string; title: string | null }): string {
+  const raw = note.title?.trim();
+  if (!raw) return `${note.id}.md`;
+  const safe = raw
+    .replace(/[/\\?%*:|"<>]/g, "-")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 80);
+  return `${safe || note.id}.md`;
+}
+
+/** Markdown body with H1 + outgoing [[wikilinks]] (title, else id). */
+export function formatNoteExportBody(
+  note: { id: string; title: string | null; body: string },
+  linkedNotes: Array<{ id: string; title: string | null }>,
+): string {
+  const heading = note.title?.trim() ? note.title.trim() : note.id;
+  const parts = [`# ${heading}`, "", note.body];
+  if (linkedNotes.length > 0) {
+    parts.push("", "## Links", "");
+    for (const target of linkedNotes) {
+      const label = target.title?.trim() ? target.title.trim() : target.id;
+      parts.push(`- [[${label}]]`);
+    }
+  }
+  return `${parts.join("\n")}\n`;
+}
+
+export async function exportNotes(db: MemoryDb, clientId: string): Promise<NotesExport> {
+  const rows = await db.db
+    .select()
+    .from(notes)
+    .where(eq(notes.clientId, clientId))
+    .orderBy(desc(notes.updatedAt));
+
+  const titleById = new Map(rows.map((row) => [row.id, row.title]));
+
+  const linkRows = await db.db
+    .select({
+      fromId: noteLinks.fromId,
+      toId: noteLinks.toId,
+    })
+    .from(noteLinks)
+    .where(eq(noteLinks.clientId, clientId));
+
+  const toIdsByFrom = new Map<string, string[]>();
+  for (const link of linkRows) {
+    const list = toIdsByFrom.get(link.fromId) ?? [];
+    list.push(link.toId);
+    toIdsByFrom.set(link.fromId, list);
+  }
+
+  const usedPaths = new Map<string, number>();
+  const files: NoteExportFile[] = [];
+
+  for (const row of rows) {
+    const note = toNoteRecord(row);
+    const linked = (toIdsByFrom.get(note.id) ?? []).map((id) => ({
+      id,
+      title: titleById.has(id) ? (titleById.get(id) ?? null) : null,
+    }));
+
+    let path = noteExportPath(note);
+    const count = usedPaths.get(path) ?? 0;
+    usedPaths.set(path, count + 1);
+    if (count > 0) {
+      path = `${path.replace(/\.md$/, "")}-${note.id.slice(0, 8)}.md`;
+    }
+
+    files.push({
+      path,
+      body: formatNoteExportBody(note, linked),
+    });
+  }
+
+  return { files };
+}
+
 export type NoteContextOptions = {
   graphFrom?: string;
   depth?: number;
