@@ -153,11 +153,16 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "needs_human",
-      "retries": 0,
+      "status": "ready",
+      "retries": 1,
       "feedback": [
         "PR https://github.com/jackyckma/orbita/pull/9 opened; acceptance + agent-verify green (Maker 2026-08-09). Filters on existing GET /notes.",
-        "2026-08-10 (claude-hub-session): PR #9 both edits packages/lane-memory/src/routes/notes.ts, same file as T-0010/#6 which merged first — #9 is very likely to conflict now. Left open/unmerged rather than force-merged. Needs a fresh Maker run to rebase branch cursor/autopilot-maker-action-7767 onto current main and re-open/update the PR."
+        "2026-08-10 (claude-hub-session): PR #9 both edits packages/lane-memory/src/routes/notes.ts, same file as T-0010/#6 which merged first — #9 is very likely to conflict now. Left open/unmerged rather than force-merged. Needs a fresh Maker run to rebase branch cursor/autopilot-maker-action-7767 onto current main and re-open/update the PR.",
+        {
+          "at": "2026-08-10T20:05:05Z",
+          "by": "checker",
+          "note": "REVIEW PR #9: verify-all PASS on head, but mergeable=CONFLICTING (packages/lane-memory/src/index.ts vs main after #6). Did not merge. Bounced to ready retries+1; cleared lock for Maker rebase."
+        }
       ]
     },
     {
