@@ -153,7 +153,7 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 1,
       "feedback": [
         "PR https://github.com/jackyckma/orbita/pull/9 opened; acceptance + agent-verify green (Maker 2026-08-09). Filters on existing GET /notes.",
@@ -162,7 +162,8 @@
           "at": "2026-08-10T20:05:05Z",
           "by": "checker",
           "note": "REVIEW PR #9: verify-all PASS on head, but mergeable=CONFLICTING (packages/lane-memory/src/index.ts vs main after #6). Did not merge. Bounced to ready retries+1; cleared lock for Maker rebase."
-        }
+        },
+        "PR https://github.com/jackyckma/orbita/pull/12 opened on cursor/autopilot-maker-action-0828; supersedes conflicting #9; acceptance + agent-verify green (Maker 2026-08-11). Filters on existing GET /notes."
       ]
     },
     {
