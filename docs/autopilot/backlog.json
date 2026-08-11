@@ -153,7 +153,7 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "ready",
+      "status": "in_progress",
       "retries": 1,
       "feedback": [
         "PR https://github.com/jackyckma/orbita/pull/9 opened; acceptance + agent-verify green (Maker 2026-08-09). Filters on existing GET /notes.",

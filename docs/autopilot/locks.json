@@ -1,6 +1,12 @@
 {
   "_doc": "Task lease lock on main. Maker writes lock + in_progress on main BEFORE branching. Checker clears on merge or bounce. FORMAT: 'pr' MUST be the PR NUMBER (integer), not a URL and not a '#123' string — the dispatcher compares it numerically to decide whether an open PR is superseded.",
   "locks": {
+    "T-0040": {
+      "by": "maker",
+      "since": "2026-08-11T07:04:43Z",
+      "branch": null,
+      "pr": null
+    },
     "T-0011": {
       "by": "maker",
       "since": "2026-08-10T19:01:09Z",
