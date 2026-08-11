@@ -11,6 +11,7 @@ import {
   getNoteNeighbors,
   listNoteLinksFrom,
   listNotes,
+  parseNoteListFilters,
   searchNotes,
   upsertNote,
 } from "../notes-service.js";
@@ -40,6 +41,14 @@ export function createNoteRoutes(db: MemoryDb, env: MemoryEnv): OpenAPIHono {
     path: "/notes",
     tags: ["Notes"],
     summary: "List notes for the authenticated client",
+    request: {
+      query: z.object({
+        project: z.string().optional(),
+        type: z.string().optional(),
+        since: z.string().optional(),
+        until: z.string().optional(),
+      }),
+    },
     responses: {
       200: {
         description: "Note list",
@@ -62,7 +71,9 @@ export function createNoteRoutes(db: MemoryDb, env: MemoryEnv): OpenAPIHono {
 
   app.openapi(listRoute, async (c) => {
     const auth = getAuth(c);
-    const items = await listNotes(db, auth.clientId);
+    const query = c.req.valid("query");
+    const filters = parseNoteListFilters(query);
+    const items = await listNotes(db, auth.clientId, 50, filters);
     return c.json({ notes: items }, 200);
   });
 

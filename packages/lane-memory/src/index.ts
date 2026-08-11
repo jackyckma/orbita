@@ -34,6 +34,8 @@ export {
   listNoteLinksTo,
   listNotes,
   noteExportPath,
+  noteMatchesListFilters,
+  parseNoteListFilters,
   searchNotes,
   upsertNote,
 } from "./notes-service.js";
@@ -42,6 +44,7 @@ export type {
   NoteContextOptions,
   NoteExportFile,
   NoteLinkRecord,
+  NoteListFilters,
   NoteListItem,
   NoteNeighbor,
   NoteRecord,
