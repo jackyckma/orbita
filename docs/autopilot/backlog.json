@@ -97,9 +97,11 @@
         "T-0010"
       ],
       "flag": null,
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
-      "feedback": []
+      "feedback": [
+        "PR https://github.com/jackyckma/orbita/pull/13 opened; acceptance rg green (Maker 2026-08-12)."
+      ]
     },
     {
       "id": "T-0020",
