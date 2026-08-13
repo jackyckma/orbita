@@ -78,6 +78,7 @@ import {
   startHarnessTick,
 } from "@orbita/harness";
 import { createOrbitaMcpHandler } from "@orbita/mcp";
+import { createPortfolioGitCollector } from "./portfolio-git-collector.js";
 import {
   buildOAuthConfig,
   createMcpAuthMiddleware,
@@ -226,6 +227,16 @@ const runTurn: AgentTurnRunner = async (args) => {
   return result;
 };
 
+const portfolioSystemCollectors = {
+  portfolio_git: createPortfolioGitCollector({
+    credentialsDb,
+    secretsKey: env.ORBITA_SECRETS_KEY,
+    memoryDb,
+    memoryEnv,
+    logger,
+  }),
+};
+
 const app = new OpenAPIHono();
 app.onError(createErrorHandler(logger));
 app.use("*", requestIdMiddleware);
@@ -345,6 +356,7 @@ protectedApp.route(
     memoryEnv,
     runTurn,
     summarizer: sessionSummarizer,
+    systemCollectors: portfolioSystemCollectors,
   }),
 );
 protectedApp.route("/", createCredentialListRoutes(credentialsDb));
@@ -401,7 +413,11 @@ startHarnessTick(
   harnessDb,
   sessionsDb,
   runTurn,
-  { memoryDb, memoryEnv },
+  {
+    memoryDb,
+    memoryEnv,
+    systemCollectors: portfolioSystemCollectors,
+  },
   sessionSummarizer,
   logger,
 );

@@ -38,3 +38,11 @@ Without the sha, "T-xxxx merged" and "deploy failed" are only correlated by cloc
 4. Commit on `main`. No migration, no product-repo task — onboarding is a registry row.
 
 Credentials for collectors (GitHub read token, Zeabur API key) are founder-provisioned into the Orbita vault — see autopilot decision D-002. Do not put secrets in this registry file.
+
+## Autopilot line (T-0051) — implementation notes
+
+- Package: `@orbita/portfolio` — pure `normalizeRepoReport` + GitHub fetch + note writer.
+- Schedule: harness template `portfolio-git-collect@v1` with `application.collector=portfolio_git` (same cron/idempotency path as AT1b; no new scheduler).
+- Setup: `./scripts/portfolio-git-collect-setup-harness.sh` (client `personal-jacky`, credential name `github_read`).
+- Registry file is copied into the API image (`docs/personal-steward/portfolio-registry.json`) and also bundled under `packages/lane-portfolio/data/` as fallback.
+- Private-repo GitHub 404 → report `status=failed` (never an empty success).

@@ -77,7 +77,7 @@ export type HarnessCapabilities = {
 };
 
 export const HARNESS_CAPABILITIES: HarnessCapabilities = {
-  templates: ["cron-agent", "editorial-supply@v1"],
+  templates: ["cron-agent", "editorial-supply@v1", "portfolio-git-collect@v1"],
   loops: {
     agent: true,
     trigger: true,
