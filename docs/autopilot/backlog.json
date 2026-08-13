@@ -232,9 +232,15 @@
         "T-0050"
       ],
       "flag": null,
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
-      "feedback": []
+      "feedback": [
+        {
+          "at": "2026-08-13T19:28:17Z",
+          "by": "maker",
+          "note": "PR https://github.com/jackyckma/orbita/pull/14 opened; acceptance + agent-verify green (Maker 2026-08-13)."
+        }
+      ]
     },
     {
       "id": "T-0052",

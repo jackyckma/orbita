@@ -22,8 +22,8 @@
     "T-0051": {
       "by": "maker",
       "since": "2026-08-13T19:21:38Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/autopilot-maker-action-a126",
+      "pr": 14
     }
   }
 }
