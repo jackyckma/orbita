@@ -1,7 +1,13 @@
 export { createHarnessDb, closeHarnessDb, schema } from "./db/client.js";
 export type { HarnessDb } from "./db/client.js";
 export { createHarnessRoutes } from "./routes/harnesses.js";
-export { startHarnessTick, executeHarnessRun } from "./tick.js";
+export {
+  startHarnessTick,
+  executeHarnessRun,
+  type HarnessRunDeps,
+  type SystemCollectorContext,
+  type SystemCollectorRunner,
+} from "./tick.js";
 export {
   listHarnessTemplates,
   getHarnessTemplate,

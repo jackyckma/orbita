@@ -6,6 +6,7 @@ RUN corepack enable && corepack prepare pnpm@10 --activate
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml tsconfig.base.json ./
 COPY packages ./packages
 COPY apps ./apps
+COPY docs/personal-steward/portfolio-registry.json ./docs/personal-steward/portfolio-registry.json
 
 RUN pnpm install --frozen-lockfile
 RUN pnpm build
@@ -20,6 +21,7 @@ RUN corepack enable && corepack prepare pnpm@10 --activate
 
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml tsconfig.base.json ./
 COPY apps ./apps
+COPY docs/personal-steward/portfolio-registry.json ./docs/personal-steward/portfolio-registry.json
 
 COPY --from=builder /app/packages ./packages
 COPY --from=builder /app/apps ./apps

@@ -90,6 +90,7 @@ import {
 import { createInboundEmailRoutes } from "./inbound-email.js";
 import { runMigrations } from "./migrate.js";
 import { createE2eMockTurnRunner } from "./e2e-mock.js";
+import { createPortfolioZeaburCollector } from "./portfolio-zeabur-collector.js";
 
 const E2E_MOCK = process.env.ORBITA_E2E_MOCK === "1";
 
@@ -226,6 +227,16 @@ const runTurn: AgentTurnRunner = async (args) => {
   return result;
 };
 
+const portfolioSystemCollectors = {
+  portfolio_zeabur: createPortfolioZeaburCollector({
+    credentialsDb,
+    secretsKey: env.ORBITA_SECRETS_KEY!,
+    memoryDb,
+    memoryEnv,
+    logger,
+  }),
+};
+
 const app = new OpenAPIHono();
 app.onError(createErrorHandler(logger));
 app.use("*", requestIdMiddleware);
@@ -345,6 +356,7 @@ protectedApp.route(
     memoryEnv,
     runTurn,
     summarizer: sessionSummarizer,
+    systemCollectors: portfolioSystemCollectors,
   }),
 );
 protectedApp.route("/", createCredentialListRoutes(credentialsDb));
@@ -401,7 +413,11 @@ startHarnessTick(
   harnessDb,
   sessionsDb,
   runTurn,
-  { memoryDb, memoryEnv },
+  {
+    memoryDb,
+    memoryEnv,
+    systemCollectors: portfolioSystemCollectors,
+  },
   sessionSummarizer,
   logger,
 );

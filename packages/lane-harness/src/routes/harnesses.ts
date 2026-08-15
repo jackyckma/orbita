@@ -16,7 +16,7 @@ import {
   listHarnessRunRecords,
   patchHarnessRecord,
 } from "../service.js";
-import { executeHarnessRun } from "../tick.js";
+import { executeHarnessRun, type SystemCollectorRunner } from "../tick.js";
 import { listHarnessTemplates, templatePublicId } from "../templates.js";
 import { createHarnessBodySchema, type HarnessTemplate } from "../types.js";
 
@@ -27,6 +27,7 @@ export function createHarnessRoutes(deps: {
   memoryEnv: MemoryEnv;
   runTurn: AgentTurnRunner;
   summarizer?: SessionSummarizer;
+  systemCollectors?: Record<string, SystemCollectorRunner>;
 }): OpenAPIHono {
   const app = new OpenAPIHono();
   app.use("/harnesses/*", requireScope("sessions:use"));
@@ -224,7 +225,11 @@ export function createHarnessRoutes(deps: {
       "manual",
       new Date(),
       deps.runTurn,
-      { memoryDb: deps.memoryDb, memoryEnv: deps.memoryEnv },
+      {
+        memoryDb: deps.memoryDb,
+        memoryEnv: deps.memoryEnv,
+        systemCollectors: deps.systemCollectors,
+      },
       deps.summarizer,
     );
     return c.json({ ok: result.ran, run_id: result.runId, error: result.error }, 200);

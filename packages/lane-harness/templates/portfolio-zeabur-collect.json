@@ -1,0 +1,33 @@
+{
+  "id": "portfolio-zeabur-collect",
+  "version": 1,
+  "extends": "cron-agent",
+  "description": "Portfolio hub line 2 — pull Zeabur deployment status for each enabled registry project with zeabur_project_name and store type=report notes (edge=deploy). Read-only; never redeploys.",
+  "defaults": {
+    "session_policy": "per_run",
+    "loops": {
+      "agent": {
+        "enabled": true,
+        "profile_id": "default",
+        "task": {
+          "mode": "message",
+          "message": "portfolio_zeabur collector (system) — agent turn skipped when application.collector is set."
+        }
+      },
+      "trigger": {
+        "enabled": true,
+        "cron": "30 6 * * *",
+        "timezone": "UTC"
+      }
+    },
+    "output": {
+      "mode": "poll",
+      "emit_trajectory": true
+    },
+    "application": {
+      "collector": "portfolio_zeabur",
+      "credential_name": "zeabur_api",
+      "period_hours": 24
+    }
+  }
+}
