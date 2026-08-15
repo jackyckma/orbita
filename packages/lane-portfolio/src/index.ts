@@ -5,13 +5,18 @@ export type {
   AutopilotTask,
   FetchedAutopilotFiles,
   GithubCommit,
+  HubDeployReport,
   HubRepoReport,
+  HubReportEdge,
   HubReportSection,
+  HubReportSectionId,
+  NormalizeDeployReportInput,
   NormalizeRepoReportInput,
   PortfolioProject,
   PortfolioRegistry,
   ReportPeriod,
   ReportStatus,
+  ZeaburDeployment,
 } from "./types.js";
 
 export {
@@ -21,10 +26,18 @@ export {
 } from "./normalize.js";
 
 export {
+  deployReportToNoteBody,
+  isFailedDeployStatus,
+  isOkDeployStatus,
+  normalizeDeployReport,
+} from "./normalize-deploy.js";
+
+export {
   enabledPortfolioProjects,
   isLikelyPrivateRepo,
   loadPortfolioRegistry,
   resolvePortfolioRegistryPath,
+  zeaburPortfolioProjects,
 } from "./registry.js";
 
 export {
@@ -34,6 +47,15 @@ export {
 } from "./github.js";
 
 export {
+  fetchZeaburDeploymentsForProject,
+  Q_BUILD_LOGS,
+  Q_DEPLOYMENTS,
+  ZEABUR_GRAPHQL_URL,
+  type FetchZeaburProjectResult,
+  type ZeaburGraphqlDeps,
+} from "./zeabur.js";
+
+export {
   collectPortfolioGitReports,
   defaultCollectPeriod,
   type CollectPortfolioGitOptions,
@@ -41,6 +63,12 @@ export {
   type NoteWriter,
   type PreviousAskLookup,
 } from "./collect.js";
+
+export {
+  collectPortfolioZeaburReports,
+  type CollectPortfolioZeaburOptions,
+  type CollectPortfolioZeaburResult,
+} from "./collect-deploy.js";
 
 export { parseHubReportFromNoteBody } from "./parse-report.js";
 

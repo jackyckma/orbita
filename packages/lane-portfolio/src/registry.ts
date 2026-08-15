@@ -57,3 +57,12 @@ export function isLikelyPrivateRepo(project: PortfolioProject): boolean {
   if (/private/i.test(notes)) return true;
   return ["powerhouse", "ai-business", "vios"].includes(project.slug);
 }
+
+/** Projects that participate in the Zeabur deploy line. */
+export function zeaburPortfolioProjects(
+  registry: PortfolioRegistry = loadPortfolioRegistry(),
+): PortfolioProject[] {
+  return enabledPortfolioProjects(registry).filter(
+    (p) => typeof p.zeabur_project_name === "string" && p.zeabur_project_name.trim().length > 0,
+  );
+}

@@ -91,6 +91,7 @@ import {
 import { createInboundEmailRoutes } from "./inbound-email.js";
 import { runMigrations } from "./migrate.js";
 import { createE2eMockTurnRunner } from "./e2e-mock.js";
+import { createPortfolioZeaburCollector } from "./portfolio-zeabur-collector.js";
 
 const E2E_MOCK = process.env.ORBITA_E2E_MOCK === "1";
 
@@ -231,6 +232,13 @@ const portfolioSystemCollectors = {
   portfolio_git: createPortfolioGitCollector({
     credentialsDb,
     secretsKey: env.ORBITA_SECRETS_KEY,
+    memoryDb,
+    memoryEnv,
+    logger,
+  }),
+  portfolio_zeabur: createPortfolioZeaburCollector({
+    credentialsDb,
+    secretsKey: env.ORBITA_SECRETS_KEY!,
     memoryDb,
     memoryEnv,
     logger,
