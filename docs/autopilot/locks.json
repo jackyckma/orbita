@@ -28,8 +28,8 @@
     "T-0052": {
       "by": "maker",
       "since": "2026-08-15T07:02:31Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/autopilot-maker-action-0306",
+      "pr": 15
     }
   }
 }
