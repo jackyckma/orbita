@@ -18,7 +18,7 @@ related: docs/harness-design.md
 
 ## H1 scope
 
-- Templates: `cron-agent`, `editorial-supply@v1`
+- Templates: `cron-agent`, `editorial-supply@v1`, `portfolio-zeabur-collect@v1`
 - Loops 2 (verify) and 4 (improve auto) rejected at create time
 - Cron tick via `startHarnessTick` (5s poll, idempotent cron fingerprint)
 

@@ -11,9 +11,26 @@ import { resolveHarnessRunMessage } from "./templates.js";
 import { resolveHarnessMemoryInjectForRun } from "./memory-inject.js";
 import type { HarnessConfig } from "./types.js";
 
+export type SystemCollectorContext = {
+  clientId: string;
+  harnessId: string;
+  harnessName: string;
+  dueAt: Date;
+  config: HarnessConfig;
+};
+
+export type SystemCollectorRunner = (
+  ctx: SystemCollectorContext,
+) => Promise<{ ok: boolean; detail?: string; error?: string }>;
+
 export type HarnessRunDeps = {
   memoryDb: MemoryDb;
   memoryEnv: MemoryEnv;
+  /**
+   * Deterministic collectors keyed by config.application.collector
+   * (e.g. portfolio_git). Reuses harness cron/idempotency — no new scheduler.
+   */
+  systemCollectors?: Record<string, SystemCollectorRunner>;
 };
 
 function cronFingerprint(cron: string, dueAt: Date): string {
@@ -53,19 +70,87 @@ export async function executeHarnessRun(
     harness,
   );
 
+  const config = harness.config as HarnessConfig;
+  const collectorName =
+    typeof config.application?.collector === "string"
+      ? config.application.collector.trim()
+      : "";
+
   const [run] = await harnessDb.db
     .insert(harnessRuns)
     .values({
       harnessId: harness.id,
       clientId: harness.clientId,
       sessionId,
-      status: "agent_running",
+      status: collectorName ? "collector_running" : "agent_running",
       trigger,
       cronFingerprint: fingerprint,
     })
     .returning();
 
-  const message = resolveHarnessRunMessage(harness.config as HarnessConfig, {
+  if (collectorName) {
+    const runner = deps.systemCollectors?.[collectorName];
+    const finishedAt = new Date();
+    if (!runner) {
+      await harnessDb.db
+        .update(harnessRuns)
+        .set({
+          status: "failed",
+          error: `No system collector registered: ${collectorName}`,
+          finishedAt,
+        })
+        .where(eq(harnessRuns.id, run!.id));
+      return {
+        ran: false,
+        runId: run!.id,
+        error: `No system collector registered: ${collectorName}`,
+      };
+    }
+    try {
+      const result = await runner({
+        clientId: harness.clientId,
+        harnessId: harness.id,
+        harnessName: harness.name,
+        dueAt,
+        config,
+      });
+      if (result.ok) {
+        await harnessDb.db
+          .update(harnessRuns)
+          .set({ status: "completed", finishedAt })
+          .where(eq(harnessRuns.id, run!.id));
+        await harnessDb.db
+          .update(harnesses)
+          .set({
+            lastRunAt: finishedAt,
+            nextRunAt: harness.cron
+              ? computeNextCronRun(harness.cron, finishedAt)
+              : null,
+            updatedAt: finishedAt,
+          })
+          .where(eq(harnesses.id, harness.id));
+        return { ran: true, runId: run!.id };
+      }
+      await harnessDb.db
+        .update(harnessRuns)
+        .set({
+          status: "failed",
+          error: result.error ?? "collector failed",
+          finishedAt,
+        })
+        .where(eq(harnessRuns.id, run!.id));
+      return { ran: false, runId: run!.id, error: result.error };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      await harnessDb.db
+        .update(harnessRuns)
+        .set({ status: "failed", error: message, finishedAt })
+        .where(eq(harnessRuns.id, run!.id));
+      return { ran: false, runId: run!.id, error: message };
+    }
+  }
+
+  const message = resolveHarnessRunMessage(config, {
     templateId: harness.templateId,
     dueAt,
   });
