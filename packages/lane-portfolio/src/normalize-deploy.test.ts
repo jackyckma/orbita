@@ -63,7 +63,7 @@ describe("normalizeDeployReport", () => {
     expect(report.status).toBe("degraded");
     expect(report.sections.find((s) => s.id === "risks")?.body).toMatch(/FAILED/);
     expect(report.sections.find((s) => s.id === "needs_founder")?.body).toMatch(
-      /previous successful build/i,
+      /older successful build/i,
     );
     expect(report.sections.find((s) => s.id === "ask")?.body).not.toBe("none");
   });
