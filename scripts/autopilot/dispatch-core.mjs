@@ -32,21 +32,115 @@ export function extractAutopilotTaskId(title) {
 }
 
 /**
+ * Normalise a PR reference to a number.
+ *
+ * `locks.json` lease.pr is written by the Maker, and the playbook did not
+ * originally pin its format — in practice agents have written all three of
+ * `609`, `"609"` and `"https://github.com/owner/repo/pull/609"`. Accept all.
+ *
+ * @param {unknown} value
+ * @returns {number|null} the PR number, or null if it cannot be determined
+ */
+export function parsePrNumber(value) {
+  if (value == null) return null;
+  if (typeof value === "number") return Number.isInteger(value) ? value : null;
+  const text = String(value).trim();
+  if (text === "") return null;
+  if (/^\d+$/.test(text)) return Number(text);
+  const fromUrl = text.match(/\/pull\/(\d+)/);
+  if (fromUrl) return Number(fromUrl[1]);
+  const bareHash = text.match(/^#(\d+)$/);
+  if (bareHash) return Number(bareHash[1]);
+  return null;
+}
+
+/**
  * A PR is stale when its task is already done on main, or main's locks.json
  * leases a *different* PR for the same task id (duplicate Maker run).
+ *
+ * SAFETY RULE: if the lease exists but its PR reference cannot be parsed, this
+ * returns FALSE — "unknown" must never be read as "superseded". Closing a
+ * healthy PR is destructive and cannot be undone by the loop; sending it to
+ * REVIEW instead costs one tick. A previous version did `Number(lease.pr)`,
+ * which yields NaN for a URL, and `NaN !== 6` is true — so every oldest PR
+ * looked superseded, CLOSE_STALE was proposed ahead of REVIEW on every tick,
+ * the Checker agent correctly refused at the playbook gate, and the lane
+ * deadlocked with PRs accumulating for days. (This is exactly the T-0010/#6
+ * vs T-0040/#9 incident from 2026-08-09 — locks.json's data got hand-fixed at
+ * the time, but this file itself never received the code fix until now.)
+ *
  * @param {OpenPR} pr
- * @param {{ tasksById: Map<string, Task>, locks?: Record<string, { pr?: number|null }> }} ctx
+ * @param {{ tasksById: Map<string, Task>, locks?: Record<string, { pr?: number|string|null }> }} ctx
  */
 export function isPrSuperseded(pr, ctx) {
   const taskId = extractAutopilotTaskId(pr.title);
   if (!taskId) return false;
   const task = ctx.tasksById.get(taskId);
   if (task?.status === "done") return true;
+
   const lease = ctx.locks?.[taskId];
-  if (lease != null && lease.pr != null && Number(lease.pr) !== Number(pr.number)) {
-    return true;
+  if (lease == null || lease.pr == null) return false;
+
+  const leasedPr = parsePrNumber(lease.pr);
+  if (leasedPr == null) return false; // unparseable → not a superseded signal
+  const thisPr = parsePrNumber(pr.number);
+  if (thisPr == null) return false;
+
+  return leasedPr !== thisPr;
+}
+
+/**
+ * Age of a lock in hours, or null if `since` is missing/unparseable.
+ * Unparseable/missing must never be read as "stale" or "fresh" — null lets
+ * the caller skip it, same safety posture as parsePrNumber above.
+ * @param {string|null|undefined} since
+ * @param {number} nowMs
+ */
+export function lockAgeHours(since, nowMs) {
+  if (!since) return null;
+  const t = Date.parse(String(since));
+  if (Number.isNaN(t)) return null;
+  return (nowMs - t) / 3_600_000;
+}
+
+/**
+ * STALL SAFETY NET.
+ *
+ * A lock's `since` timestamp is written once, when Maker first leases a task
+ * on main — before it branches, before it implements, before anything that
+ * could crash. Under normal operation a task moves out of the state matching
+ * `statusMatch` within one tick (minutes). If it hasn't after `staleHours`,
+ * that is not "still working" — a normal IMPLEMENT or REVIEW run does not take
+ * hours — it means every run that picked up this lock crashed or errored
+ * before it could reach the playbook's own bounce-to-ready / bounce-to-
+ * needs_human step. The agent-side retry/needs_human bookkeeping in
+ * backlog.json never got a chance to fire, so without this check the same
+ * lock gets silently re-picked (or silently ignored) forever.
+ *
+ * This reuses `locks.json.since`, which already exists for a different
+ * purpose (lease bookkeeping) — no new persisted counters, no extra commits
+ * on the happy path. Only fires (and only then does the caller write
+ * anything) once a lock has actually been stuck past the threshold.
+ *
+ * @param {Record<string, {since?: string, pr?: number|string|null}>} locks
+ * @param {Map<string, Task>} tasksById
+ * @param {{ nowMs: number, staleHours?: number, statusMatch: string }} opts
+ * @returns {{ taskId: string, since: string, ageHours: number, pr: number|null } | null}
+ *   The single oldest offending lock, or null if none qualify.
+ */
+export function findStaleLock(locks, tasksById, opts) {
+  const staleHours = opts.staleHours ?? 4;
+  let worst = null;
+  for (const [taskId, lease] of Object.entries(locks ?? {})) {
+    const task = tasksById.get(taskId);
+    if (!task || task.status !== opts.statusMatch) continue;
+    const age = lockAgeHours(lease?.since, opts.nowMs);
+    if (age == null || age < staleHours) continue;
+    if (!worst || age > worst.ageHours) {
+      worst = { taskId, since: lease.since, ageHours: age, pr: parsePrNumber(lease?.pr ?? null) };
+    }
   }
-  return false;
+  return worst;
 }
 
 /**
@@ -57,12 +151,35 @@ export function isPrSuperseded(pr, ctx) {
  *   readyMin:number,
  *   hasUndecomposedApprovedEpic:boolean,
  *   lockedTaskIds?: string[],
+ *   locks?: Record<string, { since?: string, pr?: number|string|null }>,
+ *   nowMs?: number,
+ *   staleLockHours?: number,
  * }} state
  */
 export function decideMaker(state) {
   const lane = "maker";
   if (state.paused) {
     return { lane, action: "IDLE", reason: "loop paused; Maker holds" };
+  }
+
+  const tasksById = new Map(state.tasks.map((t) => [t.id, t]));
+
+  // Checked first, ahead of picking new work: a stuck lease blocks nothing in
+  // actionableReady (it's already excluded there), so without this check it
+  // would just sit invisible forever rather than surfacing to the founder.
+  const stale = findStaleLock(state.locks ?? {}, tasksById, {
+    nowMs: state.nowMs ?? Date.now(),
+    staleHours: state.staleLockHours,
+    statusMatch: "in_progress",
+  });
+  if (stale) {
+    return {
+      lane,
+      action: "FORCE_NEEDS_HUMAN",
+      taskId: stale.taskId,
+      ageHours: stale.ageHours,
+      reason: `lock held ${stale.ageHours.toFixed(1)}h with task still in_progress — normal IMPLEMENT finishes in one tick, so every run since must have crashed before it could bounce itself. Escalating instead of retrying blind.`,
+    };
   }
 
   const locked = new Set(state.lockedTaskIds ?? []);
@@ -101,10 +218,12 @@ export function decideMaker(state) {
  *   pauseBy?: string|null,
  *   openPRs:OpenPR[],
  *   tasks?: Task[],
- *   locks?: Record<string, { pr?: number|null }>,
+ *   locks?: Record<string, { since?: string, pr?: number|string|null }>,
  *   mainShaChanged:boolean,
  *   dailyReportDue:boolean,
  *   weeklyReportDue:boolean,
+ *   nowMs?: number,
+ *   staleLockHours?: number,
  * }} state
  */
 export function decideChecker(state) {
@@ -119,12 +238,44 @@ export function decideChecker(state) {
     return { lane, action: "IDLE", reason: "paused (founder/manual); Checker holds" };
   }
 
+  const tasksById = new Map((state.tasks ?? []).map((t) => [t.id, t]));
+
+  // Checked first, ahead of picking a PR to review: if the head-of-queue PR's
+  // REVIEW keeps failing before it can bounce itself, everything behind it in
+  // the FIFO queue is blocked too — a silent head-of-line stall. Escalate and
+  // let the PR-picking logic below skip it from here on (never merge on
+  // failure, so the PR itself is left open, untouched, for manual inspection).
+  const staleReview = findStaleLock(state.locks ?? {}, tasksById, {
+    nowMs: state.nowMs ?? Date.now(),
+    staleHours: state.staleLockHours,
+    statusMatch: "in_review",
+  });
+  if (staleReview) {
+    return {
+      lane,
+      action: "FORCE_NEEDS_HUMAN",
+      taskId: staleReview.taskId,
+      pr: staleReview.pr,
+      ageHours: staleReview.ageHours,
+      reason: `lock held ${staleReview.ageHours.toFixed(1)}h with task still in_review — REVIEW has been failing before it can bounce itself. Escalating; PR stays open and unmerged for manual inspection.`,
+    };
+  }
+
   if (Array.isArray(state.openPRs) && state.openPRs.length > 0) {
-    const tasksById = new Map((state.tasks ?? []).map((t) => [t.id, t]));
     const ctx = { tasksById, locks: state.locks ?? {} };
 
+    // A PR whose task was already escalated (by the check above, this tick or
+    // a previous one) has nothing left for this lane to do automatically —
+    // skip it so later PRs in the queue still get a turn, rather than the
+    // FIFO order re-picking the same stuck PR forever.
+    const actionable = state.openPRs.filter((pr) => {
+      const taskId = extractAutopilotTaskId(pr.title);
+      const task = taskId ? tasksById.get(taskId) : null;
+      return task?.status !== "needs_human";
+    });
+
     // Drain duplicates/superseded PRs before spending a tick on verify-all (L-008).
-    const stale = state.openPRs.find((pr) => isPrSuperseded(pr, ctx));
+    const stale = actionable.find((pr) => isPrSuperseded(pr, ctx));
     if (stale) {
       const taskId = extractAutopilotTaskId(stale.title);
       return {
@@ -137,14 +288,18 @@ export function decideChecker(state) {
       };
     }
 
-    const pr = state.openPRs[0]; // oldest first (caller sorts)
-    return {
-      lane,
-      action: "REVIEW",
-      pr: pr.number,
-      branch: pr.branch,
-      reason: "open autopilot PR awaiting review",
-    };
+    const pr = actionable[0]; // oldest first (caller sorts)
+    if (pr) {
+      return {
+        lane,
+        action: "REVIEW",
+        pr: pr.number,
+        branch: pr.branch,
+        reason: "open autopilot PR awaiting review",
+      };
+    }
+    // Every open PR's task is already needs_human — nothing actionable here;
+    // fall through to watchdog/report/idle below instead of returning early.
   }
 
   if (state.mainShaChanged) {
