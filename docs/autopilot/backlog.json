@@ -190,10 +190,15 @@
         "T-0040"
       ],
       "flag": null,
-      "status": "in_review",
+      "status": "done",
       "retries": 0,
       "feedback": [
-        "PR https://github.com/jackyckma/orbita/pull/16 opened; docs list/filter contract in memory-conventions.md; acceptance green (Maker 2026-08-16)."
+        "PR https://github.com/jackyckma/orbita/pull/16 opened; docs list/filter contract in memory-conventions.md; acceptance green (Maker 2026-08-16).",
+        {
+          "at": "2026-08-16T19:06:10.933Z",
+          "by": "checker",
+          "note": "REVIEW PR #16: verify-all PASS; docs-only scope matches T-0041; mergeable=MERGEABLE. Merged (merge commit 0d2fba0). No duplicate T-0041 PRs."
+        }
       ]
     },
     {
@@ -271,17 +276,17 @@
       "status": "needs_human",
       "retries": 0,
       "feedback": [
-          {
-            "at": "2026-08-15T07:07:14Z",
-            "by": "maker",
-            "note": "PR #15 opened — Zeabur deploy collector (@orbita/portfolio edge=deploy); acceptance green; GraphQL queries documented in portfolio-collectors.md"
-          },
-          {
-            "at": "2026-08-16T12:53:00Z",
-            "by": "claude-hub-session",
-            "note": "T-0051 (#14) merged first. Attempted to merge #15 immediately after — GitHub rejected with a real merge conflict (405), exactly the risk the PR body itself flagged (@orbita/portfolio + harness systemCollectors overlap). Left open, unmerged. Needs a fresh Maker run to rebase onto current main."
-          }
-        ]
+        {
+          "at": "2026-08-15T07:07:14Z",
+          "by": "maker",
+          "note": "PR #15 opened — Zeabur deploy collector (@orbita/portfolio edge=deploy); acceptance green; GraphQL queries documented in portfolio-collectors.md"
+        },
+        {
+          "at": "2026-08-16T12:53:00Z",
+          "by": "claude-hub-session",
+          "note": "T-0051 (#14) merged first. Attempted to merge #15 immediately after — GitHub rejected with a real merge conflict (405), exactly the risk the PR body itself flagged (@orbita/portfolio + harness systemCollectors overlap). Left open, unmerged. Needs a fresh Maker run to rebase onto current main."
+        }
+      ]
     },
     {
       "id": "T-0053",
