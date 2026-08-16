@@ -190,9 +190,11 @@
         "T-0040"
       ],
       "flag": null,
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
-      "feedback": []
+      "feedback": [
+        "PR https://github.com/jackyckma/orbita/pull/16 opened; docs list/filter contract in memory-conventions.md; acceptance green (Maker 2026-08-16)."
+      ]
     },
     {
       "id": "T-0050",
