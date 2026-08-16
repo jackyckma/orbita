@@ -9,6 +9,13 @@
 //   node scripts/autopilot/decide-next-action.mjs --lane maker
 //   node scripts/autopilot/decide-next-action.mjs --lane checker
 //
+// Env:
+//   READY_MIN          min actionable-ready tasks before Maker will REPLAN (default 2)
+//   STALE_LOCK_HOURS    hours a lock may sit past its expected state before the
+//                        dispatcher force-escalates it to needs_human — a normal
+//                        IMPLEMENT/REVIEW finishes in one tick, so this only fires
+//                        when every run touching it has been crashing (default 4)
+//
 // Prints a single JSON object: { lane, action, reason, ...payload }
 // Exit 0 always; the caller reads stdout.
 
@@ -57,6 +64,11 @@ const pause = await loadJson(ap("pause-state.json"), { paused: false });
 const paused = pause.paused === true;
 const pauseBy = pause.by ?? null;
 
+const nowMs = Date.now();
+const staleLockHoursEnv = process.env.STALE_LOCK_HOURS;
+const staleLockHours =
+  staleLockHoursEnv != null && staleLockHoursEnv !== "" ? Number.parseFloat(staleLockHoursEnv) : undefined;
+
 let result;
 
 if (laneArg === "maker") {
@@ -88,7 +100,16 @@ if (laneArg === "maker") {
     .map((t) => t.id);
   const lockedTaskIds = [...new Set([...lockedFromFile, ...lockedFromStatus])];
 
-  result = decideMaker({ paused, tasks, readyMin, hasUndecomposedApprovedEpic, lockedTaskIds });
+  result = decideMaker({
+    paused,
+    tasks,
+    readyMin,
+    hasUndecomposedApprovedEpic,
+    lockedTaskIds,
+    locks: locksDoc.locks ?? {},
+    nowMs,
+    staleLockHours,
+  });
 } else {
   // checker
   let openPRs = [];
@@ -110,6 +131,18 @@ if (laneArg === "maker") {
       openPRs = [];
     }
   }
+  // NOTE: if `gh pr list` itself fails (auth expiry, rate limit, network — any
+  // reason), sh() swallows the error and `raw` is "", so `openPRs` stays [].
+  // That is deliberately NOT treated as an error here: a transient list
+  // failure just means this tick looks like "nothing to review" and falls
+  // through to WATCHDOG/REPORT/IDLE below, same as a genuinely empty queue.
+  // The stale-lock check below is what catches the case where this keeps
+  // happening tick after tick — real open PRs whose lock age crosses
+  // staleLockHours get escalated regardless of why REVIEW never got to them,
+  // without needing a separate failure counter for this one specific command.
+  // (This is the most likely explanation for the "Succeeded but touched
+  // nothing" Checker runs seen in the Cursor Automations run history around
+  // 2026-08-15/16 — investigate `gh auth status` in the sandbox if it recurs.)
 
   const backlog = await loadJson(ap("backlog.json"), { tasks: [] });
   const locksDoc = await loadJson(ap("locks.json"), { locks: {} });
@@ -135,6 +168,8 @@ if (laneArg === "maker") {
     mainShaChanged,
     dailyReportDue,
     weeklyReportDue,
+    nowMs,
+    staleLockHours,
   });
 }
 
