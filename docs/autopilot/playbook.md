@@ -17,9 +17,31 @@ Execute only the returned JSON `action`. If `IDLE`, stop.
 
 Prefer dependency-free verify commands documented in `docs/AGENT_ENV.md`.
 
+**`FORCE_NEEDS_HUMAN` is not a failure state to avoid — it is the loop working
+correctly.** A lock older than `STALE_LOCK_HOURS` (default 4) with its task
+still sitting in the state that lock represents means every run that touched it
+crashed before reaching its own bounce-to-`ready` or bounce-to-`needs_human`
+step — the normal retry/escalation bookkeeping never got a chance to fire. The
+dispatcher catches this from `locks.json.since` alone, so it fires regardless of
+*why* those runs crashed. Execute it exactly as instructed below and stop; do
+not investigate the crash as part of this tick, and do not treat receiving this
+action as something to route around.
+
 ---
 
 ## MAKER lane actions
+
+### `FORCE_NEEDS_HUMAN` (payload: `taskId`, `ageHours`, `reason`)
+
+On **main**:
+
+1. `backlog.json`: task → `status: needs_human`. Append to `feedback`: one
+   entry noting the lock age and that it was auto-escalated (not a bounce from
+   a completed run — no run this tick actually touched the task).
+2. `locks.json`: remove the `<taskId>` entry entirely.
+3. Commit + push to `main`. **Do not** attempt to diagnose or fix the
+   underlying task in the same tick — that is a fresh `IMPLEMENT` after a human
+   re-approves it, not a continuation of this one.
 
 ### `IMPLEMENT` (payload: `taskId`, `task`)
 
@@ -69,6 +91,20 @@ Stop.
 > Exclude branches containing `learner` from auto-merge (founder-gated process PRs).
 > Only review open PRs whose **title includes a task id** (`T-xxxx`) — Maker must put
 > the task id in the PR title. Unrelated `cursor/*` drafts are ignored.
+
+### `FORCE_NEEDS_HUMAN` (payload: `taskId`, `pr`, `ageHours`, `reason`)
+
+On **main**:
+
+1. `backlog.json`: task → `status: needs_human`. Append to `feedback`: one
+   entry noting the lock age and that REVIEW kept failing to complete before it
+   could bounce the task itself.
+2. `locks.json`: remove the `<taskId>` entry entirely.
+3. Commit + push to `main`. **Leave the pull request itself untouched** — do
+   not close it, do not merge it. It stays open on GitHub for a human to
+   inspect; the dispatcher will not offer it for `REVIEW` again once its task
+   is `needs_human`, so later PRs in the queue get their turn instead of
+   waiting behind this one.
 
 ### `CLOSE_STALE` (`pr`, `branch`, `taskId?`)
 
