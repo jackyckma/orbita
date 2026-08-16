@@ -51,7 +51,7 @@
       "phase": "l1-hardening",
       "decomposes_into": ["T-0030"],
       "decisions": [],
-      "notes": "If root cause needs new embedding provider spend or schema change, open decisions.json and mark needs_human. BLOCKS the hub: until search is trustworthy, agents must resume sessions via flat memory keys and note ids."
+      "notes": "REOPENED 2026-08-16: previous fix (PR #8, merged 2026-08-10) did not actually resolve the symptom — all 14 notes on personal-jacky were re-PUT 2026-08-11 to force re-embedding, and note_search still returned empty as of 2026-08-13, confirmed NOT a deploy-lag issue (running deployment postdates every relevant merge). Needs a fresh investigation: check whether MINIMAX_API_KEY is actually set in orbita-api's prod env on Zeabur, and whether note_put's embed call is failing silently again. If root cause needs new embedding provider spend or schema change, open decisions.json and mark needs_human. BLOCKS the hub: until search is trustworthy, agents must resume sessions via flat memory keys and note ids."
     },
     {
       "id": "E-05",
@@ -81,7 +81,7 @@
       "phase": "midline",
       "decomposes_into": [],
       "decisions": [],
-      "notes": "Umbrella vision — stays proposed so Maker cannot invent hub direction. Sketch: docs/personal-steward/portfolio-hub.md. Decompose by approving concrete slices: E-08 (H2 retrieval) and E-09 (collection) are the first two. Remaining: instruction dispatch (H3)."
+      "notes": "Umbrella vision — stays proposed so Maker cannot invent hub direction. Sketch: docs/personal-steward/portfolio-hub.md. Decompose by approving concrete slices: E-08 (H2 retrieval), E-09 (collection), E-11 (on-demand trigger) are approved slices. Remaining: instruction dispatch (H3, still proposed, needs github_dispatch credential — see D-002 _why_read_only)."
     },
     {
       "id": "E-08",
@@ -112,6 +112,16 @@
       "decomposes_into": [],
       "decisions": [],
       "notes": "The only line that genuinely needs per-project work — an app's own database is the only source. Deliberately NOT approved: no product has meaningful runtime signals yet (ai-business is pre-beta, ViOS is pre-UI). Building endpoints now buys a public surface and a credential per project in exchange for reporting zeroes. Approve per project when that project has users. Contract: ai-dev-methodologies portfolio-hub-reporting.md, edge=runtime."
+    },
+    {
+      "id": "E-11",
+      "title": "On-demand automation trigger — hub session can nudge a Cursor Automation early",
+      "goal": "From a hub chat session, Claude can trigger this repo's Maker or Checker to run now instead of waiting for its next scheduled tick — useful when interactively testing an idea or verifying a just-pushed fix — while keeping the exact same trust boundary the collector credentials already use.",
+      "status": "approved",
+      "phase": "hub-h3-pilot",
+      "decomposes_into": [],
+      "decisions": [],
+      "notes": "Founder approved 2026-08-16, orbita ONLY as a pilot — do not generalise to other projects in this epic; that is a separate future epic once this one has been used for real. MECHANISM (mirrors D-002 exactly, reuse packages/lane-credentials as-is, do not build a second vault): founder creates the Cursor Automation webhook URL + API key himself in the Cursor UI (Settings → this Automation → Webhook trigger, generated after the automation is saved) and stores them via the EXISTING POST /v1/admin/credentials route under client_id personal-jacky — Claude/Maker must NEVER see, enter, or transmit the raw webhook key; that step is founder-only, same as github_read and zeabur_api were. Suggested credential names: cursor_webhook_orbita_maker and cursor_webhook_orbita_checker (one per lane, since a hub session may want either). SCOPE OF THE BUILD (this epic covers only the following, nothing else): (1) a new MCP tool, e.g. trigger_automation(lane: 'maker'|'checker', reason: string), exposed alongside the existing note_* tools, client-scoped to personal-jacky same as everything else; (2) server-side only: resolve the matching credential via resolveCredentialSecret, POST to the stored webhook URL, never let the secret value reach any log, error message, tool response, or committed file; (3) on every trigger — success or failure — write a note via the existing note_put path with frontmatter type='instruction', project='orbita', and body recording lane, reason, timestamp, and outcome, so Cursor's own run history and this note can be cross-referenced later; (4) the tool must require an explicit, non-empty reason argument and must fail closed (return an error, do not silently no-op) if the credential is missing — a missing credential means the founder has not finished the manual setup step, not that triggering should be skipped quietly. HARD CONSTRAINTS: read-only towards repo content (the tool only ever calls the webhook URL, it must not itself touch git, PRs, or backlog/roadmap/locks files — the triggered Automation does that, under its own existing playbook rules, same as any scheduled tick); no polling, no retry loop, no queueing multiple triggers — one call in, one webhook POST out; do not expose this over any surface other than the MCP tool (no public HTTP route, no unauthenticated path). NOT IN SCOPE for this epic (explicitly deferred, do not build now): triggering any project other than orbita; a Slack or other non-hub-session trigger source; automatic/scheduled use of this tool by any agent without a human explicitly asking in that turn — an agent must never call trigger_automation on its own initiative just because it judges a fresh tick would be convenient (e.g. right after merging something) — it is a founder-requested action every time, same trust level as sending a message or publishing content elsewhere in the safety framework this hub already follows."
     }
   ]
 }
