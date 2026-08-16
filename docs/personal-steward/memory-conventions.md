@@ -39,6 +39,20 @@ period_until: 2026-08-07
 | Status, JSON state, pointers | `memory_put` / `PUT /v1/memories/{key}` |
 | Relationships | `note_link` (`relates_to`, `depends_on`, `contradicts`, `see_also`) |
 
+## Export notes (Obsidian-friendly Markdown)
+
+`GET /v1/notes/export` returns JSON `{ "files": [{ "path", "body" }] }` for the authenticated `client_id`. Each file is Obsidian-ready Markdown (H1 title, body, outgoing `[[wikilinks]]` from note links). Auth is the same API-key pattern as other personal-steward REST calls — not OAuth.
+
+```bash
+source ~/.orbita-personal.env
+AUTH=(-H "Authorization: Bearer $ORBITA_PERSONAL_API_KEY" \
+      -H "x-orbita-client-id: personal-jacky")
+
+curl -sS "${AUTH[@]}" "$ORBITA_API_BASE/v1/notes/export" | jq .
+# optional: write each file under ./export/
+# jq -r '.files[] | "\(.path)\t\(.body)"' …
+```
+
 ## Idempotency
 
 - Prefer **stable note ids** (uuid you keep in project README) for living docs

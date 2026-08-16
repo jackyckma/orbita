@@ -1,14 +1,14 @@
 # Current status
 
-**Last updated:** 2026-08-07
+**Last updated:** 2026-08-12
 
 **Navigation:** `docs/DEVELOPMENT_LANES.md` · `docs/development-plan.md` · `docs/at-editorial-poll.md` · `docs/autopilot/`
 
 ## Summary
 
-Orbita **W0–W35 shipped** on prod; API **`0.0.1-w35`** (PA1.5 MCP OAuth for Claude Custom Connector). Next platform ship target for notes export: **`0.0.1-w36`** (Autopilot epic E-02).
+Orbita **W0–W36 shipped** on prod; API **`0.0.1-w36`** includes `GET /v1/notes/export` (Obsidian-friendly Markdown + wikilinks; Autopilot E-02 / T-0010). W35 remains PA1.5 MCP OAuth for Claude Custom Connector.
 
-**Focus:** Autopilot Maker/Checker (twice daily) fueled for W35 export + L2 ops visibility; AT dogfood loop was primary before pause — cron health to be re-checked (T-0020).
+**Focus:** Autopilot Maker/Checker (twice daily) draining E-02 follow-ups + L2 ops visibility; AT dogfood loop was primary before pause — cron health to be re-checked (T-0020).
 
 ## Dogfood — AT1b
 
@@ -24,7 +24,7 @@ Orbita **W0–W35 shipped** on prod; API **`0.0.1-w35`** (PA1.5 MCP OAuth for Cl
 
 | URL | Role |
 |-----|------|
-| https://api.get-orbita.com | Production API (`0.0.1-w35`) |
+| https://api.get-orbita.com | Production API (`0.0.1-w36`) |
 | https://api.get-orbita.com/v1/mcp | PA1 MCP + PA1.5 OAuth |
 | https://get-orbita.com | Marketing + docs |
 
@@ -35,6 +35,7 @@ Orbita **W0–W35 shipped** on prod; API **`0.0.1-w35`** (PA1.5 MCP OAuth for Cl
 | PA0 `personal-jacky` | ✅ `~/.orbita-personal.env` + Cursor skill |
 | PA1 MCP | ✅ |
 | PA1.5 Claude Custom Connector | ✅ OAuth + DCR (user connected) |
+| Notes export `GET /v1/notes/export` | ✅ w36 (see `memory-conventions.md`) |
 
 ## Autopilot
 

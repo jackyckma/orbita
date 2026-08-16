@@ -49,7 +49,7 @@ You (instruction)
 
 | Pattern | When | How |
 |---------|------|-----|
-| **Direct REST** | "Save this paragraph" / "Search ViOS" | `curl` → `/v1/notes`, `/v1/memories`, `/v1/notes/search` |
+| **Direct REST** | "Save this paragraph" / "Search ViOS" / "Export vault" | `curl` → `/v1/notes`, `/v1/memories`, `/v1/notes/search`, `/v1/notes/export` |
 | **Steward turn** | "Organize my week's notes" | `POST /v1/sessions` + messages with profile `personal-steward` |
 
 ## Relation to AT dogfood
