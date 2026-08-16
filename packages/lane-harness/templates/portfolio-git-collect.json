@@ -1,0 +1,33 @@
+{
+  "id": "portfolio-git-collect",
+  "version": 1,
+  "extends": "cron-agent",
+  "description": "Portfolio hub line 1 — pull each enabled project's docs/autopilot state from GitHub and store type=report notes (edge=repo). Deterministic collector; no product-repo writes.",
+  "defaults": {
+    "session_policy": "per_run",
+    "loops": {
+      "agent": {
+        "enabled": true,
+        "profile_id": "default",
+        "task": {
+          "mode": "message",
+          "message": "portfolio_git collector (system) — agent turn skipped when application.collector is set."
+        }
+      },
+      "trigger": {
+        "enabled": true,
+        "cron": "0 6 * * *",
+        "timezone": "UTC"
+      }
+    },
+    "output": {
+      "mode": "poll",
+      "emit_trajectory": true
+    },
+    "application": {
+      "collector": "portfolio_git",
+      "credential_name": "github_read",
+      "period_hours": 24
+    }
+  }
+}
