@@ -78,10 +78,11 @@
         "T-0010"
       ],
       "flag": null,
-      "status": "in_review",
+      "status": "done",
       "retries": 0,
       "feedback": [
-        "PR https://github.com/jackyckma/orbita/pull/11 opened; acceptance + agent-verify green (Maker 2026-08-10)."
+        "PR https://github.com/jackyckma/orbita/pull/11 opened; acceptance + agent-verify green (Maker 2026-08-10).",
+        "Merged manually by claude-hub-session 2026-08-16 (squash, sha abd56c0) — Checker had not been merging queued PRs for several days; founder screenshots showed the Automation intermittently Failing rather than idle."
       ]
     },
     {
@@ -97,10 +98,11 @@
         "T-0010"
       ],
       "flag": null,
-      "status": "in_review",
+      "status": "done",
       "retries": 0,
       "feedback": [
-        "PR https://github.com/jackyckma/orbita/pull/13 opened; acceptance rg green (Maker 2026-08-12)."
+        "PR https://github.com/jackyckma/orbita/pull/13 opened; acceptance rg green (Maker 2026-08-12).",
+        "Merged manually by claude-hub-session 2026-08-16 (squash, sha 9858c05)."
       ]
     },
     {
@@ -134,11 +136,14 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "done",
+      "status": "needs_human",
       "retries": 0,
       "feedback": [
         "PR https://github.com/jackyckma/orbita/pull/8 opened; MiniMax-native embed texts+type; docs/note-search-troubleshooting.md; re-index notes after deploy (Maker 2026-08-08).",
-        "Merged manually by claude-hub-session 2026-08-10 (squash, sha 724ce02) after Checker-lane deadlock fix. REMINDER: existing notes stored before this fix still have embedding IS NULL and stay unfindable via note_search until re-PUT — see docs/note-search-troubleshooting.md for the re-index step. Not yet done."
+        "Merged manually by claude-hub-session 2026-08-10 (squash, sha 724ce02) after Checker-lane deadlock fix.",
+        "2026-08-11 (claude-hub-session): all 14 notes on personal-jacky re-PUT to force re-embedding. note_search STILL returns empty for multiple distinct queries.",
+        "2026-08-13 (claude-hub-session): confirmed via Zeabur this is NOT a deploy-lag issue — running orbita-api deployment (started 2026-08-12T19:19:41Z, version 0.0.1-w36) postdates every relevant merge, yet note_search remains empty. So this is a second, still-unfixed bug in the embedding/search path itself, not the original swallowed-error bug alone. NEEDS FRESH INVESTIGATION: check whether MINIMAX_API_KEY is actually set in orbita-api's prod env on Zeabur, and whether note_put's embed call is failing silently again (same class of bug). Re-verified broken again 2026-08-16.",
+        "STATUS CHANGED FROM done TO needs_human 2026-08-16 — closing this out as 'done' when the symptom is still reproducible was wrong; leaving it open until someone with deploy/log access root-causes it."
       ]
     },
     {
@@ -155,7 +160,7 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "in_review",
+      "status": "done",
       "retries": 1,
       "feedback": [
         "PR https://github.com/jackyckma/orbita/pull/9 opened; acceptance + agent-verify green (Maker 2026-08-09). Filters on existing GET /notes.",
@@ -165,7 +170,8 @@
           "by": "checker",
           "note": "REVIEW PR #9: verify-all PASS on head, but mergeable=CONFLICTING (packages/lane-memory/src/index.ts vs main after #6). Did not merge. Bounced to ready retries+1; cleared lock for Maker rebase."
         },
-        "PR https://github.com/jackyckma/orbita/pull/12 opened on cursor/autopilot-maker-action-0828; supersedes conflicting #9; acceptance + agent-verify green (Maker 2026-08-11). Filters on existing GET /notes."
+        "PR https://github.com/jackyckma/orbita/pull/12 opened on cursor/autopilot-maker-action-0828; supersedes conflicting #9; acceptance + agent-verify green (Maker 2026-08-11). Filters on existing GET /notes.",
+        "Merged manually by claude-hub-session 2026-08-16 (squash, sha 20802d8). #9 closed as superseded, not merged."
       ]
     },
     {
@@ -232,14 +238,15 @@
         "T-0050"
       ],
       "flag": null,
-      "status": "in_review",
+      "status": "done",
       "retries": 0,
       "feedback": [
         {
           "at": "2026-08-13T19:28:17Z",
           "by": "maker",
           "note": "PR https://github.com/jackyckma/orbita/pull/14 opened; acceptance + agent-verify green (Maker 2026-08-13)."
-        }
+        },
+        "Merged manually by claude-hub-session 2026-08-16 (squash, sha 0bca491)."
       ]
     },
     {
@@ -259,13 +266,18 @@
         "T-0050"
       ],
       "flag": null,
-      "status": "in_review",
+      "status": "needs_human",
       "retries": 0,
       "feedback": [
           {
             "at": "2026-08-15T07:07:14Z",
             "by": "maker",
             "note": "PR #15 opened — Zeabur deploy collector (@orbita/portfolio edge=deploy); acceptance green; GraphQL queries documented in portfolio-collectors.md"
+          },
+          {
+            "at": "2026-08-16T12:53:00Z",
+            "by": "claude-hub-session",
+            "note": "T-0051 (#14) merged first. Attempted to merge #15 immediately after — GitHub rejected with a real merge conflict (405), exactly the risk the PR body itself flagged (@orbita/portfolio + harness systemCollectors overlap). Left open, unmerged. Needs a fresh Maker run to rebase onto current main."
           }
         ]
     },
