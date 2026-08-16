@@ -1,9 +1,19 @@
 import { randomUUID } from "node:crypto";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, gte, lt } from "drizzle-orm";
 import type { MemoryEnv } from "./config.js";
 import type { MemoryDb } from "./db/client.js";
 import { noteLinks, notes } from "./db/schema.js";
 import { embedText, formatVectorLiteral } from "./embed.js";
+import {
+  noteMatchesListFilters,
+  type NoteListFilters,
+} from "./note-list-filters.js";
+
+export type { NoteListFilters } from "./note-list-filters.js";
+export {
+  noteMatchesListFilters,
+  parseNoteListFilters,
+} from "./note-list-filters.js";
 
 export type NoteRecord = {
   id: string;
@@ -59,22 +69,72 @@ export async function listNotes(
   db: MemoryDb,
   clientId: string,
   limit = 50,
+  filters?: NoteListFilters,
 ): Promise<NoteListItem[]> {
+  const conditions = [eq(notes.clientId, clientId)];
+  if (filters?.since) {
+    conditions.push(gte(notes.updatedAt, filters.since));
+  }
+  if (filters?.until) {
+    conditions.push(lt(notes.updatedAt, filters.until));
+  }
+
+  const needsFrontmatter =
+    Boolean(filters?.project) || Boolean(filters?.type);
+
+  if (!needsFrontmatter) {
+    const rows = await db.db
+      .select({
+        id: notes.id,
+        title: notes.title,
+        updatedAt: notes.updatedAt,
+      })
+      .from(notes)
+      .where(and(...conditions))
+      .orderBy(desc(notes.updatedAt))
+      .limit(limit);
+    return rows.map((row) => ({
+      id: row.id,
+      title: row.title,
+      updated_at: row.updatedAt.toISOString(),
+    }));
+  }
+
+  // Frontmatter filters: apply pure predicate after SQL client/time constraints.
+  // defer: unbounded read for filtered lists. upgrade: jsonb SQL predicates if note volume grows
   const rows = await db.db
     .select({
       id: notes.id,
       title: notes.title,
       updatedAt: notes.updatedAt,
+      frontmatter: notes.frontmatter,
     })
     .from(notes)
-    .where(eq(notes.clientId, clientId))
-    .orderBy(desc(notes.updatedAt))
-    .limit(limit);
-  return rows.map((row) => ({
-    id: row.id,
-    title: row.title,
-    updated_at: row.updatedAt.toISOString(),
-  }));
+    .where(and(...conditions))
+    .orderBy(desc(notes.updatedAt));
+
+  const activeFilters = filters ?? {};
+  return rows
+    .filter((row) =>
+      noteMatchesListFilters(
+        {
+          frontmatter:
+            row.frontmatter &&
+            typeof row.frontmatter === "object" &&
+            !Array.isArray(row.frontmatter)
+              ? (row.frontmatter as Record<string, unknown>)
+              : {},
+          updated_at: row.updatedAt.toISOString(),
+        },
+        activeFilters,
+      ),
+    )
+    .slice(0, limit)
+    .map((row) => ({
+      id: row.id,
+      title: row.title,
+      updated_at: row.updatedAt.toISOString(),
+    }));
 }
 
 export async function getNoteById(
