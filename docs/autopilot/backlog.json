@@ -344,6 +344,45 @@
       "status": "ready",
       "retries": 0,
       "feedback": []
+    },
+    {
+      "id": "T-0056",
+      "lane": "platform",
+      "phase": "hub-h3-pilot",
+      "title": "GitHub read tools over MCP: github_get_file, github_list_commits, github_list_pull_requests",
+      "description": "Epic E-12. Add three new MCP tools alongside the existing ones in packages/lane-mcp/src/index.ts (same registerOrbitaTools function/pattern used for note_put, trigger_automation from T-0054). All three resolve the SAME existing credential — resolveCredentialSecret(credentialsDb, secretsKey, clientId, 'github_read') — no new credential name needed; github_read already exists (D-002, 2026-08-09) and already covers every repo that credential's token can read, so unlike T-0054 there is no per-repo or per-lane split. 1) github_get_file — input { repo: z.string() (owner/name), path: z.string(), ref: z.string().optional() (branch/tag/sha; default the repo's default branch) }. Fetch via GET https://api.github.com/repos/{owner}/{repo}/contents/{path}?ref={ref}, base64-decode the content field, return { path, ref, content, sha }. On 404 return isError:true with a clear 'not found' message — do NOT return an empty string, the caller must be able to tell 'file does not exist' apart from 'file is empty'. 2) github_list_commits — input { repo: z.string(), branch: z.string().optional(), limit: z.number().int().min(1).max(50).optional() (default 10), since: z.string().optional() (ISO date) }. Fetch via GET https://api.github.com/repos/{owner}/{repo}/commits?sha={branch}&per_page={limit}&since={since if given}. Return an array of { sha, message (first line only), author, date }. 3) github_list_pull_requests — input { repo: z.string(), state: z.enum(['open','closed','all']).optional() (default 'open') }. Fetch via GET https://api.github.com/repos/{owner}/{repo}/pulls?state={state}&per_page=50. Return an array of { number, title, branch (mapped from head.ref), draft, created_at, html_url }. AUTH PATTERN — reuse the exact header shape already used by the private ghJson() helper in packages/lane-portfolio/src/github.ts (Accept: application/vnd.github+json, Authorization: Bearer <token>, User-Agent, X-GitHub-Api-Version: 2022-11-28); if that helper is not exported, duplicate the same four headers exactly rather than inventing a different auth style. Owner/repo parsing: reuse or mirror parseOwnerRepo from that same file (splits 'owner/repo' on '/'). Wiring: T-0054 may already have added credentialsDb + secretsKey to OrbitaMcpDeps and threaded them through apps/orbita-api/src/index.ts — check first and reuse that wiring rather than duplicating it; if T-0054 has not landed yet, add it the same way T-0054's description specifies. HARD CONSTRAINTS: strictly READ-ONLY toward GitHub — these three tools must never call the GitHub API with POST, PATCH, PUT, or DELETE, under any circumstance; that boundary is the entire reason this epic did not need a founder pilot-project restriction the way E-11 did. MCP-tool surface only, no new public HTTP route. Never let the resolved token value appear in a log line, error message, tool response text, or committed file. NOT IN SCOPE for this task (explicitly deferred per E-12 notes): any mutating GitHub call (merge, comment, create/delete file or branch) — stays chat-session-only via the first-party desktop GitHub connector, this tool is intentionally not a way around that; code search across a repo; any scheduling.",
+      "acceptance": [
+        "pnpm --filter @orbita/api typecheck",
+        "pnpm -r test",
+        "rg -n \"github_get_file\" packages/lane-mcp/src",
+        "rg -n \"github_list_commits\" packages/lane-mcp/src",
+        "rg -n \"github_list_pull_requests\" packages/lane-mcp/src",
+        "rg -n \"github_read\" packages/lane-mcp/src",
+        "! rg -n \"method:\\s*[\\\"'](POST|PATCH|PUT|DELETE)[\\\"']\" packages/lane-mcp/src/index.ts"
+      ],
+      "deps": [],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": []
+    },
+    {
+      "id": "T-0057",
+      "lane": "platform",
+      "phase": "hub-h3-pilot",
+      "title": "Unit tests for GitHub read tools (github_get_file / github_list_commits / github_list_pull_requests)",
+      "description": "Epic E-12. Add vitest coverage in packages/lane-mcp for the three tools added in T-0056, using a mocked fetch — no real GitHub calls. Cover at minimum: (1) github_get_file returns decoded content + sha on a mocked 200, and returns isError:true (not an empty string) on a mocked 404 — assert the two cases are distinguishable in the tool result; (2) github_list_commits maps the mocked GitHub response into { sha, message, author, date } correctly, and that the limit param is actually passed through to the request URL (per_page); (3) github_list_pull_requests maps draft and branch (from head.ref) correctly from a mocked GitHub pulls response, and defaults state to 'open' when omitted; (4) across all three, the resolved github_read token value never appears in any assertion string, mocked-fetch-call inspection output, or tool response text captured during the test. Prefer testing each tool's handler function directly (extracted, not only via a full MCP server round-trip) if that keeps tests fast and dependency-light, matching whatever pattern T-0055 already established for trigger_automation's tests.",
+      "acceptance": [
+        "pnpm --filter @orbita/api test",
+        "rg -n \"github_get_file|github_list_commits|github_list_pull_requests\" packages/lane-mcp/src/*.test.ts packages/lane-mcp/src/**/*.test.ts"
+      ],
+      "deps": [
+        "T-0056"
+      ],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": []
     }
   ]
 }
