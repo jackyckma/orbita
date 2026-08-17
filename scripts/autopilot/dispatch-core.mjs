@@ -65,9 +65,8 @@ export function parsePrNumber(value) {
  * which yields NaN for a URL, and `NaN !== 6` is true — so every oldest PR
  * looked superseded, CLOSE_STALE was proposed ahead of REVIEW on every tick,
  * the Checker agent correctly refused at the playbook gate, and the lane
- * deadlocked with PRs accumulating for days. (This is exactly the T-0010/#6
- * vs T-0040/#9 incident from 2026-08-09 — locks.json's data got hand-fixed at
- * the time, but this file itself never received the code fix until now.)
+ * deadlocked with PRs accumulating for days. (This is the incident referenced
+ * in orbita's pause-state.json _last_incident, 2026-08-09.)
  *
  * @param {OpenPR} pr
  * @param {{ tasksById: Map<string, Task>, locks?: Record<string, { pr?: number|string|null }> }} ctx
@@ -167,6 +166,11 @@ export function decideMaker(state) {
   // Checked first, ahead of picking new work: a stuck lease blocks nothing in
   // actionableReady (it's already excluded there), so without this check it
   // would just sit invisible forever rather than surfacing to the founder.
+  // (Checker also runs this same check on 'in_progress' locks — see
+  // decideChecker below — because on projects where Maker only ticks once or
+  // twice a day, Checker's much more frequent ticks catch a Maker-side stall
+  // far sooner. This check stays here too so Maker self-heals even on a
+  // project with no Checker traffic at all.)
   const stale = findStaleLock(state.locks ?? {}, tasksById, {
     nowMs: state.nowMs ?? Date.now(),
     staleHours: state.staleLockHours,
@@ -239,17 +243,14 @@ export function decideChecker(state) {
   }
 
   const tasksById = new Map((state.tasks ?? []).map((t) => [t.id, t]));
+  const staleOpts = { nowMs: state.nowMs ?? Date.now(), staleHours: state.staleLockHours };
 
   // Checked first, ahead of picking a PR to review: if the head-of-queue PR's
   // REVIEW keeps failing before it can bounce itself, everything behind it in
   // the FIFO queue is blocked too — a silent head-of-line stall. Escalate and
   // let the PR-picking logic below skip it from here on (never merge on
   // failure, so the PR itself is left open, untouched, for manual inspection).
-  const staleReview = findStaleLock(state.locks ?? {}, tasksById, {
-    nowMs: state.nowMs ?? Date.now(),
-    staleHours: state.staleLockHours,
-    statusMatch: "in_review",
-  });
+  const staleReview = findStaleLock(state.locks ?? {}, tasksById, { ...staleOpts, statusMatch: "in_review" });
   if (staleReview) {
     return {
       lane,
@@ -261,11 +262,30 @@ export function decideChecker(state) {
     };
   }
 
+  // Checker also catches a MAKER-side stall (lock still in_progress), not
+  // just its own. Rationale: Checker ticks far more often than Maker on most
+  // projects — event-triggered on every new draft PR, plus its own schedule —
+  // while Maker may only run once or twice a day. Waiting for Maker's own
+  // next tick to notice its own crash could mean a stuck task sits for most
+  // of a day. This does not blur "Checker never writes feature code": this
+  // action only clears a lock and flips a status, the same escalation Maker
+  // would have done to itself.
+  const staleImplement = findStaleLock(state.locks ?? {}, tasksById, { ...staleOpts, statusMatch: "in_progress" });
+  if (staleImplement) {
+    return {
+      lane,
+      action: "FORCE_NEEDS_HUMAN",
+      taskId: staleImplement.taskId,
+      ageHours: staleImplement.ageHours,
+      reason: `lock held ${staleImplement.ageHours.toFixed(1)}h with task still in_progress — normal IMPLEMENT finishes in one tick, so every run since must have crashed before it could bounce itself. Caught by Checker (ticks more often than Maker on this project) rather than waiting for Maker's own next scheduled run.`,
+    };
+  }
+
   if (Array.isArray(state.openPRs) && state.openPRs.length > 0) {
     const ctx = { tasksById, locks: state.locks ?? {} };
 
-    // A PR whose task was already escalated (by the check above, this tick or
-    // a previous one) has nothing left for this lane to do automatically —
+    // A PR whose task was already escalated (by either check above, this tick
+    // or a previous one) has nothing left for this lane to do automatically —
     // skip it so later PRs in the queue still get a turn, rather than the
     // FIFO order re-picking the same stuck PR forever.
     const actionable = state.openPRs.filter((pr) => {
