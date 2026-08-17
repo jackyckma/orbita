@@ -307,6 +307,43 @@
       "status": "ready",
       "retries": 0,
       "feedback": []
+    },
+    {
+      "id": "T-0054",
+      "lane": "platform",
+      "phase": "hub-h3-pilot",
+      "title": "trigger_automation MCP tool — on-demand Cursor Automation nudge (orbita only)",
+      "description": "Epic E-11. Add a new MCP tool alongside the existing ones in packages/lane-mcp/src/index.ts (same registerOrbitaTools function, same server.registerTool pattern already used for note_put etc.). Tool name: trigger_automation. Input schema (zod): { lane: z.enum(['maker','checker']), reason: z.string().min(1) } — reason is REQUIRED and must be non-empty; reject with a clear error if empty rather than silently proceeding. Behavior: (1) resolve the matching credential via resolveCredentialSecret(credentialsDb, secretsKey, clientId, name) from packages/lane-credentials/src/service.ts, where name is 'cursor_webhook_orbita_maker' or 'cursor_webhook_orbita_checker' depending on the lane argument; (2) if resolveCredentialSecret throws notFound (credential missing — the founder has not finished the manual Cursor-UI + POST /v1/admin/credentials setup step yet), return isError:true with a clear message naming which credential is missing — this is a FAIL-CLOSED case, never silently no-op and never fabricate a fake success; (3) if the credential resolves, treat its stored value as the full webhook URL + auth Cursor's UI generated (the exact request shape — header vs query param for the key — is only knowable once the founder has actually generated one in the Cursor UI; read whatever format the stored secret implies, or if it is stored as a single URL with the key embedded as a query param, POST to that URL directly) and make ONE POST request, no retry, no polling, no queueing multiple triggers; (4) regardless of outcome (success or failure of the webhook call itself), call upsertNote from @orbita/memory to write a note for clientId with frontmatter { type: 'instruction', project: 'orbita', lane, reason, triggered_at: <ISO now>, outcome: 'sent'|'failed', ...(failure detail if any) } and a short human-readable body summarising the same — this is the audit trail the founder cross-references against Cursor's own run history. Wiring: add credentialsDb + secretsKey to OrbitaMcpDeps in packages/lane-mcp/src/index.ts and thread them through wherever apps/orbita-api/src/index.ts currently constructs OrbitaMcpDeps (T-0051/T-0052 already resolve github_read/zeabur_api credentials somewhere in this app — follow that exact pattern for secretsKey/credentialsDb access, do not invent a second way to reach the credentials DB). HARD CONSTRAINTS (do not relitigate — founder-set scope from E-11): orbita ONLY, no other project; this tool must never itself touch git, PRs, backlog.json, roadmap.json, or locks.json — it only ever POSTs to the stored webhook URL, the triggered Automation does everything else under its own existing playbook rules; do not expose this over any HTTP route other than the MCP tool surface (no new public endpoint); never let the resolved secret value appear in a log line, error message, tool response text, or committed file — if you need to log anything about the request, log the credential NAME, never its resolved value. If the founder has not yet created the credential (likely, since this may ship before he sets it up in Cursor), that is fine — the tool should still build, typecheck, and have full test coverage of both the fail-closed (missing credential) and success (mocked webhook + note write) paths; end-to-end live verification happens once he creates cursor_webhook_orbita_maker/_checker himself.",
+      "acceptance": [
+        "pnpm --filter @orbita/api typecheck",
+        "pnpm -r test",
+        "rg -n \"trigger_automation\" packages/lane-mcp/src",
+        "rg -n \"resolveCredentialSecret\" packages/lane-mcp/src",
+        "rg -n \"cursor_webhook_orbita\" packages/lane-mcp/src"
+      ],
+      "deps": [],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": []
+    },
+    {
+      "id": "T-0055",
+      "lane": "platform",
+      "phase": "hub-h3-pilot",
+      "title": "Unit tests for trigger_automation (fail-closed + success + note audit trail)",
+      "description": "Epic E-11. Add vitest coverage in packages/lane-mcp for the trigger_automation tool added in T-0054, using mocked resolveCredentialSecret and a mocked fetch/http client for the webhook POST — no real network calls, no real Cursor webhook. Cover at minimum: (1) empty/missing reason is rejected before any credential lookup happens; (2) credential not found (resolveCredentialSecret throws notFound) returns isError:true naming the missing credential name, and does NOT write a fake-success note; (3) credential found + webhook POST mocked to succeed → exactly one POST call made, a note is written via upsertNote with frontmatter.type='instruction', frontmatter.project='orbita', frontmatter.lane matching input, frontmatter.outcome='sent'; (4) credential found + webhook POST mocked to fail (e.g. non-2xx or network error) → note still written with frontmatter.outcome='failed' and the tool result reflects the failure, not a silent success; (5) the resolved secret value never appears in any assertion string, log capture, or note body/frontmatter written during the test — grep the test's own fixtures if needed to confirm this isn't accidentally leaking. Prefer testing the tool's handler function directly (extracted, not only via a full MCP server round-trip) if that keeps the tests fast and dependency-light, consistent with how other lane-mcp tools are tested if a pattern already exists there.",
+      "acceptance": [
+        "pnpm --filter @orbita/api test",
+        "rg -n \"trigger_automation\" packages/lane-mcp/src/*.test.ts packages/lane-mcp/src/**/*.test.ts"
+      ],
+      "deps": [
+        "T-0054"
+      ],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": []
     }
   ]
 }
