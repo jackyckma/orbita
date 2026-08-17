@@ -81,7 +81,7 @@
       "phase": "midline",
       "decomposes_into": [],
       "decisions": [],
-      "notes": "Umbrella vision — stays proposed so Maker cannot invent hub direction. Sketch: docs/personal-steward/portfolio-hub.md. Decompose by approving concrete slices: E-08 (H2 retrieval), E-09 (collection), E-11 (on-demand trigger) are approved slices. Remaining: instruction dispatch (H3, still proposed, needs github_dispatch credential — see D-002 _why_read_only)."
+      "notes": "Umbrella vision — stays proposed so Maker cannot invent hub direction. Sketch: docs/personal-steward/portfolio-hub.md. Decompose by approving concrete slices: E-08 (H2 retrieval), E-09 (collection), E-11 (on-demand trigger), E-12 (on-demand GitHub read) are approved slices. Remaining: instruction dispatch (H3, still proposed, needs github_dispatch credential — see D-002 _why_read_only)."
     },
     {
       "id": "E-08",
@@ -122,6 +122,16 @@
       "decomposes_into": ["T-0054", "T-0055"],
       "decisions": [],
       "notes": "Founder approved 2026-08-16, orbita ONLY as a pilot — do not generalise to other projects in this epic; that is a separate future epic once this one has been used for real. Manually decomposed by claude-hub-session 2026-08-17 (fast-tracked ahead of natural REPLAN, at founder's request — Maker's ready queue had T-0053 ahead of it, which would have delayed REPLAN by another cycle). MECHANISM (mirrors D-002 exactly, reuse packages/lane-credentials as-is, do not build a second vault): founder creates the Cursor Automation webhook URL + API key himself in the Cursor UI (Settings → this Automation → Webhook trigger, generated after the automation is saved) and stores them via the EXISTING POST /v1/admin/credentials route under client_id personal-jacky — Claude/Maker must NEVER see, enter, or transmit the raw webhook key; that step is founder-only, same as github_read and zeabur_api were. Credential names: cursor_webhook_orbita_maker and cursor_webhook_orbita_checker. T-0054 can build/typecheck/test fully before the founder has created either credential — end-to-end live verification happens once he does. HARD CONSTRAINTS (do not relitigate): orbita only; tool is read-only toward repo content (only ever POSTs to the stored webhook URL); no polling/retry/queueing — one call in, one webhook POST out; MCP-tool surface only, no new public HTTP route; an agent must never call trigger_automation on its own initiative — founder-requested every time, same trust level as sending a message or publishing content elsewhere in this hub's safety framework."
+    },
+    {
+      "id": "E-12",
+      "title": "On-demand GitHub read tools over MCP — hub session can query repo state from any device",
+      "goal": "From ANY hub session — including mobile, which has no first-party GitHub connector — Claude can read a file, list recent commits, or list pull requests for any registered project, using the credential the hub already has.",
+      "status": "approved",
+      "phase": "hub-h3-pilot",
+      "decomposes_into": ["T-0056", "T-0057"],
+      "decisions": [],
+      "notes": "Founder approved 2026-08-17, motivated directly by a mobile session where GitHub's own connector was unavailable and status-checking had to wait for a desktop session. LOWER RISK THAN E-11: this is read-only toward GitHub with no path to mutating anything, so unlike E-11 there is no need to pilot on a single project first — it can cover every project the existing github_read token can already reach. REUSES THE EXISTING github_read CREDENTIAL FROM D-002 (2026-08-09) AS-IS — no new credential, no founder setup step required before this can work end-to-end. Manually decomposed by claude-hub-session 2026-08-17, same fast-track rationale as E-11. SCOPE (three tools, matching the actual read patterns used most often across this hub's sessions to date — do not add more without a real need): github_get_file(repo, path, ref?), github_list_commits(repo, branch?, limit?, since?), github_list_pull_requests(repo, state?). HARD CONSTRAINTS: strictly read-only — these tools must never call a mutating GitHub endpoint (no POST/PATCH/PUT/DELETE to the GitHub API), matching the read-only rationale D-002 already gave for this exact credential; MCP-tool surface only, no new public HTTP route; never let the resolved token value reach a log line, error message, tool response, or committed file. NOT IN SCOPE for this epic (explicitly deferred): any write/mutating GitHub action — merging, commenting, creating branches or files — that remains chat-session-only via the first-party GitHub connector on desktop, this is intentionally NOT a path around that boundary; code search across a repo; any scheduling — these are called on-demand mid-conversation, not run on a timer."
     }
   ]
 }
