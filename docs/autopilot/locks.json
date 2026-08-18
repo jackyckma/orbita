@@ -4,8 +4,8 @@
     "T-0054": {
       "by": "maker",
       "since": "2026-08-18T14:04:48Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/t-0054-trigger-automation-mcp",
+      "pr": 18
     },
     "T-0052": {
       "by": "maker",
