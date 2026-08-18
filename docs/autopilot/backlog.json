@@ -304,9 +304,15 @@
         "T-0051"
       ],
       "flag": null,
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
-      "feedback": []
+      "feedback": [
+        {
+          "at": "2026-08-18T13:04:00Z",
+          "by": "maker",
+          "note": "PR #17 opened — portfolio_brief MCP tool with staleness + sha chains; acceptance green"
+        }
+      ]
     },
     {
       "id": "T-0054",
