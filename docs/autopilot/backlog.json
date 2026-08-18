@@ -304,13 +304,18 @@
         "T-0051"
       ],
       "flag": null,
-      "status": "in_review",
+      "status": "done",
       "retries": 0,
       "feedback": [
         {
           "at": "2026-08-18T13:04:00Z",
           "by": "maker",
           "note": "PR #17 opened — portfolio_brief MCP tool with staleness + sha chains; acceptance green"
+        },
+        {
+          "at": "2026-08-18T13:06:30Z",
+          "by": "checker",
+          "note": "REVIEW PR #17: verify-all PASS; scope matches T-0053 (portfolio_brief MCP, staleness findings, sha chains, provenance); mergeable=MERGEABLE. Merged (merge commit 5ebdfbc). No duplicate T-0053 PRs."
         }
       ]
     },
