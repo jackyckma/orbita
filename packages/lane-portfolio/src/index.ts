@@ -41,3 +41,17 @@ export {
   type NoteWriter,
   type PreviousAskLookup,
 } from "./collect.js";
+
+export { parseHubReportFromNoteBody } from "./parse-report.js";
+
+export {
+  buildPortfolioBrief,
+  type BuildPortfolioBriefInput,
+  type PortfolioBrief,
+  type PortfolioReportNote,
+  type Provenance,
+  type ReportEdge,
+  type ShaChainEntry,
+  type StaleLineFinding,
+  type WithProvenance,
+} from "./brief.js";

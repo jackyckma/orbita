@@ -279,6 +279,9 @@ importers:
       '@orbita/memory':
         specifier: workspace:*
         version: link:../lane-memory
+      '@orbita/portfolio':
+        specifier: workspace:*
+        version: link:../lane-portfolio
       zod:
         specifier: ^3.25.56
         version: 3.25.76
