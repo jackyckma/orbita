@@ -334,10 +334,15 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "in_review",
+      "status": "done",
       "retries": 0,
       "feedback": [
-        "PR https://github.com/jackyckma/orbita/pull/18 opened; acceptance green (Maker 2026-08-18)."
+        "PR https://github.com/jackyckma/orbita/pull/18 opened; acceptance green (Maker 2026-08-18).",
+        {
+          "at": "2026-08-18T14:12:00Z",
+          "by": "checker",
+          "note": "REVIEW PR #18: verify-all PASS; scope matches T-0054 (trigger_automation MCP, credential fail-closed, webhook POST + audit note, secrets never in responses); merged (merge commit 558501e). No duplicate T-0054 PRs."
+        }
       ]
     },
     {
