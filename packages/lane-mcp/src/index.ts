@@ -14,6 +14,7 @@ import {
   upsertNote,
 } from "@orbita/memory";
 import { z } from "zod";
+import { portfolioBrief } from "./portfolio-brief.js";
 
 export type OrbitaMcpDeps = {
   clientId: string;
@@ -217,6 +218,45 @@ function registerOrbitaTools(server: McpServer, deps: OrbitaMcpDeps) {
     },
     async ({ id }) =>
       textResult({ links: await listNoteLinksFrom(memoryDb, clientId, id) }),
+  );
+
+  server.registerTool(
+    "portfolio_brief",
+    {
+      title: "Portfolio brief",
+      description:
+        "Structured portfolio hub brief: collected reports per project, staleness findings for overdue collector lines, and sha chains joining repo/deploy reports. Returns JSON only.",
+      inputSchema: z.object({
+        since: z
+          .string()
+          .min(1)
+          .describe("ISO-8601 inclusive lower bound on report updated_at"),
+        until: z
+          .string()
+          .optional()
+          .describe("ISO-8601 exclusive upper bound (default: now UTC)"),
+        project: z
+          .string()
+          .optional()
+          .describe("Optional project slug filter (enabled registry projects only)"),
+      }),
+    },
+    async ({ since, until, project }) => {
+      try {
+        const brief = await portfolioBrief(
+          { clientId, memoryDb },
+          { since, until, project },
+        );
+        return textResult(brief);
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "portfolio_brief failed";
+        return {
+          content: [{ type: "text" as const, text: message }],
+          isError: true,
+        };
+      }
+    },
   );
 }
 
