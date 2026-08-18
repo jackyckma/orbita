@@ -1,5 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
+import type { CredentialsDb } from "@orbita/credentials";
 import type { MemoryDb, MemoryEnv } from "@orbita/memory";
 import {
   createNoteLink,
@@ -15,6 +16,7 @@ import {
 } from "@orbita/memory";
 import { z } from "zod";
 import { portfolioBrief } from "./portfolio-brief.js";
+import { executeTriggerAutomation } from "./trigger-automation.js";
 
 export type OrbitaMcpDeps = {
   clientId: string;
@@ -22,6 +24,8 @@ export type OrbitaMcpDeps = {
   scopes: string[];
   memoryDb: MemoryDb;
   memoryEnv: MemoryEnv;
+  credentialsDb: CredentialsDb;
+  secretsKey: string;
   version: string;
 };
 
@@ -32,7 +36,7 @@ function textResult(payload: unknown) {
 }
 
 function registerOrbitaTools(server: McpServer, deps: OrbitaMcpDeps) {
-  const { clientId, memoryDb, memoryEnv } = deps;
+  const { clientId, memoryDb, memoryEnv, credentialsDb, secretsKey } = deps;
 
   server.registerTool(
     "orbita_whoami",
@@ -256,6 +260,71 @@ function registerOrbitaTools(server: McpServer, deps: OrbitaMcpDeps) {
           isError: true,
         };
       }
+    },
+  );
+
+  server.registerTool(
+    "trigger_automation",
+    {
+      title: "Trigger Cursor automation",
+      description:
+        "On-demand nudge for orbita Maker or Checker Cursor Automations (webhook trigger). Writes an audit note.",
+      inputSchema: z.object({
+        lane: z.enum(["maker", "checker"]),
+        reason: z.string().min(1),
+      }),
+    },
+    async ({ lane, reason }) => {
+      const result = await executeTriggerAutomation(
+        {
+          clientId,
+          credentialsDb,
+          secretsKey,
+          memoryDb,
+          memoryEnv,
+        },
+        { lane, reason },
+      );
+
+      if (!result.ok) {
+        if (result.kind === "credential_missing") {
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: `Missing credential: ${result.credential_name}. ${result.message}`,
+              },
+            ],
+            isError: true,
+          };
+        }
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: JSON.stringify(
+                {
+                  outcome: result.outcome,
+                  note_id: result.note_id,
+                  credential_name: result.credential_name,
+                  error: result.message,
+                },
+                null,
+                2,
+              ),
+            },
+          ],
+          isError: true,
+        };
+      }
+
+      return textResult({
+        outcome: result.outcome,
+        note_id: result.note_id,
+        credential_name: result.credential_name,
+        lane,
+        reason,
+      });
     },
   );
 }

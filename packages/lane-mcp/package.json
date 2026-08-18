@@ -6,15 +6,19 @@
   "exports": { ".": "./dist/index.js" },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
+    "@orbita/credentials": "workspace:*",
     "@orbita/memory": "workspace:*",
+    "@orbita/platform": "workspace:*",
     "@orbita/portfolio": "workspace:*",
     "zod": "^3.25.56"
   },
   "devDependencies": {
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
   }
 }

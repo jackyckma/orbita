@@ -262,6 +262,8 @@ app.all("/v1/mcp", mcpAuthMiddleware, requireMcpScope("sessions:use"), async (c)
     scopes: auth.apiKey.scopes,
     memoryDb,
     memoryEnv,
+    credentialsDb,
+    secretsKey: env.ORBITA_SECRETS_KEY!,
     version: VERSION,
   });
   return handler(c.req.raw);
