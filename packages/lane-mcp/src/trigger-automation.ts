@@ -12,6 +12,17 @@ export function credentialNameForLane(lane: AutomationLane): string {
     : "cursor_webhook_orbita_checker";
 }
 
+export type WriteAuditNote = (
+  db: MemoryDb,
+  clientId: string,
+  input: {
+    title: string;
+    body: string;
+    frontmatter: Record<string, unknown>;
+  },
+  env: MemoryEnv,
+) => Promise<{ id: string }>;
+
 export type TriggerAutomationDeps = {
   clientId: string;
   credentialsDb: CredentialsDb;
@@ -20,7 +31,7 @@ export type TriggerAutomationDeps = {
   memoryEnv: MemoryEnv;
   webhookFetch?: typeof fetch;
   resolveCredential?: typeof resolveCredentialSecret;
-  writeNote?: typeof upsertNote;
+  writeNote?: WriteAuditNote;
 };
 
 export type TriggerAutomationInput = {
@@ -62,7 +73,12 @@ export async function executeTriggerAutomation(
 ): Promise<TriggerAutomationResult> {
   const credentialName = credentialNameForLane(input.lane);
   const resolveCredential = deps.resolveCredential ?? resolveCredentialSecret;
-  const writeNote = deps.writeNote ?? upsertNote;
+  const writeNote: WriteAuditNote =
+    deps.writeNote ??
+    (async (db, clientId, input, env) => {
+      const note = await upsertNote(db, clientId, input, env);
+      return { id: note.id };
+    });
   const fetchFn = deps.webhookFetch ?? fetch;
   const triggeredAt = new Date().toISOString();
 

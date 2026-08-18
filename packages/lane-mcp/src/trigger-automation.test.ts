@@ -52,13 +52,11 @@ describe("executeTriggerAutomation", () => {
   it("posts once and writes a sent audit note on webhook success", async () => {
     const secretUrl = "https://example.test/webhook?key=super-secret-token";
     const webhookFetch = vi.fn(async () => new Response(null, { status: 200 }));
-    const writeNote = vi.fn(async () => ({
-      id: "note-1",
-      title: "Automation trigger (maker)",
-      body: "",
-      frontmatter: {},
-      updated_at: new Date().toISOString(),
-    }));
+    let capturedFrontmatter: Record<string, unknown> | undefined;
+    const writeNote = vi.fn(async (_db, _clientId, input) => {
+      capturedFrontmatter = input.frontmatter;
+      return { id: "note-1" };
+    });
 
     const result = await executeTriggerAutomation(
       {
@@ -79,8 +77,7 @@ describe("executeTriggerAutomation", () => {
     expect(webhookFetch).toHaveBeenCalledTimes(1);
     expect(webhookFetch).toHaveBeenCalledWith(secretUrl, { method: "POST" });
     expect(writeNote).toHaveBeenCalledTimes(1);
-    const noteInput = writeNote.mock.calls[0]?.[2];
-    expect(noteInput?.frontmatter).toMatchObject({
+    expect(capturedFrontmatter).toMatchObject({
       type: "instruction",
       project: "orbita",
       lane: "maker",
@@ -93,13 +90,11 @@ describe("executeTriggerAutomation", () => {
     const webhookFetch = vi.fn(
       async () => new Response("nope", { status: 500 }),
     );
-    const writeNote = vi.fn(async () => ({
-      id: "note-2",
-      title: "Automation trigger (checker)",
-      body: "",
-      frontmatter: {},
-      updated_at: new Date().toISOString(),
-    }));
+    let capturedFrontmatter: Record<string, unknown> | undefined;
+    const writeNote = vi.fn(async (_db, _clientId, input) => {
+      capturedFrontmatter = input.frontmatter;
+      return { id: "note-2" };
+    });
 
     const result = await executeTriggerAutomation(
       {
@@ -118,8 +113,7 @@ describe("executeTriggerAutomation", () => {
       note_id: "note-2",
       credential_name: "cursor_webhook_orbita_checker",
     });
-    const noteInput = writeNote.mock.calls[0]?.[2];
-    expect(noteInput?.frontmatter).toMatchObject({
+    expect(capturedFrontmatter).toMatchObject({
       type: "instruction",
       project: "orbita",
       lane: "checker",
@@ -130,13 +124,7 @@ describe("executeTriggerAutomation", () => {
   it("never surfaces the resolved secret in tool-facing result payloads", async () => {
     const secretUrl = "https://example.test/webhook?key=must-not-leak";
     const webhookFetch = vi.fn(async () => new Response(null, { status: 200 }));
-    const writeNote = vi.fn(async () => ({
-      id: "note-3",
-      title: null,
-      body: "",
-      frontmatter: {},
-      updated_at: new Date().toISOString(),
-    }));
+    const writeNote = vi.fn(async () => ({ id: "note-3" }));
 
     const result = await executeTriggerAutomation(
       {
