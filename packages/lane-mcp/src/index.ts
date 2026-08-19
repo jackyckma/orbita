@@ -287,6 +287,12 @@ function registerOrbitaTools(server: McpServer, deps: OrbitaMcpDeps) {
       );
 
       if (!result.ok) {
+        if (result.kind === "invalid_input") {
+          return {
+            content: [{ type: "text" as const, text: result.message }],
+            isError: true,
+          };
+        }
         if (result.kind === "credential_missing") {
           return {
             content: [
