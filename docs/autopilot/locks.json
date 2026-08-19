@@ -4,8 +4,8 @@
     "T-0055": {
       "by": "maker",
       "since": "2026-08-19T23:04:00Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/autopilot-maker-t0055-trigger-automation-tests",
+      "pr": 20
     },
     "T-0052": {
       "by": "maker",
