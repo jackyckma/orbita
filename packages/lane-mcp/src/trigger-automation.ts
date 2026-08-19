@@ -62,15 +62,30 @@ export type TriggerAutomationWebhookFailed = {
   message: string;
 };
 
+export type TriggerAutomationInvalidInput = {
+  ok: false;
+  kind: "invalid_input";
+  message: string;
+};
+
 export type TriggerAutomationResult =
   | TriggerAutomationSuccess
   | TriggerAutomationCredentialMissing
-  | TriggerAutomationWebhookFailed;
+  | TriggerAutomationWebhookFailed
+  | TriggerAutomationInvalidInput;
 
 export async function executeTriggerAutomation(
   deps: TriggerAutomationDeps,
   input: TriggerAutomationInput,
 ): Promise<TriggerAutomationResult> {
+  if (!input.reason.trim()) {
+    return {
+      ok: false,
+      kind: "invalid_input",
+      message: "reason must be a non-empty string",
+    };
+  }
+
   const credentialName = credentialNameForLane(input.lane);
   const resolveCredential = deps.resolveCredential ?? resolveCredentialSecret;
   const writeNote: WriteAuditNote =
