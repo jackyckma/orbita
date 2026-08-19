@@ -359,10 +359,15 @@
         "T-0054"
       ],
       "flag": null,
-      "status": "in_review",
+      "status": "done",
       "retries": 0,
       "feedback": [
-        "PR https://github.com/jackyckma/orbita/pull/20 opened; acceptance green (Maker 2026-08-19)."
+        "PR https://github.com/jackyckma/orbita/pull/20 opened; acceptance green (Maker 2026-08-19).",
+        {
+          "at": "2026-08-19T23:09:00Z",
+          "by": "checker",
+          "note": "REVIEW PR #20: verify-all PASS; scope matches T-0055 (trigger_automation vitest: fail-closed reason/credential, success+failed audit notes, secrets never in payloads); merged (merge commit 1ef0faf). No duplicate T-0055 PRs."
+        }
       ]
     },
     {
