@@ -387,13 +387,18 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "in_review",
+      "status": "done",
       "retries": 0,
       "feedback": [
         {
           "at": "2026-08-20T23:06:00Z",
           "by": "maker",
           "note": "PR #22 opened: github_get_file, github_list_commits, github_list_pull_requests via github_read credential"
+        },
+        {
+          "at": "2026-08-20T23:06:00Z",
+          "by": "checker",
+          "note": "REVIEW PR #22: verify-all PASS; acceptance green; scope matches T-0056 (three GET-only github_read MCP tools in packages/lane-mcp, handlers in github-read.ts, 404 isError:not_found); merged (merge commit 3b282fe). No duplicate T-0056 PRs."
         }
       ]
     },
