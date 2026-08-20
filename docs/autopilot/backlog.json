@@ -387,9 +387,15 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
-      "feedback": []
+      "feedback": [
+        {
+          "at": "2026-08-20T23:06:00Z",
+          "by": "maker",
+          "note": "PR #22 opened: github_get_file, github_list_commits, github_list_pull_requests via github_read credential"
+        }
+      ]
     },
     {
       "id": "T-0057",

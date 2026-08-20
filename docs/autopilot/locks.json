@@ -4,8 +4,8 @@
     "T-0056": {
       "by": "maker",
       "since": "2026-08-20T23:05:00Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/t-0056-github-read-mcp-tools",
+      "pr": 22
     },
     "T-0052": {
       "by": "maker",
