@@ -16,6 +16,11 @@ import {
 } from "@orbita/memory";
 import { z } from "zod";
 import { portfolioBrief } from "./portfolio-brief.js";
+import {
+  executeGithubGetFile,
+  executeGithubListCommits,
+  executeGithubListPullRequests,
+} from "./github-read.js";
 import { executeTriggerAutomation } from "./trigger-automation.js";
 
 export type OrbitaMcpDeps = {
@@ -331,6 +336,95 @@ function registerOrbitaTools(server: McpServer, deps: OrbitaMcpDeps) {
         lane,
         reason,
       });
+    },
+  );
+
+  server.registerTool(
+    "github_get_file",
+    {
+      title: "Get GitHub file",
+      description:
+        "Read a file from a GitHub repo (base64-decoded). Uses the github_read credential.",
+      inputSchema: z.object({
+        repo: z.string().min(1).describe("owner/repo"),
+        path: z.string().min(1),
+        ref: z
+          .string()
+          .optional()
+          .describe("Branch, tag, or sha (default: repo default branch)"),
+      }),
+    },
+    async ({ repo, path, ref }) => {
+      const result = await executeGithubGetFile(
+        { clientId, credentialsDb, secretsKey },
+        { repo, path, ref },
+      );
+      if (!result.ok) {
+        return {
+          content: [{ type: "text" as const, text: result.message }],
+          isError: true,
+        };
+      }
+      return textResult({
+        path: result.path,
+        ref: result.ref,
+        content: result.content,
+        sha: result.sha,
+      });
+    },
+  );
+
+  server.registerTool(
+    "github_list_commits",
+    {
+      title: "List GitHub commits",
+      description:
+        "List recent commits for a GitHub repo. Uses the github_read credential.",
+      inputSchema: z.object({
+        repo: z.string().min(1).describe("owner/repo"),
+        branch: z.string().optional(),
+        limit: z.number().int().min(1).max(50).optional(),
+        since: z.string().optional().describe("ISO-8601 date filter"),
+      }),
+    },
+    async ({ repo, branch, limit, since }) => {
+      const result = await executeGithubListCommits(
+        { clientId, credentialsDb, secretsKey },
+        { repo, branch, limit, since },
+      );
+      if (!result.ok) {
+        return {
+          content: [{ type: "text" as const, text: result.message }],
+          isError: true,
+        };
+      }
+      return textResult({ commits: result.commits });
+    },
+  );
+
+  server.registerTool(
+    "github_list_pull_requests",
+    {
+      title: "List GitHub pull requests",
+      description:
+        "List pull requests for a GitHub repo. Uses the github_read credential.",
+      inputSchema: z.object({
+        repo: z.string().min(1).describe("owner/repo"),
+        state: z.enum(["open", "closed", "all"]).optional(),
+      }),
+    },
+    async ({ repo, state }) => {
+      const result = await executeGithubListPullRequests(
+        { clientId, credentialsDb, secretsKey },
+        { repo, state },
+      );
+      if (!result.ok) {
+        return {
+          content: [{ type: "text" as const, text: result.message }],
+          isError: true,
+        };
+      }
+      return textResult({ pull_requests: result.pull_requests });
     },
   );
 }
