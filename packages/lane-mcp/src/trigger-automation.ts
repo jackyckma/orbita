@@ -12,6 +12,48 @@ export function credentialNameForLane(lane: AutomationLane): string {
     : "cursor_webhook_orbita_checker";
 }
 
+/**
+ * The stored credential secret. Cursor's "Webhook Triggered" automation
+ * trigger, once the automation is saved, hands back TWO separate pieces:
+ * a webhook URL and a bearer API key sent as an `Authorization: Bearer
+ * <key>` header — Cursor does NOT accept the key embedded in the URL as a
+ * query param. Since Orbita's credential vault stores exactly one secret
+ * string per credential name, the founder stores both combined as a JSON
+ * object: {"url": "<webhook url>", "key": "<bearer key>"}.
+ *
+ * Kept liberal on purpose: a bare non-JSON string is still accepted and
+ * treated as a URL with no Authorization header, so an older stored value
+ * (or a future Cursor trigger type that turns out to need no auth at all)
+ * still degrades to "send the request, just unauthenticated" rather than
+ * failing outright. Malformed/partial JSON is treated the same way — never
+ * throw here; a bad credential value should surface as a normal webhook
+ * failure (caught downstream by the fetch call), not as an unrelated parse
+ * error.
+ */
+export function parseWebhookCredential(secret: string): {
+  url: string;
+  key?: string;
+} {
+  try {
+    const parsed: unknown = JSON.parse(secret);
+    if (
+      parsed &&
+      typeof parsed === "object" &&
+      "url" in parsed &&
+      typeof (parsed as { url: unknown }).url === "string"
+    ) {
+      const key = (parsed as { key?: unknown }).key;
+      return {
+        url: (parsed as { url: string }).url,
+        key: typeof key === "string" && key.length > 0 ? key : undefined,
+      };
+    }
+  } catch {
+    // Not JSON — fall through to treating the whole string as a bare URL.
+  }
+  return { url: secret };
+}
+
 export type WriteAuditNote = (
   db: MemoryDb,
   clientId: string,
@@ -97,9 +139,9 @@ export async function executeTriggerAutomation(
   const fetchFn = deps.webhookFetch ?? fetch;
   const triggeredAt = new Date().toISOString();
 
-  let webhookUrl: string;
+  let webhookSecret: string;
   try {
-    webhookUrl = await resolveCredential(
+    webhookSecret = await resolveCredential(
       deps.credentialsDb,
       deps.secretsKey,
       deps.clientId,
@@ -117,11 +159,18 @@ export async function executeTriggerAutomation(
     throw err;
   }
 
+  const { url: webhookUrl, key: webhookKey } =
+    parseWebhookCredential(webhookSecret);
+
   let outcome: "sent" | "failed" = "sent";
   let failureDetail: string | undefined;
 
   try {
-    const response = await fetchFn(webhookUrl, { method: "POST" });
+    const headers: Record<string, string> = {};
+    if (webhookKey) {
+      headers.Authorization = `Bearer ${webhookKey}`;
+    }
+    const response = await fetchFn(webhookUrl, { method: "POST", headers });
     if (!response.ok) {
       outcome = "failed";
       failureDetail = `Webhook returned HTTP ${response.status}`;
