@@ -3,6 +3,7 @@ import { OrbitaError } from "@orbita/platform";
 import {
   credentialNameForLane,
   executeTriggerAutomation,
+  parseWebhookCredential,
   type TriggerAutomationDeps,
 } from "./trigger-automation.js";
 
@@ -14,7 +15,11 @@ const baseDeps = (): TriggerAutomationDeps => ({
   memoryEnv: {} as TriggerAutomationDeps["memoryEnv"],
 });
 
-const SECRET_URL = "https://example.test/webhook?key=must-not-leak-secret";
+const BARE_URL_SECRET = "https://example.test/webhook?must-not-leak=secret";
+const JSON_SECRET = JSON.stringify({
+  url: "https://api2.cursor.sh/automations/webhook/must-not-leak-id",
+  key: "must-not-leak-bearer-key",
+});
 
 describe("trigger_automation tool", () => {
   describe("credentialNameForLane", () => {
@@ -23,6 +28,40 @@ describe("trigger_automation tool", () => {
       expect(credentialNameForLane("checker")).toBe(
         "cursor_webhook_orbita_checker",
       );
+    });
+  });
+
+  describe("parseWebhookCredential", () => {
+    it("parses a {url,key} JSON secret into url + key", () => {
+      expect(
+        parseWebhookCredential(
+          JSON.stringify({ url: "https://example.test/hook", key: "abc123" }),
+        ),
+      ).toEqual({ url: "https://example.test/hook", key: "abc123" });
+    });
+
+    it("treats a bare non-JSON string as a URL with no key", () => {
+      expect(parseWebhookCredential("https://example.test/hook")).toEqual({
+        url: "https://example.test/hook",
+      });
+    });
+
+    it("treats {url} JSON with no key field as a URL with no key", () => {
+      expect(
+        parseWebhookCredential(JSON.stringify({ url: "https://example.test/hook" })),
+      ).toEqual({ url: "https://example.test/hook" });
+    });
+
+    it("falls back to treating malformed JSON as a bare URL", () => {
+      expect(parseWebhookCredential("{not valid json")).toEqual({
+        url: "{not valid json",
+      });
+    });
+
+    it("falls back to a bare URL when JSON has no url field", () => {
+      expect(parseWebhookCredential(JSON.stringify({ key: "abc" }))).toEqual({
+        url: JSON.stringify({ key: "abc" }),
+      });
     });
   });
 
@@ -99,20 +138,18 @@ describe("trigger_automation tool", () => {
       expect(webhookFetch).not.toHaveBeenCalled();
     });
 
-    it("posts once and writes a sent audit note on webhook success", async () => {
+    it("posts with a Bearer Authorization header when the credential is {url,key} JSON", async () => {
       const webhookFetch = vi.fn(async () => new Response(null, { status: 200 }));
       let capturedFrontmatter: Record<string, unknown> | undefined;
-      let capturedBody: string | undefined;
       const writeNote = vi.fn(async (_db, _clientId, input) => {
         capturedFrontmatter = input.frontmatter;
-        capturedBody = input.body;
-        return { id: "note-1" };
+        return { id: "note-json" };
       });
 
       const result = await executeTriggerAutomation(
         {
           ...baseDeps(),
-          resolveCredential: async () => SECRET_URL,
+          resolveCredential: async () => JSON_SECRET,
           webhookFetch,
           writeNote,
         },
@@ -122,12 +159,17 @@ describe("trigger_automation tool", () => {
       expect(result).toMatchObject({
         ok: true,
         outcome: "sent",
-        note_id: "note-1",
+        note_id: "note-json",
         credential_name: "cursor_webhook_orbita_maker",
       });
       expect(webhookFetch).toHaveBeenCalledTimes(1);
-      expect(webhookFetch).toHaveBeenCalledWith(SECRET_URL, { method: "POST" });
-      expect(writeNote).toHaveBeenCalledTimes(1);
+      expect(webhookFetch).toHaveBeenCalledWith(
+        "https://api2.cursor.sh/automations/webhook/must-not-leak-id",
+        {
+          method: "POST",
+          headers: { Authorization: "Bearer must-not-leak-bearer-key" },
+        },
+      );
       expect(capturedFrontmatter).toMatchObject({
         type: "instruction",
         project: "orbita",
@@ -135,7 +177,28 @@ describe("trigger_automation tool", () => {
         reason: "verify deploy",
         outcome: "sent",
       });
-      expect(capturedBody).not.toContain("must-not-leak-secret");
+    });
+
+    it("posts with no Authorization header when the credential is a bare URL", async () => {
+      const webhookFetch = vi.fn(async () => new Response(null, { status: 200 }));
+      const writeNote = vi.fn(async () => ({ id: "note-bare" }));
+
+      const result = await executeTriggerAutomation(
+        {
+          ...baseDeps(),
+          resolveCredential: async () => BARE_URL_SECRET,
+          webhookFetch,
+          writeNote,
+        },
+        { lane: "maker", reason: "verify deploy" },
+      );
+
+      expect(result).toMatchObject({ ok: true, outcome: "sent" });
+      expect(webhookFetch).toHaveBeenCalledTimes(1);
+      expect(webhookFetch).toHaveBeenCalledWith(BARE_URL_SECRET, {
+        method: "POST",
+        headers: {},
+      });
     });
 
     it("writes a failed audit note and reports failure on non-2xx webhook", async () => {
@@ -204,7 +267,7 @@ describe("trigger_automation tool", () => {
       expect(capturedFrontmatter).toMatchObject({ outcome: "failed" });
     });
 
-    it("never surfaces the resolved secret in result or audit note payloads", async () => {
+    it("never surfaces the resolved secret (URL, key, or raw JSON) in result or audit note payloads", async () => {
       const webhookFetch = vi.fn(async () => new Response(null, { status: 200 }));
       let capturedFrontmatter: Record<string, unknown> | undefined;
       let capturedBody: string | undefined;
@@ -217,7 +280,7 @@ describe("trigger_automation tool", () => {
       const result = await executeTriggerAutomation(
         {
           ...baseDeps(),
-          resolveCredential: async () => SECRET_URL,
+          resolveCredential: async () => JSON_SECRET,
           webhookFetch,
           writeNote,
         },
@@ -225,13 +288,9 @@ describe("trigger_automation tool", () => {
       );
 
       const serialized = JSON.stringify(result);
-      expect(serialized).not.toContain("must-not-leak-secret");
-      expect(serialized).not.toContain(SECRET_URL);
-      expect(JSON.stringify(capturedFrontmatter)).not.toContain(
-        "must-not-leak-secret",
-      );
-      expect(capturedBody).not.toContain("must-not-leak-secret");
-      expect(capturedBody).not.toContain(SECRET_URL);
+      expect(serialized).not.toContain("must-not-leak");
+      expect(JSON.stringify(capturedFrontmatter)).not.toContain("must-not-leak");
+      expect(capturedBody).not.toContain("must-not-leak");
     });
   });
 });
