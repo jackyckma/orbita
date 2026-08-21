@@ -13,4 +13,4 @@
 
 ## Learned patterns (append-only)
 
-- (none yet)
+- Mechanical failures (typecheck, merge conflicts, rebase) that exhausted retries may be bounced `needs_human` → `ready` on REPLAN when the fix path is explicit — do not bounce judgment/env tasks (e.g. prod credential gaps).

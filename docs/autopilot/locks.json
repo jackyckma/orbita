@@ -1,12 +1,4 @@
 {
   "_doc": "Task lease lock on main. Maker writes lock + in_progress on main BEFORE branching. Checker clears on merge or bounce. FORMAT: 'pr' MUST be the PR NUMBER (integer), not a URL and not a '#123' string — the dispatcher compares it numerically to decide whether an open PR is superseded.",
-  "locks": {
-    "T-0052": {
-      "by": "maker",
-      "since": "2026-08-15T07:02:31Z",
-      "branch": "cursor/autopilot-maker-action-0306",
-      "pr": 15,
-      "note": "PR #15 CONFLICTS with #14 (T-0051), which merged first — both touch @orbita/portfolio and harness systemCollectors wiring. claude-hub-session attempted the merge 2026-08-16 and GitHub rejected it (405, real conflict, not the old lease-format bug). Left open, unmerged. Needs a fresh Maker run to rebase branch cursor/autopilot-maker-action-0306 onto current main and resolve the overlap with T-0051's already-merged @orbita/portfolio package — do not force-merge."
-    }
-  }
+  "locks": {}
 }
