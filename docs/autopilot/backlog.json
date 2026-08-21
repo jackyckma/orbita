@@ -416,9 +416,15 @@
         "T-0056"
       ],
       "flag": null,
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
-      "feedback": []
+      "feedback": [
+        {
+          "at": "2026-08-21T15:40:00Z",
+          "by": "maker",
+          "note": "PR #23 opened: github-read unit tests (7 tests, mocked fetch, handler-level coverage)."
+        }
+      ]
     }
   ]
 }

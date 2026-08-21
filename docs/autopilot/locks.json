@@ -4,8 +4,8 @@
     "T-0057": {
       "by": "maker",
       "since": "2026-08-21T15:38:30Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/t-0057-github-read-unit-tests",
+      "pr": 23
     },
     "T-0052": {
       "by": "maker",
