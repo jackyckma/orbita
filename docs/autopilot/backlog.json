@@ -416,8 +416,8 @@
         "T-0056"
       ],
       "flag": null,
-      "status": "ready",
-      "retries": 1,
+      "status": "needs_human",
+      "retries": 2,
       "feedback": [
         {
           "at": "2026-08-21T15:40:00Z",
@@ -428,6 +428,11 @@
           "at": "2026-08-21T15:40:59Z",
           "by": "checker",
           "note": "REVIEW PR #23: verify-all FAIL — pnpm typecheck @orbita/mcp build errors in github-read.test.ts (TS2322: githubFetch mock (url: string) incompatible with fetch input string|URL|Request at lines 42,130,169,194). Did not merge. Bounced to ready retries+1; cleared lock for Maker fix."
+        },
+        {
+          "at": "2026-08-21T15:50:05Z",
+          "by": "checker",
+          "note": "REVIEW PR #23 (2nd attempt): verify-all FAIL — same TS2322 in github-read.test.ts (githubFetch mock url:string vs fetch input string|URL|Request). PR unchanged since first bounce. Did not merge. Escalated to needs_human (retries exhausted, budget 2). PR #23 left open for human fix/merge. gh pr comment blocked (403)."
         }
       ]
     }
