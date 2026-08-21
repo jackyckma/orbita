@@ -416,13 +416,18 @@
         "T-0056"
       ],
       "flag": null,
-      "status": "in_review",
-      "retries": 0,
+      "status": "ready",
+      "retries": 1,
       "feedback": [
         {
           "at": "2026-08-21T15:40:00Z",
           "by": "maker",
           "note": "PR #23 opened: github-read unit tests (7 tests, mocked fetch, handler-level coverage)."
+        },
+        {
+          "at": "2026-08-21T15:40:59Z",
+          "by": "checker",
+          "note": "REVIEW PR #23: verify-all FAIL — pnpm typecheck @orbita/mcp build errors in github-read.test.ts (TS2322: githubFetch mock (url: string) incompatible with fetch input string|URL|Request at lines 42,130,169,194). Did not merge. Bounced to ready retries+1; cleared lock for Maker fix."
         }
       ]
     }
