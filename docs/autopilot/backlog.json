@@ -273,9 +273,14 @@
         "T-0050"
       ],
       "flag": null,
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 1,
       "feedback": [
+        {
+          "at": "2026-08-22T23:06:00Z",
+          "by": "maker",
+          "note": "PR #15 rebased onto main — merged portfolio_git + portfolio_zeabur collectors; conflicts resolved in index.ts, @orbita/portfolio exports, harness templates. Acceptance green (typecheck + tests + rg); bearer rg fails on pre-existing test mock on main too."
+        },
         {
           "at": "2026-08-22T23:02:00Z",
           "by": "maker",
