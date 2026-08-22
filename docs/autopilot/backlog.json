@@ -274,7 +274,7 @@
       ],
       "flag": null,
       "status": "ready",
-      "retries": 0,
+      "retries": 1,
       "feedback": [
         {
           "at": "2026-08-15T07:07:14Z",
@@ -290,6 +290,11 @@
           "at": "2026-08-21T23:04:00Z",
           "by": "maker-replan",
           "note": "REPLAN: mechanical merge-conflict recovery — bounced needs_human → ready. START by rebasing cursor/autopilot-maker-action-0306 (PR #15) onto current main; resolve @orbita/portfolio + systemCollectors overlap with already-merged T-0051. Do not force-merge #15 as-is."
+        },
+        {
+          "at": "2026-08-22T06:06:00Z",
+          "by": "checker",
+          "note": "REVIEW FAIL — not merged. GitHub mergeStateStatus=DIRTY (conflict in apps/orbita-api/src/index.ts portfolioSystemCollectors with T-0051 portfolio_git). CI e2e-tier-a FAILURE on PR head. Local verify-all + acceptance green on branch head. Bounced to ready (retries=1); Maker must rebase PR #15 onto main and resolve overlap."
         }
       ]
     },
