@@ -273,9 +273,14 @@
         "T-0050"
       ],
       "flag": null,
-      "status": "ready",
+      "status": "in_progress",
       "retries": 1,
       "feedback": [
+        {
+          "at": "2026-08-22T23:02:00Z",
+          "by": "maker",
+          "note": "Re-lease on main — rebasing PR #15 onto current main to resolve T-0051 portfolio_git overlap."
+        },
         {
           "at": "2026-08-15T07:07:14Z",
           "by": "maker",
