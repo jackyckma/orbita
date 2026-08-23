@@ -273,9 +273,14 @@
         "T-0050"
       ],
       "flag": null,
-      "status": "in_review",
+      "status": "needs_human",
       "retries": 1,
       "feedback": [
+        {
+          "at": "2026-08-23T06:01:12Z",
+          "by": "checker",
+          "note": "FORCE_NEEDS_HUMAN: lock held ~7.0h with task still in_review — REVIEW kept failing to complete before it could bounce the task itself. Auto-escalated; PR #15 left open and unmerged for manual inspection."
+        },
         {
           "at": "2026-08-22T23:06:00Z",
           "by": "maker",
