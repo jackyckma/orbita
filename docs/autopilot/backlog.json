@@ -441,9 +441,14 @@
         "T-0056"
       ],
       "flag": null,
-      "status": "ready",
+      "status": "in_progress",
       "retries": 0,
       "feedback": [
+        {
+          "at": "2026-08-23T23:02:16Z",
+          "by": "maker",
+          "note": "Locked on main; fixing TS2322 in github-read.test.ts (fetch mock Input type) on PR #23 branch."
+        },
         {
           "at": "2026-08-21T15:40:00Z",
           "by": "maker",
