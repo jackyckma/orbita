@@ -441,9 +441,14 @@
         "T-0056"
       ],
       "flag": null,
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
       "feedback": [
+        {
+          "at": "2026-08-23T23:04:00Z",
+          "by": "maker",
+          "note": "Fixed TS2322: github-read.test.ts fetch mocks now typed as typeof fetch with fetchInputUrl helper. Pushed to PR #23; typecheck + 7 vitest tests green."
+        },
         {
           "at": "2026-08-23T23:02:16Z",
           "by": "maker",
