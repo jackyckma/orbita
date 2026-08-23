@@ -22,10 +22,17 @@ function assertNoTokenLeak(...values: unknown[]) {
   }
 }
 
+function fetchInputUrl(input: string | URL | Request): string {
+  if (typeof input === "string") return input;
+  if (input instanceof URL) return input.href;
+  return input.url;
+}
+
 describe("github read tools (github_get_file / github_list_commits / github_list_pull_requests)", () => {
   describe("executeGithubGetFile", () => {
     it("returns decoded content and sha on a mocked 200", async () => {
-      const githubFetch = vi.fn(async (url: string) => {
+      const githubFetch = vi.fn<typeof fetch>(async (input) => {
+        const url = fetchInputUrl(input);
         expect(url).toContain("/contents/README.md");
         expect(url).toContain("ref=main");
         return new Response(
@@ -108,7 +115,8 @@ describe("github read tools (github_get_file / github_list_commits / github_list
 
   describe("executeGithubListCommits", () => {
     it("maps commits and passes limit through as per_page", async () => {
-      const githubFetch = vi.fn(async (url: string) => {
+      const githubFetch = vi.fn<typeof fetch>(async (input) => {
+        const url = fetchInputUrl(input);
         expect(url).toContain("per_page=25");
         return new Response(
           JSON.stringify([
@@ -148,7 +156,8 @@ describe("github read tools (github_get_file / github_list_commits / github_list
 
   describe("executeGithubListPullRequests", () => {
     it("maps draft and branch from head.ref", async () => {
-      const githubFetch = vi.fn(async (url: string) => {
+      const githubFetch = vi.fn<typeof fetch>(async (input) => {
+        const url = fetchInputUrl(input);
         expect(url).toContain("state=open");
         return new Response(
           JSON.stringify([
@@ -185,7 +194,8 @@ describe("github read tools (github_get_file / github_list_commits / github_list
     });
 
     it("defaults state to open when omitted", async () => {
-      const githubFetch = vi.fn(async (url: string) => {
+      const githubFetch = vi.fn<typeof fetch>(async (input) => {
+        const url = fetchInputUrl(input);
         expect(url).toContain("state=open");
         return new Response(JSON.stringify([]), { status: 200 });
       });
