@@ -441,9 +441,14 @@
         "T-0056"
       ],
       "flag": null,
-      "status": "in_review",
+      "status": "needs_human",
       "retries": 0,
       "feedback": [
+        {
+          "at": "2026-08-24T06:03:28Z",
+          "by": "checker",
+          "note": "FORCE_NEEDS_HUMAN: lock held ~7.1h with task still in_review — REVIEW kept failing to complete before it could bounce the task itself. Auto-escalated; PR #23 left open and unmerged for manual inspection."
+        },
         {
           "at": "2026-08-23T23:04:00Z",
           "by": "maker",
