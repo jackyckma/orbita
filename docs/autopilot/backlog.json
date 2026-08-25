@@ -273,9 +273,14 @@
         "T-0050"
       ],
       "flag": null,
-      "status": "needs_human",
+      "status": "ready",
       "retries": 1,
       "feedback": [
+        {
+          "at": "2026-08-25T23:04:00Z",
+          "by": "maker-replan",
+          "note": "REPLAN E-13 strand 2: mechanical recovery — bounced needs_human → ready. Rebase PR #15 onto current main, re-run acceptance + verify-all, leave for Checker. Root cause (REVIEW not finishing) tracked in E-13; merging alone does not fix the lane."
+        },
         {
           "at": "2026-08-23T06:01:12Z",
           "by": "checker",
@@ -441,9 +446,14 @@
         "T-0056"
       ],
       "flag": null,
-      "status": "needs_human",
+      "status": "ready",
       "retries": 0,
       "feedback": [
+        {
+          "at": "2026-08-25T23:04:00Z",
+          "by": "maker-replan",
+          "note": "REPLAN E-13 strand 2: mechanical recovery — bounced needs_human → ready. TS2322 fix already on PR #23; re-run verify-all + acceptance, ensure CI green, leave for Checker."
+        },
         {
           "at": "2026-08-24T06:03:28Z",
           "by": "checker",
@@ -480,6 +490,39 @@
           "note": "REPLAN: mechanical TS2322 fix — bounced needs_human → ready (retries reset). Fix github-read.test.ts mock to accept fetch Input (string|URL|Request); push to PR #23 branch."
         }
       ]
+    },
+    {
+      "id": "T-0058",
+      "lane": "ops",
+      "phase": "hub-h1",
+      "title": "Activate portfolio git collector harness + verify repo-line reports",
+      "description": "Epic E-13 strand 1. The portfolio_git collector code merged in T-0051 but has never run — portfolio_brief still reports 'no report ever collected' for every project because the harness ROW was never created. (1) Run ./scripts/portfolio-git-collect-setup-harness.sh — sources ORBITA_PERSONAL_API_KEY / ORBITA_API_KEY from ~/.orbita-personal.env or .env; never echo secrets. If no API key is found, mark needs_human naming the missing env var and file paths checked — do not half-run against prod. (2) After the harness exists, trigger ONE manual run via POST /v1/harnesses/{id}/trigger (find the harness id by name portfolio-git-collect from GET /v1/harnesses). Wait for the run to complete (poll GET /v1/harnesses/{id}/runs until terminal state or timeout 120s). (3) Add scripts/portfolio-git-collect-verify-output.sh: sources the same credentials, exits 0 only if GET /v1/notes (or note_list) returns at least one note for client personal-jacky with frontmatter type='report' and edge='repo' written within the last 48 hours; exits 1 with a clear message if the harness row is missing, the run failed, or no report note exists. Never print note bodies or API keys. (4) Run the verify script — it must exit 0 before this task is in_review. Also confirm at least one private repo (powerhouse, ai-business, or ViOS) produced status≠failed in the report — a 404 masquerading as empty success is a FAILURE per D-002. Record the harness id in docs/personal-steward/portfolio-collectors.md once known.",
+      "acceptance": [
+        "test -f scripts/portfolio-git-collect-setup-harness.sh",
+        "test -f scripts/portfolio-git-collect-verify-output.sh",
+        "bash -n scripts/portfolio-git-collect-verify-output.sh",
+        "./scripts/portfolio-git-collect-verify-output.sh"
+      ],
+      "deps": [],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": []
+    },
+    {
+      "id": "T-0059",
+      "lane": "docs",
+      "phase": "hub-h1",
+      "title": "portfolio-registry: set kongstory + tango-atelier enabled false",
+      "description": "Epic E-13 low-priority strand. T-0050 feedback says kongstory and tango-atelier were added as enabled:false for hub visibility only (no Autopilot loop). portfolio-registry.json currently has enabled:true for both, causing portfolio_brief staleness noise for projects that were never meant to report. Set enabled:false on both entries; update notes field to say hub visibility only — no collectors expected. Registry file only in this task — copy under packages/lane-portfolio/data/ if the repo convention requires both paths to stay in sync (check packages/lane-portfolio for which path is canonical at implement time).",
+      "acceptance": [
+        "node -e \"const r=require('./docs/personal-steward/portfolio-registry.json');for (const slug of ['kongstory','tango-atelier']){const p=r.projects.find(x=>x.slug===slug);if(!p||p.enabled!==false)throw new Error(slug+' must be enabled:false')}\""
+      ],
+      "deps": [],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": []
     }
   ]
 }

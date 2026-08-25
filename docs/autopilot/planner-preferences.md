@@ -14,3 +14,4 @@
 ## Learned patterns (append-only)
 
 - Mechanical failures (typecheck, merge conflicts, rebase) that exhausted retries may be bounced `needs_human` → `ready` on REPLAN when the fix path is explicit — do not bounce judgment/env tasks (e.g. prod credential gaps).
+- **Runtime-activation tasks** (harness row, credential, cron, feature flag) must include acceptance that proves **observable output** — a report note written, a DB row created, a smoke call returning expected data — not only typecheck/tests/rg proving code exists. Example: portfolio collector tasks should require at least one `type=report` note or `portfolio_brief` no longer reporting staleness for a real project.
