@@ -273,9 +273,14 @@
         "T-0050"
       ],
       "flag": null,
-      "status": "ready",
+      "status": "done",
       "retries": 1,
       "feedback": [
+        {
+          "at": "2026-08-26T06:05:33Z",
+          "by": "checker",
+          "note": "REVIEW PASS — merged PR #15 (merge sha 0a19f08). verify-all green on PR head and post-merge test merge; scope matches E-09 deploy collector."
+        },
         {
           "at": "2026-08-25T23:04:00Z",
           "by": "maker-replan",
