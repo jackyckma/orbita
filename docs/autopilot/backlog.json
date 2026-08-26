@@ -451,9 +451,14 @@
         "T-0056"
       ],
       "flag": null,
-      "status": "ready",
+      "status": "in_progress",
       "retries": 0,
       "feedback": [
+        {
+          "at": "2026-08-26T23:04:00Z",
+          "by": "maker",
+          "note": "Locked on main; re-verify PR #23 branch (TS2322 fix + acceptance) before in_review."
+        },
         {
           "at": "2026-08-25T23:04:00Z",
           "by": "maker-replan",
