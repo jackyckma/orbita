@@ -261,7 +261,7 @@
       "lane": "platform",
       "phase": "hub-h1",
       "title": "Zeabur collector — deployment status per project",
-      "description": "Epic E-09, report line 2 (deploy). This closes a real blind spot: today a merge marks a task done, but if the Zeabur build fails the code never reaches production, and the Checker's WATCHDOG can still PASS because it curls a URL that is happily serving the PREVIOUS successful deployment. STEP 1 — SCHEMA FIRST, DO NOT GUESS FIELD NAMES. Zeabur's public docs (https://zeabur.com/docs/en-US/developer/public-api) document projects(ownerID), buildLogs(projectID, deploymentID, timestampCursor) and runtimeLogs(...), but do NOT document the query that LISTS deployments and their statuses — it exists (buildLogs requires a deploymentID) but only appears in the full schema. Fetch the SDL from the Apollo Explorer at https://api.zeabur.com/apollo-explorer (login required) or introspect the endpoint with the API key, find the deployment listing query, and RECORD the exact query you used in docs/personal-steward/portfolio-collectors.md so the next session does not repeat this discovery. If introspection is disabled and the schema cannot be obtained, STOP and mark needs_human with what you tried — do not brute-force field names. STEP 2 — endpoint https://api.zeabur.com/graphql, header 'Authorization: Bearer <key>', key from Dashboard > Settings > API Keys, stored in packages/lane-credentials, NEVER in source or logs. Note the key is tied to a personal account and may need ownerID for team-owned projects. STEP 3 — for each registered project with a zeabur_project_name, collect the most recent deployments in the period: id, status, the git commit sha it built, started/finished timestamps, and the service/environment. THE COMMIT SHA IS THE POINT — it is what joins this line to the git line, letting the hub say 'T-0002 merged as abc123 but its deployment failed'. If Zeabur does not expose the sha on a deployment, say so explicitly in the PR body and fall back to timestamp correlation, marked in the report as lower confidence. Store as a note: type='report', project=<slug>, edge='deploy'. Use the same six-section shape; put failed builds under risks and, when a failure blocks shipped work, under needs_founder. Only fetch build LOGS for failed deployments — logs are large and mostly noise when green. Reuse the lane-harness scheduling pattern. Read-only: never trigger, redeploy, or roll back from the collector.",
+      "description": "REPLAN 2026-08-21: PR #15 conflicts with T-0051 merge — rebase branch cursor/autopilot-maker-action-0306 onto current main first; resolve @orbita/portfolio + systemCollectors overlap; close #15 if superseded and open a fresh PR. Epic E-09, report line 2 (deploy). This closes a real blind spot: today a merge marks a task done, but if the Zeabur build fails the code never reaches production, and the Checker's WATCHDOG can still PASS because it curls a URL that is happily serving the PREVIOUS successful deployment. STEP 1 — SCHEMA FIRST, DO NOT GUESS FIELD NAMES. Zeabur's public docs (https://zeabur.com/docs/en-US/developer/public-api) document projects(ownerID), buildLogs(projectID, deploymentID, timestampCursor) and runtimeLogs(...), but do NOT document the query that LISTS deployments and their statuses — it exists (buildLogs requires a deploymentID) but only appears in the full schema. Fetch the SDL from the Apollo Explorer at https://api.zeabur.com/apollo-explorer (login required) or introspect the endpoint with the API key, find the deployment listing query, and RECORD the exact query you used in docs/personal-steward/portfolio-collectors.md so the next session does not repeat this discovery. If introspection is disabled and the schema cannot be obtained, STOP and mark needs_human with what you tried — do not brute-force field names. STEP 2 — endpoint https://api.zeabur.com/graphql, header 'Authorization: Bearer <key>', key from Dashboard > Settings > API Keys, stored in packages/lane-credentials, NEVER in source or logs. Note the key is tied to a personal account and may need ownerID for team-owned projects. STEP 3 — for each registered project with a zeabur_project_name, collect the most recent deployments in the period: id, status, the git commit sha it built, started/finished timestamps, and the service/environment. THE COMMIT SHA IS THE POINT — it is what joins this line to the git line, letting the hub say 'T-0002 merged as abc123 but its deployment failed'. If Zeabur does not expose the sha on a deployment, say so explicitly in the PR body and fall back to timestamp correlation, marked in the report as lower confidence. Store as a note: type='report', project=<slug>, edge='deploy'. Use the same six-section shape; put failed builds under risks and, when a failure blocks shipped work, under needs_founder. Only fetch build LOGS for failed deployments — logs are large and mostly noise when green. Reuse the lane-harness scheduling pattern. Read-only: never trigger, redeploy, or roll back from the collector.",
       "acceptance": [
         "pnpm --filter @orbita/api typecheck",
         "pnpm -r test",
@@ -273,9 +273,34 @@
         "T-0050"
       ],
       "flag": null,
-      "status": "needs_human",
-      "retries": 0,
+      "status": "done",
+      "retries": 1,
       "feedback": [
+        {
+          "at": "2026-08-26T06:05:33Z",
+          "by": "checker",
+          "note": "REVIEW PASS — merged PR #15 (merge sha 0a19f08). verify-all green on PR head and post-merge test merge; scope matches E-09 deploy collector."
+        },
+        {
+          "at": "2026-08-25T23:04:00Z",
+          "by": "maker-replan",
+          "note": "REPLAN E-13 strand 2: mechanical recovery — bounced needs_human → ready. Rebase PR #15 onto current main, re-run acceptance + verify-all, leave for Checker. Root cause (REVIEW not finishing) tracked in E-13; merging alone does not fix the lane."
+        },
+        {
+          "at": "2026-08-23T06:01:12Z",
+          "by": "checker",
+          "note": "FORCE_NEEDS_HUMAN: lock held ~7.0h with task still in_review — REVIEW kept failing to complete before it could bounce the task itself. Auto-escalated; PR #15 left open and unmerged for manual inspection."
+        },
+        {
+          "at": "2026-08-22T23:06:00Z",
+          "by": "maker",
+          "note": "PR #15 rebased onto main — merged portfolio_git + portfolio_zeabur collectors; conflicts resolved in index.ts, @orbita/portfolio exports, harness templates. Acceptance green (typecheck + tests + rg); bearer rg fails on pre-existing test mock on main too."
+        },
+        {
+          "at": "2026-08-22T23:02:00Z",
+          "by": "maker",
+          "note": "Re-lease on main — rebasing PR #15 onto current main to resolve T-0051 portfolio_git overlap."
+        },
         {
           "at": "2026-08-15T07:07:14Z",
           "by": "maker",
@@ -285,6 +310,16 @@
           "at": "2026-08-16T12:53:00Z",
           "by": "claude-hub-session",
           "note": "T-0051 (#14) merged first. Attempted to merge #15 immediately after — GitHub rejected with a real merge conflict (405), exactly the risk the PR body itself flagged (@orbita/portfolio + harness systemCollectors overlap). Left open, unmerged. Needs a fresh Maker run to rebase onto current main."
+        },
+        {
+          "at": "2026-08-21T23:04:00Z",
+          "by": "maker-replan",
+          "note": "REPLAN: mechanical merge-conflict recovery — bounced needs_human → ready. START by rebasing cursor/autopilot-maker-action-0306 (PR #15) onto current main; resolve @orbita/portfolio + systemCollectors overlap with already-merged T-0051. Do not force-merge #15 as-is."
+        },
+        {
+          "at": "2026-08-22T06:06:00Z",
+          "by": "checker",
+          "note": "REVIEW FAIL — not merged. GitHub mergeStateStatus=DIRTY (conflict in apps/orbita-api/src/index.ts portfolioSystemCollectors with T-0051 portfolio_git). CI e2e-tier-a FAILURE on PR head. Local verify-all + acceptance green on branch head. Bounced to ready (retries=1); Maker must rebase PR #15 onto main and resolve overlap."
         }
       ]
     },
@@ -407,7 +442,7 @@
       "lane": "platform",
       "phase": "hub-h3-pilot",
       "title": "Unit tests for GitHub read tools (github_get_file / github_list_commits / github_list_pull_requests)",
-      "description": "Epic E-12. Add vitest coverage in packages/lane-mcp for the three tools added in T-0056, using a mocked fetch — no real GitHub calls. Cover at minimum: (1) github_get_file returns decoded content + sha on a mocked 200, and returns isError:true (not an empty string) on a mocked 404 — assert the two cases are distinguishable in the tool result; (2) github_list_commits maps the mocked GitHub response into { sha, message, author, date } correctly, and that the limit param is actually passed through to the request URL (per_page); (3) github_list_pull_requests maps draft and branch (from head.ref) correctly from a mocked GitHub pulls response, and defaults state to 'open' when omitted; (4) across all three, the resolved github_read token value never appears in any assertion string, mocked-fetch-call inspection output, or tool response text captured during the test. Prefer testing each tool's handler function directly (extracted, not only via a full MCP server round-trip) if that keeps tests fast and dependency-light, matching whatever pattern T-0055 already established for trigger_automation's tests.",
+      "description": "REPLAN 2026-08-21: PR #23 open — fix TS2322 in packages/lane-mcp/src/github-read.test.ts (mock must accept fetch Input string|URL|Request, not url:string only) before re-review. Epic E-12. Add vitest coverage in packages/lane-mcp for the three tools added in T-0056, using a mocked fetch — no real GitHub calls. Cover at minimum: (1) github_get_file returns decoded content + sha on a mocked 200, and returns isError:true (not an empty string) on a mocked 404 — assert the two cases are distinguishable in the tool result; (2) github_list_commits maps the mocked GitHub response into { sha, message, author, date } correctly, and that the limit param is actually passed through to the request URL (per_page); (3) github_list_pull_requests maps draft and branch (from head.ref) correctly from a mocked GitHub pulls response, and defaults state to 'open' when omitted; (4) across all three, the resolved github_read token value never appears in any assertion string, mocked-fetch-call inspection output, or tool response text captured during the test. Prefer testing each tool's handler function directly (extracted, not only via a full MCP server round-trip) if that keeps tests fast and dependency-light, matching whatever pattern T-0055 already established for trigger_automation's tests.",
       "acceptance": [
         "pnpm --filter @orbita/api test",
         "rg -n \"github_get_file|github_list_commits|github_list_pull_requests\" packages/lane-mcp/src/*.test.ts packages/lane-mcp/src/**/*.test.ts"
@@ -417,6 +452,85 @@
       ],
       "flag": null,
       "status": "in_progress",
+      "retries": 0,
+      "feedback": [
+        {
+          "at": "2026-08-26T23:04:00Z",
+          "by": "maker",
+          "note": "Locked on main; re-verify PR #23 branch (TS2322 fix + acceptance) before in_review."
+        },
+        {
+          "at": "2026-08-25T23:04:00Z",
+          "by": "maker-replan",
+          "note": "REPLAN E-13 strand 2: mechanical recovery — bounced needs_human → ready. TS2322 fix already on PR #23; re-run verify-all + acceptance, ensure CI green, leave for Checker."
+        },
+        {
+          "at": "2026-08-24T06:03:28Z",
+          "by": "checker",
+          "note": "FORCE_NEEDS_HUMAN: lock held ~7.1h with task still in_review — REVIEW kept failing to complete before it could bounce the task itself. Auto-escalated; PR #23 left open and unmerged for manual inspection."
+        },
+        {
+          "at": "2026-08-23T23:04:00Z",
+          "by": "maker",
+          "note": "Fixed TS2322: github-read.test.ts fetch mocks now typed as typeof fetch with fetchInputUrl helper. Pushed to PR #23; typecheck + 7 vitest tests green."
+        },
+        {
+          "at": "2026-08-23T23:02:16Z",
+          "by": "maker",
+          "note": "Locked on main; fixing TS2322 in github-read.test.ts (fetch mock Input type) on PR #23 branch."
+        },
+        {
+          "at": "2026-08-21T15:40:00Z",
+          "by": "maker",
+          "note": "PR #23 opened: github-read unit tests (7 tests, mocked fetch, handler-level coverage)."
+        },
+        {
+          "at": "2026-08-21T15:40:59Z",
+          "by": "checker",
+          "note": "REVIEW PR #23: verify-all FAIL — pnpm typecheck @orbita/mcp build errors in github-read.test.ts (TS2322: githubFetch mock (url: string) incompatible with fetch input string|URL|Request at lines 42,130,169,194). Did not merge. Bounced to ready retries+1; cleared lock for Maker fix."
+        },
+        {
+          "at": "2026-08-21T15:50:05Z",
+          "by": "checker",
+          "note": "REVIEW PR #23 (2nd attempt): verify-all FAIL — same TS2322 in github-read.test.ts (githubFetch mock url:string vs fetch input string|URL|Request). PR unchanged since first bounce. Did not merge. Escalated to needs_human (retries exhausted, budget 2). PR #23 left open for human fix/merge. gh pr comment blocked (403)."
+        },
+        {
+          "at": "2026-08-21T23:04:00Z",
+          "by": "maker-replan",
+          "note": "REPLAN: mechanical TS2322 fix — bounced needs_human → ready (retries reset). Fix github-read.test.ts mock to accept fetch Input (string|URL|Request); push to PR #23 branch."
+        }
+      ]
+    },
+    {
+      "id": "T-0058",
+      "lane": "ops",
+      "phase": "hub-h1",
+      "title": "Activate portfolio git collector harness + verify repo-line reports",
+      "description": "Epic E-13 strand 1. The portfolio_git collector code merged in T-0051 but has never run — portfolio_brief still reports 'no report ever collected' for every project because the harness ROW was never created. (1) Run ./scripts/portfolio-git-collect-setup-harness.sh — sources ORBITA_PERSONAL_API_KEY / ORBITA_API_KEY from ~/.orbita-personal.env or .env; never echo secrets. If no API key is found, mark needs_human naming the missing env var and file paths checked — do not half-run against prod. (2) After the harness exists, trigger ONE manual run via POST /v1/harnesses/{id}/trigger (find the harness id by name portfolio-git-collect from GET /v1/harnesses). Wait for the run to complete (poll GET /v1/harnesses/{id}/runs until terminal state or timeout 120s). (3) Add scripts/portfolio-git-collect-verify-output.sh: sources the same credentials, exits 0 only if GET /v1/notes (or note_list) returns at least one note for client personal-jacky with frontmatter type='report' and edge='repo' written within the last 48 hours; exits 1 with a clear message if the harness row is missing, the run failed, or no report note exists. Never print note bodies or API keys. (4) Run the verify script — it must exit 0 before this task is in_review. Also confirm at least one private repo (powerhouse, ai-business, or ViOS) produced status≠failed in the report — a 404 masquerading as empty success is a FAILURE per D-002. Record the harness id in docs/personal-steward/portfolio-collectors.md once known.",
+      "acceptance": [
+        "test -f scripts/portfolio-git-collect-setup-harness.sh",
+        "test -f scripts/portfolio-git-collect-verify-output.sh",
+        "bash -n scripts/portfolio-git-collect-verify-output.sh",
+        "./scripts/portfolio-git-collect-verify-output.sh"
+      ],
+      "deps": [],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": []
+    },
+    {
+      "id": "T-0059",
+      "lane": "docs",
+      "phase": "hub-h1",
+      "title": "portfolio-registry: set kongstory + tango-atelier enabled false",
+      "description": "Epic E-13 low-priority strand. T-0050 feedback says kongstory and tango-atelier were added as enabled:false for hub visibility only (no Autopilot loop). portfolio-registry.json currently has enabled:true for both, causing portfolio_brief staleness noise for projects that were never meant to report. Set enabled:false on both entries; update notes field to say hub visibility only — no collectors expected. Registry file only in this task — copy under packages/lane-portfolio/data/ if the repo convention requires both paths to stay in sync (check packages/lane-portfolio for which path is canonical at implement time).",
+      "acceptance": [
+        "node -e \"const r=require('./docs/personal-steward/portfolio-registry.json');for (const slug of ['kongstory','tango-atelier']){const p=r.projects.find(x=>x.slug===slug);if(!p||p.enabled!==false)throw new Error(slug+' must be enabled:false')}\""
+      ],
+      "deps": [],
+      "flag": null,
+      "status": "ready",
       "retries": 0,
       "feedback": []
     }

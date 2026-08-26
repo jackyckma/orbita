@@ -27,7 +27,7 @@
       "id": "E-02",
       "title": "W35 notes export API",
       "goal": "Callers can export a client’s notes as Obsidian-friendly Markdown with wikilinks from note_links.",
-      "status": "approved",
+      "status": "done",
       "phase": "w35",
       "decomposes_into": ["T-0010", "T-0011", "T-0012"],
       "decisions": [],
@@ -37,7 +37,7 @@
       "id": "E-03",
       "title": "Ops: AT1b cron visibility",
       "goal": "Operator can confirm supply+poll harnesses are still ticking without Dashboard archaeology.",
-      "status": "approved",
+      "status": "done",
       "phase": "l2-ops",
       "decomposes_into": ["T-0020"],
       "decisions": [],
@@ -51,7 +51,7 @@
       "phase": "l1-hardening",
       "decomposes_into": ["T-0030"],
       "decisions": [],
-      "notes": "REOPENED 2026-08-16: previous fix (PR #8, merged 2026-08-10) did not actually resolve the symptom — all 14 notes on personal-jacky were re-PUT 2026-08-11 to force re-embedding, and note_search still returned empty as of 2026-08-13, confirmed NOT a deploy-lag issue (running deployment postdates every relevant merge). Needs a fresh investigation: check whether MINIMAX_API_KEY is actually set in orbita-api's prod env on Zeabur, and whether note_put's embed call is failing silently again. If root cause needs new embedding provider spend or schema change, open decisions.json and mark needs_human. BLOCKS the hub: until search is trustworthy, agents must resume sessions via flat memory keys and note ids."
+      "notes": "REOPENED 2026-08-16 after the PR #8 fix failed to resolve the symptom. DIAGNOSIS UPDATED 2026-08-25 (claude-hub-session) — READ THIS BEFORE INVESTIGATING, the previous next-step in this field was wrong. (1) RULED OUT: 'check whether MINIMAX_API_KEY is set in prod' — it IS set. Verified directly against Zeabur orbita-api production env. Also present: MINIMAX_BASE_URL=https://api.minimax.io/v1, MINIMAX_MODEL=MiniMax-M3. Do not spend another cycle on this hypothesis. (2) NOT SET in prod but harmless: EMBEDDING_MODEL and EMBEDDING_DIMENSIONS both have defaults in packages/lane-memory/src/config.ts ('embo-01' and 1024). MINIMAX_GROUP_ID is absent and has NO default. (3) THE REAL BLOCKER: packages/lane-memory/src/embed.ts has SIX separate `return null` paths — missing key/empty text, !response.ok, base_resp.status_code !== 0, no vector, vector.length !== EMBEDDING_DIMENSIONS, and a bare catch — with ZERO logging. All six produce an identical silent null, the note is then stored with embedding=NULL, and the write reports success. So one symptom maps to five distinct root causes and the code emits no evidence of which. This is the same failure CLASS the PR #8 fix was meant to remove: that fix corrected the request protocol but kept the silence, which is why re-PUTting all 14 notes and confirming deploy freshness narrowed nothing. (4) DO THIS FIRST — instrument before fixing: make embedText emit a discriminated reason per path (HTTP status, base_resp.status_code + status_msg, actual vs expected vector length). Never log the API key or the text body. One live call then answers it outright. Fixing before instrumenting risks a third round of 'merged, still broken'. Leading candidates once instrumented: MINIMAX_GROUP_ID required and absent (the code's own comment says some MiniMax regions require it), 'embo-01' retired or wrong, or a dimension mismatch against the hardcoded 1024 default. Consider a startup assertion that an embedding round-trip works, so this fails loudly at deploy rather than silently at write time. Full write-up: personal-jacky note a21b8bf5-c253-4bb6-bee3-7f4c33c50238. BLOCKS THE HUB: until search is trustworthy, sessions resume via flat memory keys, not semantic search."
     },
     {
       "id": "E-05",
@@ -81,13 +81,13 @@
       "phase": "midline",
       "decomposes_into": [],
       "decisions": [],
-      "notes": "Umbrella vision — stays proposed so Maker cannot invent hub direction. Sketch: docs/personal-steward/portfolio-hub.md. Decompose by approving concrete slices: E-08 (H2 retrieval), E-09 (collection), E-11 (on-demand trigger), E-12 (on-demand GitHub read) are approved slices. Remaining: instruction dispatch (H3, still proposed, needs github_dispatch credential — see D-002 _why_read_only)."
+      "notes": "Umbrella vision — stays proposed so Maker cannot invent hub direction. Sketch: docs/personal-steward/portfolio-hub.md. Decompose by approving concrete slices: E-08 (H2 retrieval), E-09 (collection), E-11 (on-demand trigger), E-12 (on-demand GitHub read) are approved slices; E-13 is activation. Remaining: instruction dispatch (H3, still proposed, needs github_dispatch credential — see D-002 _why_read_only)."
     },
     {
       "id": "E-08",
       "title": "Notes list/filter for hub briefs",
       "goal": "Agents can list notes by project, type, and date range without burning a reasoning loop or losing state across chat sessions.",
-      "status": "approved",
+      "status": "done",
       "phase": "hub-h2",
       "decomposes_into": ["T-0040", "T-0041"],
       "decisions": [],
@@ -101,7 +101,7 @@
       "phase": "hub-h1",
       "decomposes_into": ["T-0050", "T-0051", "T-0052", "T-0053"],
       "decisions": ["D-002"],
-      "notes": "Founder + Claude session 2026-08-07. ARCHITECTURE (decided, do not relitigate): collection lives in ORBITA, not in each product. Rationale — (1) the autopilot line is already committed to git by Maker/Checker every run, so a product service would have to read its own repo to serve it, which is staler and inverts ownership; (2) the deploy line lives in Zeabur, one shared platform, so one credential covers all projects, whereas per-project reporting would put a Zeabur token inside each app; (3) only the runtime line genuinely requires the app, and no project has runtime signals worth reporting yet. Consequence: lines 1+2 cover all five projects with ZERO work in any product repo, and onboarding a new project is a registry row. CORRELATION KEY: git commit sha ties the lines together (task → PR → sha → deployment → serving version); without it we are correlating on timestamps, which is guesswork. Runtime line stays E-10 (proposed) until a product has real signals."
+      "notes": "ARCHITECTURE (decided, do not relitigate): collection lives in ORBITA, not in each product. Rationale — (1) the autopilot line is already committed to git by Maker/Checker every run; (2) the deploy line lives in Zeabur, one shared platform, one credential for all projects; (3) only the runtime line genuinely requires the app. Consequence: lines 1+2 cover every project with ZERO work in any product repo, and onboarding a new project is a registry row. CORRELATION KEY: git commit sha ties the lines together. Runtime line stays E-10 (proposed) until a product has real signals. STATUS 2026-08-25: the code for lines 1+2 is written, but line 1 has never produced a report and line 2 is stuck unmerged — activation is now tracked in E-13, which is where the remaining work lives."
     },
     {
       "id": "E-10",
@@ -111,27 +111,37 @@
       "phase": "hub-h1",
       "decomposes_into": [],
       "decisions": [],
-      "notes": "The only line that genuinely needs per-project work — an app's own database is the only source. Deliberately NOT approved: no product has meaningful runtime signals yet (ai-business is pre-beta, ViOS is pre-UI). Building endpoints now buys a public surface and a credential per project in exchange for reporting zeroes. Approve per project when that project has users. Contract: ai-dev-methodologies portfolio-hub-reporting.md, edge=runtime."
+      "notes": "The only line that genuinely needs per-project work — an app's own database is the only source. Deliberately NOT approved: no product has meaningful runtime signals yet. Building endpoints now buys a public surface and a credential per project in exchange for reporting zeroes. Approve per project when that project has users. Contract: ai-dev-methodologies portfolio-hub-reporting.md, edge=runtime."
     },
     {
       "id": "E-11",
       "title": "On-demand automation trigger — hub session can nudge a Cursor Automation early",
-      "goal": "From a hub chat session, Claude can trigger this repo's Maker or Checker to run now instead of waiting for its next scheduled tick — useful when interactively testing an idea or verifying a just-pushed fix — while keeping the exact same trust boundary the collector credentials already use.",
-      "status": "approved",
+      "goal": "From a hub chat session, Claude can trigger this repo's Maker or Checker to run now instead of waiting for its next scheduled tick.",
+      "status": "done",
       "phase": "hub-h3-pilot",
       "decomposes_into": ["T-0054", "T-0055"],
       "decisions": [],
-      "notes": "Founder approved 2026-08-16, orbita ONLY as a pilot — do not generalise to other projects in this epic; that is a separate future epic once this one has been used for real. Manually decomposed by claude-hub-session 2026-08-17 (fast-tracked ahead of natural REPLAN, at founder's request — Maker's ready queue had T-0053 ahead of it, which would have delayed REPLAN by another cycle). MECHANISM (mirrors D-002 exactly, reuse packages/lane-credentials as-is, do not build a second vault): founder creates the Cursor Automation webhook URL + API key himself in the Cursor UI (Settings → this Automation → Webhook trigger, generated after the automation is saved) and stores them via the EXISTING POST /v1/admin/credentials route under client_id personal-jacky — Claude/Maker must NEVER see, enter, or transmit the raw webhook key; that step is founder-only, same as github_read and zeabur_api were. Credential names: cursor_webhook_orbita_maker and cursor_webhook_orbita_checker. T-0054 can build/typecheck/test fully before the founder has created either credential — end-to-end live verification happens once he does. HARD CONSTRAINTS (do not relitigate): orbita only; tool is read-only toward repo content (only ever POSTs to the stored webhook URL); no polling/retry/queueing — one call in, one webhook POST out; MCP-tool surface only, no new public HTTP route; an agent must never call trigger_automation on its own initiative — founder-requested every time, same trust level as sending a message or publishing content elsewhere in this hub's safety framework."
+      "notes": "Founder approved 2026-08-16, orbita ONLY as a pilot — do not generalise to other projects in this epic. MECHANISM (mirrors D-002, reuse packages/lane-credentials as-is): founder creates the Cursor Automation webhook URL + key himself in the Cursor UI and stores them via POST /v1/admin/credentials under client_id personal-jacky — Claude/Maker must NEVER see, enter, or transmit the raw webhook key. Credential names: cursor_webhook_orbita_maker, cursor_webhook_orbita_checker. HARD CONSTRAINTS: orbita only; read-only toward repo content; no polling/retry/queueing; MCP-tool surface only; an agent must NEVER call trigger_automation on its own initiative — founder-requested every time."
     },
     {
       "id": "E-12",
       "title": "On-demand GitHub read tools over MCP — hub session can query repo state from any device",
-      "goal": "From ANY hub session — including mobile, which has no first-party GitHub connector — Claude can read a file, list recent commits, or list pull requests for any registered project, using the credential the hub already has.",
+      "goal": "From ANY hub session — including mobile, which has no first-party GitHub connector — Claude can read a file, list recent commits, or list pull requests for any registered project.",
       "status": "approved",
       "phase": "hub-h3-pilot",
       "decomposes_into": ["T-0056", "T-0057"],
       "decisions": [],
-      "notes": "Founder approved 2026-08-17, motivated directly by a mobile session where GitHub's own connector was unavailable and status-checking had to wait for a desktop session. LOWER RISK THAN E-11: this is read-only toward GitHub with no path to mutating anything, so unlike E-11 there is no need to pilot on a single project first — it can cover every project the existing github_read token can already reach. REUSES THE EXISTING github_read CREDENTIAL FROM D-002 (2026-08-09) AS-IS — no new credential, no founder setup step required before this can work end-to-end. Manually decomposed by claude-hub-session 2026-08-17, same fast-track rationale as E-11. SCOPE (three tools, matching the actual read patterns used most often across this hub's sessions to date — do not add more without a real need): github_get_file(repo, path, ref?), github_list_commits(repo, branch?, limit?, since?), github_list_pull_requests(repo, state?). HARD CONSTRAINTS: strictly read-only — these tools must never call a mutating GitHub endpoint (no POST/PATCH/PUT/DELETE to the GitHub API), matching the read-only rationale D-002 already gave for this exact credential; MCP-tool surface only, no new public HTTP route; never let the resolved token value reach a log line, error message, tool response, or committed file. NOT IN SCOPE for this epic (explicitly deferred): any write/mutating GitHub action — merging, commenting, creating branches or files — that remains chat-session-only via the first-party GitHub connector on desktop, this is intentionally NOT a path around that boundary; code search across a repo; any scheduling — these are called on-demand mid-conversation, not run on a timer."
+      "notes": "Founder approved 2026-08-17, motivated by a mobile session where GitHub's own connector was unavailable. LOWER RISK THAN E-11: read-only toward GitHub with no path to mutation, so no single-project pilot needed. REUSES the existing github_read credential from D-002 as-is — no new credential, no founder setup step. SCOPE: github_get_file, github_list_commits, github_list_pull_requests. HARD CONSTRAINTS: strictly read-only — never call a mutating GitHub endpoint; MCP-tool surface only; never let the token reach a log, error message, tool response, or committed file. NOT IN SCOPE: any write/mutating GitHub action (stays chat-session-only via the desktop connector — this is intentionally NOT a path around that boundary); code search; scheduling. VERIFIED WORKING END-TO-END 2026-08-25 from a hub session: all three tools used to read orbita source and history without the desktop GitHub connector. T-0057 (tests) still open — see E-13."
+    },
+    {
+      "id": "E-13",
+      "title": "Hub activation — make the collectors actually run, and unstick the review lane",
+      "goal": "portfolio_brief returns real collected reports instead of 'no report ever collected', and PRs stop dying of stale locks.",
+      "status": "approved",
+      "phase": "hub-h1",
+      "decomposes_into": ["T-0058", "T-0059", "T-0052", "T-0057"],
+      "decisions": [],
+      "notes": "OPENED 2026-08-25 (claude-hub-session) after a hub session found the hub reads correctly but has never been fed. THREE STRANDS, roughly in priority order.\n\n(1) THE GIT COLLECTOR HAS NEVER RUN. T-0051 merged 2026-08-16; nine days later portfolio_brief reports 'no report ever collected' for all seven registered projects, and note_list shows no report-type notes from any collector. The code IS wired — apps/orbita-api/src/index.ts builds portfolioSystemCollectors with portfolio_git and passes it to BOTH createHarnessRoutes and startHarnessTick. What is missing is the harness ROW: docs/personal-steward/portfolio-collectors.md names a one-time setup step, ./scripts/portfolio-git-collect-setup-harness.sh (client personal-jacky, credential github_read, template portfolio-git-collect@v1), which appears never to have been executed. Determine whether the script can be run by an agent or needs founder credentials from ~/.orbita-personal.env; if it needs the founder, say so plainly and mark needs_human rather than half-running it. THEN VERIFY BY OBSERVATION, not by exit code: call portfolio_brief and confirm at least one project's repo line is no longer stale. Also confirm private-repo reads (powerhouse, ai-business, ViOS) return real data and not a 404 recorded as an empty success.\n\n(2) TWO PRs ARE STUCK AND THE REVIEW LANE IS FAILING A NEW WAY. T-0052 (PR #15, Zeabur collector — rebased, conflicts resolved, acceptance green) and T-0057 (PR #23, github-read tests — TS2322 fixed and pushed) were both auto-escalated to needs_human by FORCE_NEEDS_HUMAN with the SAME reason: 'lock held ~7h with task still in_review — REVIEW kept failing to complete before it could bounce the task itself'. That watchdog is a good addition, but it treats the symptom. The Checker is now STARTING review and not FINISHING it — different from the 2026-08-09 deadlock, which never started. Founder screenshots around 2026-08-16 showed the Automation intermittently Failing rather than idle. Root-cause why REVIEW does not complete (candidate: waiting on CI — PR #15 previously showed an e2e-tier-a CI FAILURE while local verify-all passed, so the review may be blocking on a check that never goes green). Merging the two PRs is worth doing on its own merits once each is re-verified, but do NOT treat merging them as closing this strand — the lane will just stall on the next PR.\n\n(3) ACCEPTANCE CRITERIA COULD NOT HAVE CAUGHT THIS. T-0051's acceptance was typecheck, tests, and two ripgreps — all of which passed while the feature produced nothing observable, because none of them asked whether a report was ever written. For any task whose value depends on a runtime activation step (a harness row, a feature flag, a credential, a cron), acceptance must include evidence of OUTPUT, not just of code existing. Add that as a rule wherever task-writing guidance lives in this repo, and prefer it in future tasks here.\n\nALSO CHECK, low priority: portfolio_brief reports kongstory and tango-atelier as enabled:true, but T-0050's own feedback says they were added as enabled:false for visibility only with no Autopilot loop. Either the registry drifted or the brief is misreporting; whichever it is, the staleness detector is currently raising findings for two projects that were never meant to report."
     }
   ]
 }
