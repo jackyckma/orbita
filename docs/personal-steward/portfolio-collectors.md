@@ -46,3 +46,95 @@ Credentials for collectors (GitHub read token, Zeabur API key) are founder-provi
 - Setup: `./scripts/portfolio-git-collect-setup-harness.sh` (client `personal-jacky`, credential name `github_read`).
 - Registry file is copied into the API image (`docs/personal-steward/portfolio-registry.json`) and also bundled under `packages/lane-portfolio/data/` as fallback.
 - Private-repo GitHub 404 → report `status=failed` (never an empty success).
+
+## Zeabur deploy line (T-0052) — GraphQL discovery
+
+Endpoint: `https://api.zeabur.com/graphql`  
+Auth header: `Authorization: Bearer <key>` (vault name `zeabur_api` under `personal-jacky`).
+
+Public docs list `projects`, `buildLogs`, and `runtimeLogs`, but **not** the deployment listing query. Apollo Explorer SDL requires login; unauthenticated introspection on the endpoint returns an error. Canonical field names used here come from the official **zeabur/cli** GraphQL client (`pkg/model/deployment.go`, `pkg/api/deployment.go`, `pkg/api/log.go`) — do not invent alternate spellings.
+
+### Queries recorded for the collector
+
+**1. Discover owners (personal + teams)**
+
+```graphql
+query MeAndTeams {
+  me { _id username }
+  teams { _id name myRole }
+}
+```
+
+**2. List projects (omit `ownerID` for personal; pass team `_id` for team-owned)**
+
+```graphql
+query Projects($ownerID: ObjectID, $skip: Int, $limit: Int) {
+  projects(ownerID: $ownerID, skip: $skip, limit: $limit) {
+    edges { node { _id name } }
+    pageInfo { hasNextPage }
+  }
+}
+```
+
+Match `node.name` to registry `zeabur_project_name` (case-insensitive).
+
+**3. Environments + services**
+
+```graphql
+query Environments($projectID: ObjectID!) {
+  environments(projectID: $projectID) { _id name }
+}
+
+query Services($projectID: ObjectID!, $skip: Int, $limit: Int) {
+  services(projectID: $projectID, skip: $skip, limit: $limit) {
+    edges { node { _id name } }
+    pageInfo { hasNextPage }
+  }
+}
+```
+
+**4. List deployments (the previously undocumented listing query)**
+
+```graphql
+query Deployments($serviceID: ObjectID!, $environmentID: ObjectID!, $perPage: Int) {
+  deployments(serviceID: $serviceID, environmentID: $environmentID, perPage: $perPage) {
+    edges {
+      node {
+        _id
+        projectID
+        serviceID
+        environmentID
+        status
+        commitSHA
+        commitMessage
+        repoName
+        ref
+        createdAt
+        startedAt
+        finishedAt
+      }
+    }
+  }
+}
+```
+
+`commitSHA` is the join key to the git/autopilot line. If a deployment has an empty `commitSHA`, the report sets `sha_confidence: "timestamp"` and does **not** invent a sha.
+
+**5. Build logs — failed deployments only**
+
+CLI signature (preferred; matches `zeabur deployment log -t build`):
+
+```graphql
+query BuildLogs($deploymentID: ObjectID!) {
+  buildLogs(deploymentID: $deploymentID) {
+    message
+    timestamp
+  }
+}
+```
+
+(Public docs also show `buildLogs(projectID, deploymentID, timestampCursor)` — the collector uses the CLI form above.)
+
+### Scheduling
+
+Harness template `portfolio-zeabur-collect@v1` with `application.collector=portfolio_zeabur`. Setup: `./scripts/portfolio-zeabur-collect-setup-harness.sh`. Read-only: never trigger, redeploy, or roll back.

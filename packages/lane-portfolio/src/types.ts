@@ -1,4 +1,4 @@
-/** Hub report shape — portfolio-hub.md + schema_version 1.1, edge=repo */
+/** Hub report shape — portfolio-hub.md + schema_version 1.1 */
 
 export type ReportPeriod = {
   since: string;
@@ -21,6 +21,8 @@ export type HubReportSection = {
   body: string;
 };
 
+export type HubReportEdge = "repo" | "deploy" | "runtime";
+
 export type HubRepoReport = {
   schema_version: "1.1";
   edge: "repo";
@@ -29,6 +31,21 @@ export type HubRepoReport = {
   period: ReportPeriod;
   status: ReportStatus;
   source_sha: string | null;
+  sections: HubReportSection[];
+  error?: string;
+};
+
+export type HubDeployReport = {
+  schema_version: "1.1";
+  edge: "deploy";
+  project: string;
+  generated_at: string;
+  period: ReportPeriod;
+  status: ReportStatus;
+  /** Commit SHA used to join deploy ↔ git lines; null if Zeabur omitted it. */
+  source_sha: string | null;
+  /** true when source_sha came from commitSHA; false when falling back to timestamps. */
+  sha_confidence: "commit" | "timestamp" | "none";
   sections: HubReportSection[];
   error?: string;
 };
@@ -114,4 +131,36 @@ export type NormalizeRepoReportInput = {
   /** Ready tasks older than this many ms without feedback → risk (default 7d). */
   readyStaleMs?: number;
   nowMs?: number;
+};
+
+/** One Zeabur deployment row (fields from zeabur/cli pkg/model/deployment.go). */
+export type ZeaburDeployment = {
+  id: string;
+  projectId: string;
+  serviceId: string;
+  serviceName: string;
+  environmentId: string;
+  environmentName: string;
+  status: string;
+  commitSha: string;
+  commitMessage: string;
+  repoName: string;
+  ref: string;
+  createdAt: string | null;
+  startedAt: string | null;
+  finishedAt: string | null;
+};
+
+export type NormalizeDeployReportInput = {
+  project: string;
+  period: ReportPeriod;
+  generatedAt: string;
+  deployments: ZeaburDeployment[];
+  /** Truncated build-log snippets keyed by deployment id (failed only). */
+  failedBuildLogs: Record<string, string>;
+  previousAsk: string | null;
+  fetchError?: string | null;
+  /** Project matched on Zeabur by name. */
+  zeaburProjectId?: string | null;
+  zeaburProjectName?: string | null;
 };
