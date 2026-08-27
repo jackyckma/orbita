@@ -525,9 +525,11 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "in_progress",
+      "status": "needs_human",
       "retries": 0,
-      "feedback": []
+      "feedback": [
+        "Maker 2026-08-27: step (1) blocked — no Orbita API key for client personal-jacky. Looked for ORBITA_API_KEY, ORBITA_PERSONAL_API_KEY, PERSONAL_ORBITA_API_KEY in /workspace/.env (missing), $HOME/.orbita-personal.env (missing), and current environment (only CURSOR_API_KEY, GEMINI_API_KEY, ZEABUR_TOKEN injected). ./scripts/portfolio-git-collect-setup-harness.sh exits 1. Founder must provision ~/.orbita-personal.env (or workspace .env) with ORBITA_PERSONAL_API_KEY before Maker can create the harness row, trigger a run, and ship verify-output.sh acceptance."
+      ]
     },
     {
       "id": "T-0059",
