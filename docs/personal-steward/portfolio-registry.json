@@ -64,8 +64,8 @@
       "zeabur_project_name": "kongstory",
       "runtime_report_url": null,
       "expected_cadence_hours": 24,
-      "enabled": true,
-      "notes": "Personal/pet project — Cantonese story generation + TTS. Registered 2026-08-10 for hub visibility only. docs/autopilot/ scaffolding is present (ai-dev-methodologies template) but Maker/Checker Cursor Automations are NOT configured — all commits so far are direct interactive Jacky+Cursor sessions to main, not autonomous Autopilot PRs. roadmap.json still only has the bootstrap example epic. Do not read a quiet backlog.json here as an idling automation — none is running by design."
+      "enabled": false,
+      "notes": "Hub visibility only — no collectors expected. Personal/pet project — Cantonese story generation + TTS. Registered 2026-08-10. docs/autopilot/ scaffolding present but Maker/Checker Cursor Automations NOT configured — direct interactive sessions only."
     },
     {
       "slug": "tango-atelier",
@@ -75,8 +75,8 @@
       "zeabur_project_name": "TangoAtelier",
       "runtime_report_url": null,
       "expected_cadence_hours": 24,
-      "enabled": true,
-      "notes": "Personal/pet project — rule-engine tango composition + piano learning webapp, first built for founder's own practice. Registered 2026-08-10 for hub visibility only. docs/autopilot/ scaffolding present but Maker/Checker Cursor Automations NOT configured — developed via direct interactive Jacky+Cursor sessions to main. Split frontend/backend Zeabur services per README; confirm exact Dashboard project name(s) before T-0052 relies on it. Deployed at https://tangoatelier.zeabur.app/atelier."
+      "enabled": false,
+      "notes": "Hub visibility only — no collectors expected. Personal/pet project — rule-engine tango composition + piano learning webapp. Registered 2026-08-10. docs/autopilot/ scaffolding present but Maker/Checker Cursor Automations NOT configured — direct interactive sessions only. Deployed at https://tangoatelier.zeabur.app/atelier."
     }
   ]
 }
