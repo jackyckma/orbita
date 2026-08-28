@@ -4,8 +4,8 @@
     "T-0059": {
       "by": "maker",
       "since": "2026-08-28T23:03:37Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/t-0059-portfolio-registry-enabled-false",
+      "pr": 24
     }
   }
 }

@@ -542,9 +542,11 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
-      "feedback": []
+      "feedback": [
+        "Maker PR opened 2026-08-28: https://github.com/jackyckma/orbita/pull/24"
+      ]
     }
   ]
 }
