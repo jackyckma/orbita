@@ -542,10 +542,11 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "in_review",
+      "status": "done",
       "retries": 0,
       "feedback": [
-        "Maker PR opened 2026-08-28: https://github.com/jackyckma/orbita/pull/24"
+        "Maker PR opened 2026-08-28: https://github.com/jackyckma/orbita/pull/24",
+        "Checker 2026-08-28: verify-all PASS; acceptance green; merged PR #24 (1439665); kongstory + tango-atelier enabled:false in both registry paths."
       ]
     }
   ]
