@@ -143,7 +143,8 @@
         "Merged manually by claude-hub-session 2026-08-10 (squash, sha 724ce02) after Checker-lane deadlock fix.",
         "2026-08-11 (claude-hub-session): all 14 notes on personal-jacky re-PUT to force re-embedding. note_search STILL returns empty for multiple distinct queries.",
         "2026-08-13 (claude-hub-session): confirmed via Zeabur this is NOT a deploy-lag issue — running orbita-api deployment (started 2026-08-12T19:19:41Z, version 0.0.1-w36) postdates every relevant merge, yet note_search remains empty. So this is a second, still-unfixed bug in the embedding/search path itself, not the original swallowed-error bug alone. NEEDS FRESH INVESTIGATION: check whether MINIMAX_API_KEY is actually set in orbita-api's prod env on Zeabur, and whether note_put's embed call is failing silently again (same class of bug). Re-verified broken again 2026-08-16.",
-        "STATUS CHANGED FROM done TO needs_human 2026-08-16 — closing this out as 'done' when the symptom is still reproducible was wrong; leaving it open until someone with deploy/log access root-causes it."
+        "STATUS CHANGED FROM done TO needs_human 2026-08-16 — closing this out as 'done' when the symptom is still reproducible was wrong; leaving it open until someone with deploy/log access root-causes it.",
+        "REPLAN 2026-08-29: split instrumentation-first slice into T-0060 (ready). This task stays needs_human until instrumentation lands and a follow-up fix task is written from evidence — do not re-attempt blind prod fixes here."
       ]
     },
     {
@@ -451,9 +452,14 @@
         "T-0056"
       ],
       "flag": null,
-      "status": "needs_human",
+      "status": "ready",
       "retries": 0,
       "feedback": [
+        {
+          "at": "2026-08-29T23:04:00Z",
+          "by": "maker-replan",
+          "note": "REPLAN E-12 strand 2: mechanical recovery — bounced needs_human → ready (retries reset). PR #23 (draft) has TS2322 fix + 7 vitest tests green on branch; Maker re-verify acceptance + agent-verify, mark draft ready, leave for Checker."
+        },
         {
           "at": "2026-08-27T06:01:23Z",
           "by": "checker",
@@ -548,6 +554,40 @@
         "Maker PR opened 2026-08-28: https://github.com/jackyckma/orbita/pull/24",
         "Checker 2026-08-28: verify-all PASS; acceptance green; merged PR #24 (1439665); kongstory + tango-atelier enabled:false in both registry paths."
       ]
+    },
+    {
+      "id": "T-0060",
+      "lane": "platform",
+      "phase": "l1-hardening",
+      "title": "Instrument embedText failure paths (discriminated reasons, no prod fix)",
+      "description": "Epic E-04. packages/lane-memory/src/embed.ts has six silent `return null` paths (missing key/empty text, !response.ok, base_resp.status_code !== 0, no vector, dimension mismatch, catch) — prod note_search stays empty while writes succeed. BEFORE any prod fix: add a discriminated failure reason for each path. Prefer an internal helper or EmbedResult type that embedText maps to null for callers (keep the public Promise<number[] | null> contract unchanged). Reason codes must distinguish: missing_key, empty_text, http_error (include HTTP status in structured detail, not in thrown errors to callers), minimax_status (base_resp.status_code + status_msg), no_vector, dimension_mismatch (actual vs expected length), network_error. Never log MINIMAX_API_KEY or the input text body. Add vitest with mocked fetch covering every reason path. Do NOT change embedding protocol, MINIMAX_GROUP_ID handling, or prod env in this task — instrumentation + tests only. When done, a follow-up task can read logs/reasons from one live call.",
+      "acceptance": [
+        "pnpm --filter @orbita/memory test",
+        "pnpm --filter @orbita/memory build",
+        "rg -n \"EmbedFailureReason|embedFailureReason\" packages/lane-memory/src",
+        "rg -n \"embedText\" packages/lane-memory/src/*.test.ts packages/lane-memory/src/**/*.test.ts"
+      ],
+      "deps": [],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": []
+    },
+    {
+      "id": "T-0061",
+      "lane": "docs",
+      "phase": "hub-h1",
+      "title": "Document runtime-activation acceptance rule in autopilot playbook",
+      "description": "Epic E-13 strand 3. T-0051 shipped while portfolio_brief still reported 'no report ever collected' because acceptance only proved code existed, not that a harness row ran and wrote a report note. Add a short, scannable section to docs/autopilot/playbook.md (MAKER REPLAN or IMPLEMENT area) stating: tasks whose value depends on a harness row, credential, cron, feature flag, or prod env MUST include at least one acceptance command that proves observable output (e.g. a report note written, portfolio_brief no longer stale for a real project, verify script exit 0 against prod). Cross-reference the existing bullet in docs/autopilot/planner-preferences.md — do not duplicate the whole pattern, link to it. Docs only; no code changes.",
+      "acceptance": [
+        "rg -n \"runtime-activation|observable output\" docs/autopilot/playbook.md",
+        "rg -n \"runtime-activation\" docs/autopilot/planner-preferences.md"
+      ],
+      "deps": [],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": []
     }
   ]
 }
