@@ -574,9 +574,11 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
-      "feedback": []
+      "feedback": [
+        "PR https://github.com/jackyckma/orbita/pull/25 opened; acceptance green (Maker 2026-08-30)."
+      ]
     },
     {
       "id": "T-0061",

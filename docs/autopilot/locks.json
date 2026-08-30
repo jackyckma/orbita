@@ -4,8 +4,8 @@
     "T-0060": {
       "by": "maker",
       "since": "2026-08-30T23:05:00.000Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/t-0060-embed-failure-instrumentation",
+      "pr": 25
     }
   }
 }
