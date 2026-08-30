@@ -574,10 +574,11 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "in_review",
+      "status": "done",
       "retries": 0,
       "feedback": [
-        "PR https://github.com/jackyckma/orbita/pull/25 opened; acceptance green (Maker 2026-08-30)."
+        "PR https://github.com/jackyckma/orbita/pull/25 opened; acceptance green (Maker 2026-08-30).",
+        "Checker 2026-08-30: verify-all PASS; acceptance green; merged PR #25 (29a9643); EmbedFailureReason + embedFailureReason for all six silent null paths; public embedText contract unchanged."
       ]
     },
     {
