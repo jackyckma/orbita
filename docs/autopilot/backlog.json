@@ -452,9 +452,14 @@
         "T-0056"
       ],
       "flag": null,
-      "status": "ready",
+      "status": "done",
       "retries": 0,
       "feedback": [
+        {
+          "at": "2026-08-30T06:06:00Z",
+          "by": "checker",
+          "note": "REVIEW: verify-all PASS; acceptance green; scope matches task (github-read.test.ts only). Merged PR #23 (merge commit b3e71c4); lock cleared."
+        },
         {
           "at": "2026-08-29T23:04:00Z",
           "by": "maker-replan",
