@@ -593,10 +593,11 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "in_review",
+      "status": "done",
       "retries": 0,
       "feedback": [
-        "PR https://github.com/jackyckma/orbita/pull/26 opened; acceptance + agent-verify green (Maker 2026-08-31)."
+        "PR https://github.com/jackyckma/orbita/pull/26 opened; acceptance + agent-verify green (Maker 2026-08-31).",
+        "Checker 2026-08-31: verify-all PASS; acceptance green; merged PR #26 (937ed8b); runtime-activation acceptance subsection in playbook + planner-preferences casing fix."
       ]
     }
   ]
