@@ -65,6 +65,20 @@ On **main**:
    - Judgment fail / retries exhausted → on main: clear lock,
      `needs_human`, push. Never replan judgment tasks yourself.
 
+#### runtime-activation acceptance
+
+Tasks whose value depends on a **harness row**, **credential**, **cron**,
+**feature flag**, or **prod env** must include at least one acceptance
+command that proves **observable output** — not only that code exists
+(typecheck, unit tests, `rg` on source).
+
+Examples: a report note written; `portfolio_brief` no longer stale for a
+real project; a verify script exits 0 against prod.
+
+When decomposing or reviewing tasks, apply this rule. Full pattern and
+examples: [`planner-preferences.md`](planner-preferences.md) →
+*runtime-activation tasks*.
+
 ### `REPLAN`
 
 Edit **only** `docs/autopilot/*`. No app code / flags / PR merges.
