@@ -4,8 +4,8 @@
     "T-0061": {
       "by": "maker",
       "since": "2026-08-31T23:05:00.000Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/t-0061-runtime-activation-playbook",
+      "pr": 26
     }
   }
 }
