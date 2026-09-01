@@ -144,7 +144,8 @@
         "2026-08-11 (claude-hub-session): all 14 notes on personal-jacky re-PUT to force re-embedding. note_search STILL returns empty for multiple distinct queries.",
         "2026-08-13 (claude-hub-session): confirmed via Zeabur this is NOT a deploy-lag issue — running orbita-api deployment (started 2026-08-12T19:19:41Z, version 0.0.1-w36) postdates every relevant merge, yet note_search remains empty. So this is a second, still-unfixed bug in the embedding/search path itself, not the original swallowed-error bug alone. NEEDS FRESH INVESTIGATION: check whether MINIMAX_API_KEY is actually set in orbita-api's prod env on Zeabur, and whether note_put's embed call is failing silently again (same class of bug). Re-verified broken again 2026-08-16.",
         "STATUS CHANGED FROM done TO needs_human 2026-08-16 — closing this out as 'done' when the symptom is still reproducible was wrong; leaving it open until someone with deploy/log access root-causes it.",
-        "REPLAN 2026-08-29: split instrumentation-first slice into T-0060 (ready). This task stays needs_human until instrumentation lands and a follow-up fix task is written from evidence — do not re-attempt blind prod fixes here."
+        "REPLAN 2026-08-29: split instrumentation-first slice into T-0060 (ready). This task stays needs_human until instrumentation lands and a follow-up fix task is written from evidence — do not re-attempt blind prod fixes here.",
+        "REPLAN 2026-09-01: T-0060 done. Follow-ups T-0062 (embedding_meta on PUT) and T-0063 (prod diagnose script) decomposed; keep this task needs_human until T-0063 surfaces a concrete failure reason, then write a targeted fix task."
       ]
     },
     {
@@ -598,6 +599,89 @@
       "feedback": [
         "PR https://github.com/jackyckma/orbita/pull/26 opened; acceptance + agent-verify green (Maker 2026-08-31).",
         "Checker 2026-08-31: verify-all PASS; acceptance green; merged PR #26 (937ed8b); runtime-activation acceptance subsection in playbook + planner-preferences casing fix."
+      ]
+    },
+    {
+      "id": "T-0062",
+      "lane": "platform",
+      "phase": "l1-hardening",
+      "title": "Expose embedding_meta on note PUT when indexing embedding fails",
+      "description": "Epic E-04 follow-up after T-0060 instrumentation. packages/lane-memory upsertNote: when embedText returns null, read embedFailureReason and return it in an additive embedding_meta field on the upsert result — { indexed: boolean, failure?: EmbedFailureReason }. Wire through PUT /v1/notes JSON response as a top-level optional embedding_meta (note object unchanged). Never include MINIMAX_API_KEY, request text, or note body in failure detail. Add vitest covering indexed:true on success and at least one failure path surfacing reason codes. Do NOT change embed protocol, MINIMAX_GROUP_ID handling, or attempt a prod fix in this task — diagnostics only.",
+      "acceptance": [
+        "pnpm --filter @orbita/memory test",
+        "pnpm --filter @orbita/memory build",
+        "pnpm --filter @orbita/api typecheck",
+        "rg -n \"embedding_meta|embedFailureReason\" packages/lane-memory/src"
+      ],
+      "deps": [],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "REPLAN 2026-09-01: decomposed from E-04 after T-0060 landed; unblocks prod diagnose script T-0063 without log access."
+      ]
+    },
+    {
+      "id": "T-0063",
+      "lane": "ops",
+      "phase": "l1-hardening",
+      "title": "note_search embed diagnose script (prod PUT + search smoke)",
+      "description": "Epic E-04 follow-up. Add scripts/note-search-embed-diagnose.sh: sources ORBITA_PERSONAL_API_KEY / ORBITA_API_KEY from ~/.orbita-personal.env or .env (same pattern as portfolio-git-collect-setup-harness.sh); never echo secrets. (1) PUT a short probe note with a unique token in the body via /v1/notes/{uuid}. (2) Read embedding_meta from the response — if indexed:false, print the structured failure reason and exit 1. (3) GET /v1/notes/search?q=<token> — exit 0 only if the probe note appears; exit 1 with a clear message if search is still empty while indexed:true (unexpected) or if credentials are missing. Never print note bodies in full or API keys. If no API key is found, exit 1 naming paths checked — do not half-run. Runtime-activation acceptance: ./scripts/note-search-embed-diagnose.sh must exit 0 against prod before in_review (founder may need to provision ~/.orbita-personal.env first, same class of blocker as T-0058).",
+      "acceptance": [
+        "test -f scripts/note-search-embed-diagnose.sh",
+        "bash -n scripts/note-search-embed-diagnose.sh",
+        "./scripts/note-search-embed-diagnose.sh"
+      ],
+      "deps": [
+        "T-0062"
+      ],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "REPLAN 2026-09-01: decomposed from E-04; depends on embedding_meta in PUT response."
+      ]
+    },
+    {
+      "id": "T-0064",
+      "lane": "ops",
+      "phase": "hub-h1",
+      "title": "Activate portfolio zeabur collector harness + verify deploy-line reports",
+      "description": "Epic E-13 strand 1b (deploy line). Mirror T-0058 for the Zeabur collector merged in T-0052. (1) Run ./scripts/portfolio-zeabur-collect-setup-harness.sh — sources API key from ~/.orbita-personal.env or .env; never echo secrets. If no API key, mark needs_human naming missing env var and paths checked. (2) Trigger ONE manual run via POST /v1/harnesses/{id}/trigger (harness name portfolio-zeabur-collect). Poll until terminal state or 120s timeout. (3) Run ./scripts/portfolio-zeabur-collect-verify-output.sh (from T-0065) — must exit 0 before in_review. Confirm at least one project with zeabur_project_name in the registry produced a report note with edge=deploy within 48h. Record harness id in docs/personal-steward/portfolio-collectors.md once known.",
+      "acceptance": [
+        "test -f scripts/portfolio-zeabur-collect-setup-harness.sh",
+        "test -f scripts/portfolio-zeabur-collect-verify-output.sh",
+        "bash -n scripts/portfolio-zeabur-collect-verify-output.sh",
+        "./scripts/portfolio-zeabur-collect-verify-output.sh"
+      ],
+      "deps": [
+        "T-0065"
+      ],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "REPLAN 2026-09-01: E-13 deploy-line activation; git-line activation remains T-0058 (needs_human on API key)."
+      ]
+    },
+    {
+      "id": "T-0065",
+      "lane": "ops",
+      "phase": "hub-h1",
+      "title": "Author portfolio collector verify-output scripts (git + zeabur)",
+      "description": "Epic E-13. T-0058 stalled before verify scripts existed. Add scripts/portfolio-git-collect-verify-output.sh and scripts/portfolio-zeabur-collect-verify-output.sh: source the same API key env vars as the matching setup harness scripts; never echo secrets or full note bodies. Git script exits 0 only if GET /v1/notes (client personal-jacky) shows ≥1 note with frontmatter type=report and edge=repo updated within 48h; exits 1 with a clear message if credentials missing, no matching note, or API error. Zeabur script same pattern with edge=deploy. SCRIPT AUTHORING ONLY in this task — acceptance is file presence + bash -n, not a live prod run (runtime activation is T-0058 / T-0064).",
+      "acceptance": [
+        "test -f scripts/portfolio-git-collect-verify-output.sh",
+        "test -f scripts/portfolio-zeabur-collect-verify-output.sh",
+        "bash -n scripts/portfolio-git-collect-verify-output.sh",
+        "bash -n scripts/portfolio-zeabur-collect-verify-output.sh"
+      ],
+      "deps": [],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "REPLAN 2026-09-01: split verify-script authoring from T-0058/T-0064 runtime activation so Maker can ship scripts without prod API key."
       ]
     }
   ]
