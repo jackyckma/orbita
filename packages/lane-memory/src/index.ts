@@ -24,6 +24,7 @@ export { embedText } from "./embed.js";
 export type { EmbedPurpose, EmbedTextOptions } from "./embed.js";
 export {
   createNoteLink,
+  embeddingMetaFromEmbed,
   exportNotes,
   formatNoteContextLines,
   formatNoteExportBody,
@@ -40,6 +41,7 @@ export {
   upsertNote,
 } from "./notes-service.js";
 export type {
+  EmbeddingMeta,
   GetNoteNeighborsOptions,
   NoteContextOptions,
   NoteExportFile,
@@ -51,4 +53,5 @@ export type {
   NoteSearchHit,
   NotesExport,
   UpsertNoteInput,
+  UpsertNoteResult,
 } from "./notes-service.js";
