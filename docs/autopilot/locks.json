@@ -4,8 +4,8 @@
     "T-0062": {
       "by": "maker",
       "since": "2026-09-02T23:01:30.000Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/t-0062-embedding-meta",
+      "pr": 27
     }
   }
 }

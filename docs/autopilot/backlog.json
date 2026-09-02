@@ -615,10 +615,11 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
       "feedback": [
-        "REPLAN 2026-09-01: decomposed from E-04 after T-0060 landed; unblocks prod diagnose script T-0063 without log access."
+        "REPLAN 2026-09-01: decomposed from E-04 after T-0060 landed; unblocks prod diagnose script T-0063 without log access.",
+        "PR https://github.com/jackyckma/orbita/pull/27 opened; acceptance green (Maker 2026-09-02)."
       ]
     },
     {
