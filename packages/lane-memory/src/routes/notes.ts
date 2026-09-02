@@ -26,6 +26,36 @@ const NoteSchema = z.object({
   updated_at: z.string(),
 });
 
+const EmbedFailureReasonSchema = z.union([
+  z.object({ reason: z.literal("missing_key") }),
+  z.object({ reason: z.literal("empty_text") }),
+  z.object({ reason: z.literal("http_error"), httpStatus: z.number() }),
+  z.object({
+    reason: z.literal("minimax_status"),
+    statusCode: z.number(),
+    statusMsg: z.string().optional(),
+  }),
+  z.object({ reason: z.literal("no_vector") }),
+  z.object({
+    reason: z.literal("dimension_mismatch"),
+    actual: z.number(),
+    expected: z.number(),
+  }),
+  z.object({
+    reason: z.literal("network_error"),
+    detail: z.string().optional(),
+  }),
+]);
+
+const EmbeddingMetaSchema = z.object({
+  indexed: z.boolean(),
+  failure: EmbedFailureReasonSchema.optional(),
+});
+
+const NoteUpsertResponseSchema = NoteSchema.extend({
+  embedding_meta: EmbeddingMetaSchema.optional(),
+});
+
 const NoteLinkSchema = z.object({
   from_id: z.string().uuid(),
   to_id: z.string().uuid(),
@@ -194,7 +224,7 @@ export function createNoteRoutes(db: MemoryDb, env: MemoryEnv): OpenAPIHono {
     responses: {
       200: {
         description: "Note stored",
-        content: { "application/json": { schema: NoteSchema } },
+        content: { "application/json": { schema: NoteUpsertResponseSchema } },
       },
       400: {
         description: "Bad request",
@@ -207,7 +237,7 @@ export function createNoteRoutes(db: MemoryDb, env: MemoryEnv): OpenAPIHono {
     const auth = getAuth(c);
     const { id } = c.req.valid("param");
     const body = c.req.valid("json");
-    const note = await upsertNote(
+    const result = await upsertNote(
       db,
       auth.clientId,
       {
@@ -218,7 +248,7 @@ export function createNoteRoutes(db: MemoryDb, env: MemoryEnv): OpenAPIHono {
       },
       env,
     );
-    return c.json(note, 200);
+    return c.json(result, 200);
   });
 
   const createLinkRoute = createRoute({

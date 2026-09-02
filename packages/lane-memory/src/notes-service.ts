@@ -3,7 +3,8 @@ import { and, desc, eq, gte, lt } from "drizzle-orm";
 import type { MemoryEnv } from "./config.js";
 import type { MemoryDb } from "./db/client.js";
 import { noteLinks, notes } from "./db/schema.js";
-import { embedText, formatVectorLiteral } from "./embed.js";
+import { embedText, embedFailureReason, formatVectorLiteral } from "./embed.js";
+import type { EmbedFailureReason } from "./embed.js";
 import {
   noteMatchesListFilters,
   type NoteListFilters,
@@ -37,6 +38,27 @@ export type NoteLinkRecord = {
   rel: string;
   created_at: string;
 };
+
+export type EmbeddingMeta = {
+  indexed: boolean;
+  failure?: EmbedFailureReason;
+};
+
+export type UpsertNoteResult = NoteRecord & { embedding_meta?: EmbeddingMeta };
+
+/** Build PUT diagnostics from embedText outcome (no secrets or note text). */
+export function embeddingMetaFromEmbed(
+  embedding: number[] | null,
+  failure: EmbedFailureReason | null,
+): EmbeddingMeta {
+  if (embedding) {
+    return { indexed: true };
+  }
+  if (failure) {
+    return { indexed: false, failure };
+  }
+  return { indexed: false };
+}
 
 function toNoteRecord(row: {
   id: string;
@@ -162,14 +184,18 @@ export async function upsertNote(
   clientId: string,
   input: UpsertNoteInput,
   env?: MemoryEnv,
-): Promise<NoteRecord> {
+): Promise<UpsertNoteResult> {
   const id = input.id?.trim() || randomUUID();
   const title = input.title?.trim() ? input.title.trim() : null;
   const body = input.body;
   const frontmatter = input.frontmatter ?? {};
+  let embedding_meta: EmbeddingMeta | undefined;
   const embedding = env
     ? await embedText(env, noteEmbedText(title, body), { purpose: "db" })
     : null;
+  if (env) {
+    embedding_meta = embeddingMetaFromEmbed(embedding, embedFailureReason);
+  }
   const embeddingLiteral = embedding ? formatVectorLiteral(embedding) : null;
 
   const existing = await db.db
@@ -212,7 +238,7 @@ export async function upsertNote(
   if (!note) {
     throw new Error("Failed to persist note");
   }
-  return note;
+  return embedding_meta ? { ...note, embedding_meta } : note;
 }
 
 export async function createNoteLink(
