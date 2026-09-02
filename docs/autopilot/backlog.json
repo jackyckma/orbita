@@ -615,11 +615,12 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "in_review",
+      "status": "done",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-09-01: decomposed from E-04 after T-0060 landed; unblocks prod diagnose script T-0063 without log access.",
-        "PR https://github.com/jackyckma/orbita/pull/27 opened; acceptance green (Maker 2026-09-02)."
+        "PR https://github.com/jackyckma/orbita/pull/27 opened; acceptance green (Maker 2026-09-02).",
+        "Checker 2026-09-02: verify-all PASS; acceptance green; merged PR #27 (868a58d); embedding_meta additive on PUT only."
       ]
     },
     {
