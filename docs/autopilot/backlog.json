@@ -638,10 +638,11 @@
         "T-0062"
       ],
       "flag": null,
-      "status": "in_progress",
+      "status": "needs_human",
       "retries": 0,
       "feedback": [
-        "REPLAN 2026-09-01: decomposed from E-04; depends on embedding_meta in PUT response."
+        "REPLAN 2026-09-01: decomposed from E-04; depends on embedding_meta in PUT response.",
+        "Maker 2026-09-03: scripts/note-search-embed-diagnose.sh authored on branch cursor/T-0063-note-search-embed-diagnose (9a42c0d). Acceptance blocked — no Orbita API key for client personal-jacky. Looked for ORBITA_API_KEY, ORBITA_PERSONAL_API_KEY, PERSONAL_ORBITA_API_KEY in /workspace/.env (missing), $HOME/.orbita-personal.env (missing), and current environment (no Orbita keys). ./scripts/note-search-embed-diagnose.sh exits 1 before prod PUT/search smoke. Founder must provision ~/.orbita-personal.env (or workspace .env), re-run acceptance exit 0, then open PR from branch or bounce task to ready."
       ]
     },
     {
