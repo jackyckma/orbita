@@ -638,7 +638,7 @@
         "T-0062"
       ],
       "flag": null,
-      "status": "ready",
+      "status": "in_progress",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-09-01: decomposed from E-04; depends on embedding_meta in PUT response."
