@@ -681,12 +681,13 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "in_review",
+      "status": "done",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-09-01: split verify-script authoring from T-0058/T-0064 runtime activation so Maker can ship scripts without prod API key.",
         "Maker 2026-09-04: lease on main; implementing verify-output scripts.",
-        "PR https://github.com/jackyckma/orbita/pull/28 opened; acceptance + agent-verify green (Maker 2026-09-04)."
+        "PR https://github.com/jackyckma/orbita/pull/28 opened; acceptance + agent-verify green (Maker 2026-09-04).",
+        "Checker 2026-09-04: verify-all PASS; scope matches task (verify-output scripts only); merged PR #28."
       ]
     }
   ]
