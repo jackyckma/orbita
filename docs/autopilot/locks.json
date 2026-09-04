@@ -4,8 +4,8 @@
     "T-0065": {
       "by": "maker",
       "since": "2026-09-04T23:05:46Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/T-0065-portfolio-collect-verify-output",
+      "pr": 28
     }
   }
 }
