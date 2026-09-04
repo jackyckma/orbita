@@ -681,10 +681,11 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "ready",
+      "status": "in_progress",
       "retries": 0,
       "feedback": [
-        "REPLAN 2026-09-01: split verify-script authoring from T-0058/T-0064 runtime activation so Maker can ship scripts without prod API key."
+        "REPLAN 2026-09-01: split verify-script authoring from T-0058/T-0064 runtime activation so Maker can ship scripts without prod API key.",
+        "Maker 2026-09-04: lease on main; implementing verify-output scripts."
       ]
     }
   ]
