@@ -661,10 +661,11 @@
         "T-0065"
       ],
       "flag": null,
-      "status": "ready",
+      "status": "needs_human",
       "retries": 0,
       "feedback": [
-        "REPLAN 2026-09-01: E-13 deploy-line activation; git-line activation remains T-0058 (needs_human on API key)."
+        "REPLAN 2026-09-01: E-13 deploy-line activation; git-line activation remains T-0058 (needs_human on API key).",
+        "Maker 2026-09-05: step (1) blocked — no Orbita API key for client personal-jacky. Looked for ORBITA_API_KEY, ORBITA_PERSONAL_API_KEY, PERSONAL_ORBITA_API_KEY in /workspace/.env (missing), $HOME/.orbita-personal.env (missing), and current environment (no Orbita keys). ./scripts/portfolio-zeabur-collect-setup-harness.sh and ./scripts/portfolio-zeabur-collect-verify-output.sh exit 1. Founder must provision ~/.orbita-personal.env (or workspace .env) with ORBITA_API_KEY or PERSONAL_ORBITA_API_KEY, then bounce T-0064 to ready for harness create + trigger + verify."
       ]
     },
     {
