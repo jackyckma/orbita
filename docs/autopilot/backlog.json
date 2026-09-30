@@ -705,10 +705,11 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "in_review",
+      "status": "done",
       "retries": 0,
       "feedback": [
-        "PR https://github.com/jackyckma/orbita/pull/29 opened from hub Track B; package test, pnpm -r test, pnpm -r typecheck, and pnpm build were green (2026-09-30). Dispatched from hub session via Cursor Cloud Agent (Track B)."
+        "PR https://github.com/jackyckma/orbita/pull/29 opened from hub Track B; package test, pnpm -r test, pnpm -r typecheck, and pnpm build were green (2026-09-30). Dispatched from hub session via Cursor Cloud Agent (Track B).",
+        "Checker 2026-09-30: verify-all PASS; scope matches task (harness tick cron advance + tests); merged PR #29 (b19295e)."
       ]
     }
   ]
