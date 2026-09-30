@@ -690,6 +690,26 @@
         "PR https://github.com/jackyckma/orbita/pull/28 opened; acceptance + agent-verify green (Maker 2026-09-04).",
         "Checker 2026-09-04: verify-all PASS; scope matches task (verify-output scripts only); merged PR #28."
       ]
+    },
+    {
+      "id": "T-0066",
+      "lane": "platform",
+      "phase": "hub-h1",
+      "title": "Fix wedged cron harness after failed run (portfolio git collector silent since 2026-09-02)",
+      "description": "Epic E-13. A failed cron run inserts the harness_runs fingerprint before the collector finishes and does not advance next_run_at, so every later tick treats the slot as already attempted and returns with no error — one failure permanently silences the harness (portfolio-git-collect, c46c8213-308b-4391-abfe-f00eb037d4b6, silent since 2026-09-02). Advance next_run_at after every terminal cron outcome (last_run_at only on success), self-heal an existing fingerprint by moving to the next slot and warning, and return the failure error so startHarnessTick logs harness run failed. Dispatched from hub session via Cursor Cloud Agent (Track B). No DB migration, no cron-semantics change, no production data changes.",
+      "acceptance": [
+        "pnpm --filter @orbita/harness test",
+        "pnpm -r test",
+        "pnpm -r typecheck",
+        "pnpm build"
+      ],
+      "deps": [],
+      "flag": null,
+      "status": "in_review",
+      "retries": 0,
+      "feedback": [
+        "PR https://github.com/jackyckma/orbita/pull/29 opened from hub Track B; package test, pnpm -r test, pnpm -r typecheck, and pnpm build were green (2026-09-30). Dispatched from hub session via Cursor Cloud Agent (Track B)."
+      ]
     }
   ]
 }
