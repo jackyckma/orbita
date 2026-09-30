@@ -1,6 +1,10 @@
 # Session handoff
 
-**Last updated:** 2026-08-07
+**Last updated:** 2026-09-30
+
+## Latest change (2026-09-30)
+
+Cron harness tick no longer wedges after one failed slot: `next_run_at` advances on every terminal cron outcome (`last_run_at` still means last success), and a repeat fingerprint warns `harness run skipped: already attempted for this slot; advanced next_run_at`. After deploy, `portfolio-git-collect` (`c46c8213-308b-4391-abfe-f00eb037d4b6`) runs at the next 06:00 UTC; a collector that is still failing logs `harness run failed`.
 
 ## Metadata
 
