@@ -37,6 +37,31 @@ function cronFingerprint(cron: string, dueAt: Date): string {
   return `${cron}:${dueAt.toISOString().slice(0, 16)}`;
 }
 
+export type HarnessRunResult = {
+  ran: boolean;
+  runId?: string;
+  error?: string;
+  /** Cron fingerprint already has a run for this dueAt. nextRunAt was advanced. */
+  skipped?: { status: string; error: string | null };
+};
+
+/** Move a cron harness to the next slot. Does not touch lastRunAt. */
+async function advanceCronNextRunAt(
+  harnessDb: HarnessDb,
+  harness: { id: string; cron: string | null },
+  trigger: "cron" | "manual",
+  now: Date,
+): Promise<void> {
+  if (trigger !== "cron" || !harness.cron) return;
+  await harnessDb.db
+    .update(harnesses)
+    .set({
+      nextRunAt: computeNextCronRun(harness.cron, now),
+      updatedAt: now,
+    })
+    .where(eq(harnesses.id, harness.id));
+}
+
 export async function executeHarnessRun(
   harnessDb: HarnessDb,
   sessionsDb: SessionsDb,
@@ -46,12 +71,16 @@ export async function executeHarnessRun(
   runTurn: AgentTurnRunner,
   deps: HarnessRunDeps,
   summarizer?: SessionSummarizer,
-): Promise<{ ran: boolean; runId?: string; error?: string }> {
+): Promise<HarnessRunResult> {
   const fingerprint = trigger === "cron" && harness.cron ? cronFingerprint(harness.cron, dueAt) : null;
 
   if (fingerprint) {
     const [existing] = await harnessDb.db
-      .select({ id: harnessRuns.id })
+      .select({
+        id: harnessRuns.id,
+        status: harnessRuns.status,
+        error: harnessRuns.error,
+      })
       .from(harnessRuns)
       .where(
         and(
@@ -59,7 +88,15 @@ export async function executeHarnessRun(
           eq(harnessRuns.cronFingerprint, fingerprint),
         ),
       );
-    if (existing) return { ran: false };
+    if (existing) {
+      const now = new Date();
+      await advanceCronNextRunAt(harnessDb, harness, trigger, now);
+      return {
+        ran: false,
+        runId: existing.id,
+        skipped: { status: existing.status, error: existing.error },
+      };
+    }
   }
 
   const sessionId = await resolveHarnessSessionForRun(
@@ -92,18 +129,20 @@ export async function executeHarnessRun(
     const runner = deps.systemCollectors?.[collectorName];
     const finishedAt = new Date();
     if (!runner) {
+      const error = `No system collector registered: ${collectorName}`;
       await harnessDb.db
         .update(harnessRuns)
         .set({
           status: "failed",
-          error: `No system collector registered: ${collectorName}`,
+          error,
           finishedAt,
         })
         .where(eq(harnessRuns.id, run!.id));
+      await advanceCronNextRunAt(harnessDb, harness, trigger, new Date());
       return {
         ran: false,
         runId: run!.id,
-        error: `No system collector registered: ${collectorName}`,
+        error,
       };
     }
     try {
@@ -131,21 +170,24 @@ export async function executeHarnessRun(
           .where(eq(harnesses.id, harness.id));
         return { ran: true, runId: run!.id };
       }
+      const error = result.error ?? "collector failed";
       await harnessDb.db
         .update(harnessRuns)
         .set({
           status: "failed",
-          error: result.error ?? "collector failed",
+          error,
           finishedAt,
         })
         .where(eq(harnessRuns.id, run!.id));
-      return { ran: false, runId: run!.id, error: result.error };
+      await advanceCronNextRunAt(harnessDb, harness, trigger, new Date());
+      return { ran: false, runId: run!.id, error };
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       await harnessDb.db
         .update(harnessRuns)
         .set({ status: "failed", error: message, finishedAt })
         .where(eq(harnessRuns.id, run!.id));
+      await advanceCronNextRunAt(harnessDb, harness, trigger, new Date());
       return { ran: false, runId: run!.id, error: message };
     }
   }
@@ -197,15 +239,17 @@ export async function executeHarnessRun(
     return { ran: true, runId: run!.id };
   }
 
+  const error = agentResult.error ?? "agent_message did not run";
   await harnessDb.db
     .update(harnessRuns)
     .set({
       status: "failed",
-      error: agentResult.error ?? "agent_message did not run",
+      error,
       finishedAt,
     })
     .where(eq(harnessRuns.id, run!.id));
-  return { ran: false, runId: run!.id, error: agentResult.error };
+  await advanceCronNextRunAt(harnessDb, harness, trigger, new Date());
+  return { ran: false, runId: run!.id, error };
 }
 
 export function startHarnessTick(
@@ -247,7 +291,16 @@ export function startHarnessTick(
         deps,
         summarizer,
       );
-      if (result.error) {
+      if (result.skipped) {
+        logger?.warn(
+          {
+            harness_id: harness.id,
+            status: result.skipped.status,
+            error: result.skipped.error,
+          },
+          "harness run skipped: already attempted for this slot; advanced next_run_at",
+        );
+      } else if (result.error) {
         logger?.warn(
           { harness_id: harness.id, error: result.error, run_id: result.runId },
           "harness run failed",

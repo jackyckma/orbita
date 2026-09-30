@@ -20,7 +20,7 @@ related: docs/harness-design.md
 
 - Templates: `cron-agent`, `editorial-supply@v1`, `portfolio-git-collect@v1`, `portfolio-zeabur-collect@v1`
 - Loops 2 (verify) and 4 (improve auto) rejected at create time
-- Cron tick via `startHarnessTick` (5s poll, idempotent cron fingerprint)
+- Cron tick via `startHarnessTick` (5s poll, idempotent cron fingerprint). Each cron slot is attempted once: success or failure advances `next_run_at` (`last_run_at` only on success). A later tick that finds the same fingerprint advances `next_run_at` and warns instead of stopping silently.
 
 ## See also
 
