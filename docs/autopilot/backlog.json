@@ -769,7 +769,7 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "ready",
+      "status": "in_progress",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-01: E-14 first pass (1/6) — tenant config contract before call-site wiring."
