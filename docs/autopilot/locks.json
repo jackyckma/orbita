@@ -4,8 +4,8 @@
     "T-0069": {
       "by": "maker",
       "since": "2026-10-01T23:08:00.000Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/t-0069-hub-tenant-config",
+      "pr": 31
     }
   }
 }

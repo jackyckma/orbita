@@ -769,10 +769,11 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
       "feedback": [
-        "REPLAN 2026-10-01: E-14 first pass (1/6) — tenant config contract before call-site wiring."
+        "REPLAN 2026-10-01: E-14 first pass (1/6) — tenant config contract before call-site wiring.",
+        "Maker 2026-10-01: PR #31 opened; platform test/build + agent-verify green."
       ]
     },
     {
