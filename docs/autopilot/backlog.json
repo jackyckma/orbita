@@ -733,6 +733,25 @@
         "PR https://github.com/jackyckma/orbita/pull/30 opened; docs/comment-level framework 1.9.0 sync. Dispatched from hub session via Cursor Cloud Agent (Track B).",
         "2026-10-01 hub: PR #30 merged manually (merge commit b7c398f); Checker review queue only accepts head branches matching ^cursor/ (framework-sync-1.9.0 was excluded); verify job green; e2e-tier-a red is pre-existing on main since 2026-06-22."
       ]
+    },
+    {
+      "id": "T-0068",
+      "lane": "platform",
+      "phase": "l1-hardening",
+      "title": "fix(db): make Postgres initdb ordering locale-independent (fixes CI e2e-tier-a)",
+      "description": "Existing PR #21 (opened 2026-08-20, head cursor/fix-postgres-initdb-order-7062, left unregistered until now). Renumbers docker-compose initdb mounts to strict 001_-009_ numeric prefixes, adds the missing lane-memory 0003_notes.sql mount, adds 0003_notes.sql and 0002_cron.sql to scripts/db-migrate.sh, and updates the AGENTS.md initdb note. No TypeScript changes. Dev/CI only; production (Zeabur Dockerfile + API startup runMigrations of init.sql) is unchanged. A comment in docker-compose.yml still mentions the old \"002b_\" name, so acceptance checks non-comment lines rather than a raw grep of the whole file.",
+      "acceptance": [
+        "! grep -E '^[^#]*002b_|^[^#]*003b_|^[^#]*005b_' docker-compose.yml",
+        "grep -q 0003_notes.sql docker-compose.yml",
+        "grep -q 0003_notes.sql scripts/db-migrate.sh && grep -q 0002_cron.sql scripts/db-migrate.sh && bash -n scripts/db-migrate.sh"
+      ],
+      "deps": [],
+      "flag": null,
+      "status": "in_review",
+      "retries": 0,
+      "feedback": [
+        "2026-10-01 hub: registered existing PR #21 (opened 2026-08-20, unregistered) so the Checker can review it; merge-tree clean against main."
+      ]
     }
   ]
 }
