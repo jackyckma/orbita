@@ -769,11 +769,12 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "in_review",
+      "status": "done",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-01: E-14 first pass (1/6) — tenant config contract before call-site wiring.",
-        "Maker 2026-10-01: PR #31 opened; platform test/build + agent-verify green."
+        "Maker 2026-10-01: PR #31 opened; platform test/build + agent-verify green.",
+        "REVIEW PR #31: verify-all PASS; acceptance green; CI verify + e2e-tier-a pass; scope matches T-0069 (lane-platform config only, no call-site wiring). Merged. No duplicate T-0069 PRs."
       ]
     },
     {
