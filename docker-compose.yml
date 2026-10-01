@@ -9,14 +9,19 @@ services:
       - "5432:5432"
     volumes:
       - orbita_pg:/var/lib/postgresql/data
+      # initdb runs these in filename order. Keep the numeric prefixes strictly
+      # zero-separated (NNN_) so ordering is locale-independent: a "002b_" style
+      # suffix can sort BEFORE "002_" under some collations, which would run a
+      # dependent migration before its base table exists and abort init.
       - ./packages/lane-auth/drizzle/0000_init.sql:/docker-entrypoint-initdb.d/001_auth.sql:ro
       - ./packages/lane-sessions/drizzle/0001_sessions.sql:/docker-entrypoint-initdb.d/002_sessions.sql:ro
-      - ./packages/lane-sessions/drizzle/0002_compression.sql:/docker-entrypoint-initdb.d/002b_sessions_compression.sql:ro
-      - ./packages/lane-memory/drizzle/0002_vectors.sql:/docker-entrypoint-initdb.d/003b_memory_vectors.sql:ro
-      - ./packages/lane-scheduler/drizzle/0002_cron.sql:/docker-entrypoint-initdb.d/005b_scheduler_cron.sql:ro
-      - ./packages/lane-memory/drizzle/0001_memory.sql:/docker-entrypoint-initdb.d/003_memory.sql:ro
-      - ./packages/lane-trajectory/drizzle/0001_trajectory.sql:/docker-entrypoint-initdb.d/004_trajectory.sql:ro
-      - ./packages/lane-scheduler/drizzle/0001_scheduler.sql:/docker-entrypoint-initdb.d/005_scheduler.sql:ro
+      - ./packages/lane-sessions/drizzle/0002_compression.sql:/docker-entrypoint-initdb.d/003_sessions_compression.sql:ro
+      - ./packages/lane-memory/drizzle/0001_memory.sql:/docker-entrypoint-initdb.d/004_memory.sql:ro
+      - ./packages/lane-memory/drizzle/0002_vectors.sql:/docker-entrypoint-initdb.d/005_memory_vectors.sql:ro
+      - ./packages/lane-memory/drizzle/0003_notes.sql:/docker-entrypoint-initdb.d/006_notes.sql:ro
+      - ./packages/lane-trajectory/drizzle/0001_trajectory.sql:/docker-entrypoint-initdb.d/007_trajectory.sql:ro
+      - ./packages/lane-scheduler/drizzle/0001_scheduler.sql:/docker-entrypoint-initdb.d/008_scheduler.sql:ro
+      - ./packages/lane-scheduler/drizzle/0002_cron.sql:/docker-entrypoint-initdb.d/009_scheduler_cron.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U orbita -d orbita"]
       interval: 5s
