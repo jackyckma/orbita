@@ -1,19 +1,66 @@
 # Methodology bundle pin — update only after a manual sync (see framework-adoption.md).
 
 source: https://github.com/jackyckma/ai-dev-methodologies
-version: "1.3.0"
-source_commit: af32f3a
-synced_at: 2026-08-07
+version: "1.9.0"
+source_commit: e0c47069d27b574fca09b7e00a320485866d1a6f
+synced_at: 2026-10-01
 synced_by: agent session (manual sync 1.1.0 → 1.3.0)
+lock_schema: 2
+manifest_version: "1.9.0"
 customized_files:
   - .agents/instructions/project-guidelines.md
   - docs/AGENT_ENV.md
   - scripts/agent-verify.sh
   - AGENTS.md
+  - .agents/instructions/cursor-autopilot.md
+  - .cursor/rules/shared-instructions.mdc
+  - docs/README.md
+  - docs/autopilot/README.md
+  - docs/autopilot/automations.md
+  - docs/autopilot/playbook.md
+  - scripts/autopilot/decide-next-action.mjs
+files:
+  .agents/README.md: dc08ba9f094b4b4a1019f8916af2d748f966588838323f7f2f7479d27408be93
+  .agents/compatibility/local-vs-cloud-agents.md: 3fbd33bb675803c36affef44096da164d8ec46870454c9e9b363fd0cf6816483
+  .agents/defaults/README.md: 05cd6af064cbc2ebc92927a888bf2afe89bff09c7a527007b5c66d9548d84633
+  .agents/defaults/ai-providers.md: cc1457fba944737cc8cea3543260b9f83a1ffa5ba55e1ce490d1140ad4046d12
+  .agents/defaults/cloudflare.md: b02e3b57335a6ba1ecb7b74bbbdcd6a4a72d3010012ffc86ea8e6d48b334dcce
+  .agents/defaults/zeabur.md: eccc6ab67b2d5300c83b4966cfcfe00a9e0d85c2b6f06f70c9ba708485c47e3c
+  .agents/instructions/METHODOLOGIES.md: c4e8e7ca9d4d53ebddccab4ee5f9fde7315322933b5809efbfa00b3e490bc582
+  .agents/instructions/README.md: d3717fce484c154cbe6b69b0babed4edc5238f9099f9823c4d4ef360051ddf5e
+  .agents/instructions/agent-native-practices.md: f314774a9418b1d7d3bc6312dc47ade4fc6870c89d4b142e7f52b1bff3909dfa
+  .agents/instructions/agent-tooling-guardrails.md: 56f8ddb4e89d80e2e10ca907f3c1ad46b7918fc3dfafd4dd75edf2be5991da24
+  .agents/instructions/autonomous-loop.md: 094f973c6b7e8f903ee65aabe9e6afc3dbf431655726872d34a142f6708ee743
+  .agents/instructions/cursor-autopilot.md: 67b3ae14cebae95745895d61c7a44ecfc3bec24d17a9bffed4acd8aea2398bd9
+  .agents/instructions/decision-authority.md: 14076ef157e98b677de72adfc0bc75ca25bd73d4e4ce014686e804012a513e92
+  .agents/instructions/framework-adoption.md: 4367a9bfe9510ee8e854aacab296d909a51cf024307389d5661733effcc254bf
+  .agents/instructions/framework-evolution.md: 3d2778785ccdc8bf5e4ee2d06ad21a4186e0820d9d061b214ec6751f9d37bdf8
+  .agents/instructions/issue-quality.md: 3e0c188e0ad631f8f3f6fda843a40a2eab6157f0cddfaf19f2e4ca013c451100
+  .agents/instructions/judgment-rubrics.md: 4a8d3bec3c3375b8fbb995db85eaee1f1fc54fb3e6b4a0c81cc56db568840ce4
+  .agents/instructions/karpathy-guidelines.md: 3e1c046276c0b37ae8a84d8626a223c5e0587e14b4ee7dbadac39ea05626cfca
+  .agents/instructions/lane-based-development.md: 0c0cf9c3143bf7fdb2c23da32a4ce09616633ba2931ce7980365dbbf0bb4ab96
+  .agents/instructions/model-orchestration.md: d7f51a803399c58e4bd6266283902acdbbf9d66f0de615b95fbd617bfa009090
+  .agents/instructions/portfolio-hub-reporting.md: 9033d5987ce7356fd6d614b12644dc5ca9a34000129909f73246d838c09a2e86
+  .agents/instructions/session-handoff.md: 7e5f01571b7f7bcab88b473407ebd72baf7dc1edb28fdf6ecd680ae8c2801911
+  .agents/skills/README.md: 6245e64aa30c1d2882d2e4ca4f9ea190aa2b8a2f77639197dd6b14bd8a55d2cf
+  .agents/skills/complexity-review/SKILL.md: d1bd5efd4125fcd6097bb720d69633eefec2ebceb18847a16c13b203823a0158
+  .agents/skills/deferred-shortcuts/SKILL.md: 01ce82f3b902504e54f5c19201ec63d365e428fe6d3f24c558b1156958720d16
+  .cursor/rules/shared-instructions.mdc: 4986e3c6f29518030f76bbeb25f1a38729b023d2b5d85fef89e569dfe7e16702
+  AGENTS.md: 1a30d331728c0757d82ee32fa8416f583e44ad8ccf36359e617e52e74a5e2d70
+  CLAUDE.md: ebddaa178fc8913c3000085754b06cfc8fc7089719dade3ef4bdf818c1418468
+  docs/README.md: 13178b46302494d3591ce80e93d9e34c5ec51f5355a5cfeacddc0d91cc21813b
+  docs/autopilot/README.md: 8847b9c6c640b5ce41211ee134f3d76dea4e28d622c1e12fb21bba26bb9aace9
+  docs/autopilot/automations.md: 0f81cd9743ae268a54e9f81175908caccefaecddd4a541a62743bcc4340ef31e
+  docs/autopilot/playbook.md: f0f7ad5ec6891abe628697f087e3e3ec6b768f5fd493c72f2bc58ee65cf8c89e
+  docs/autopilot/report.example.json: 8399b29962eb19c3cc5196ddbf8e2a02211cdbf4318361003928d4eff69e97df
+  docs/autopilot/report.schema.json: 71844d350bf4b16e07b08c5b7c7a59cf780fcc09e64e18fb84b172cdbf0d98f6
+  scripts/autopilot/apply-decision-defaults.mjs: 41f6549fdd473cc7565afab95eca9b4a16314037c24e0b8f3748df3c66881346
+  scripts/autopilot/decide-next-action.mjs: de3eef847e8d3ec66e3a1cd9ccb354c1835069447a4332d793478a11d28245ec
+  scripts/autopilot/deploy-watchdog.mjs: d91a757423c8e68300bac68a97b2025bf21c49733e4c75e3cf453e568d96b7df
+  scripts/autopilot/dispatch-core.mjs: 701dc25735ec2c861fd4d34c10515b27c99683da24e23d986c84f22c9e29ba6b
+  scripts/autopilot/queue-status.mjs: 4bb90e09a23cc4f80a4527b2d2ea9c6d2ef6ce39831aa222b8c4bb52dafcbb66
+  scripts/autopilot/render-report.mjs: 2475dc7cf312cb52f7240360eeb0b1a4d9fbe919f8c636b81934246a185fa31c
+  scripts/autopilot/verify-all.mjs: 6ff359ec8238d902c3ad42cd73438c3a95f06bba3cbaff95b805b83121391eed
+  scripts/autopilot/weekly-report.mjs: 2a69af415762b1a7b9a423533ecb81883d4d5ac65f481d69d3bc8f1a3c59af63
+  scripts/setup-cloud-agent-env.sh: 050347d4b0f8048f32e74521c2bad14fcef8a09bc2e4d8d31ceed6552a061752
 notes: >-
-  Synced framework-owned instructions (incl. judgment-rubrics, model-orchestration,
-  autonomous-loop, cursor-autopilot, agent-native-practices, framework-evolution),
-  compatibility/local-vs-cloud-agents.md, Autopilot scaffolds under docs/autopilot +
-  scripts/autopilot. Preserved project-owned guidelines/AGENT_ENV/agent-verify;
-  AGENTS.md merged (upstream core list + Orbita Wave/Marketing/Learned sections).
-  Traditional Chinese kept in shared-instructions.mdc quick rules.

@@ -20,6 +20,6 @@
 
 ## Agent instructions
 
-Shared behavior: `.agents/instructions/` (bootstrapped from [ai-dev-methodologies](https://github.com/jackyckma/ai-dev-methodologies) v1.1.0).
+Shared behavior: `.agents/instructions/` (bootstrapped from [ai-dev-methodologies](https://github.com/jackyckma/ai-dev-methodologies)).
 
 Entry points: `AGENTS.md`, `CLAUDE.md`, `.cursor/rules/shared-instructions.mdc`.
