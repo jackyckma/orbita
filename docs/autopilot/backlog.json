@@ -753,6 +753,129 @@
         "2026-10-01 hub: registered existing PR #21 (opened 2026-08-20, unregistered) so the Checker can review it; merge-tree clean against main.",
         "REVIEW PR #21: verify-all PASS; acceptance green; CI e2e-tier-a + verify pass; scope matches T-0068 (initdb locale-independent ordering, db-migrate completeness, AGENTS.md note). Merged (merge commit 17e08b2). No duplicate T-0068 PRs."
       ]
+    },
+    {
+      "id": "T-0069",
+      "lane": "platform",
+      "phase": "consultos-a0",
+      "title": "Hub tenant config module (ORBITA_HUB_CLIENT_ID + warned fallback)",
+      "description": "Epic E-14 strand 1 phase 1 (config only — no call-site wiring yet). In packages/lane-platform: add ORBITA_HUB_CLIENT_ID to env schema and export resolveHubClientId(env) (name negotiable) that returns the explicit env value when set, otherwise returns a single documented constant DEPRECATED_HUB_CLIENT_ID_FALLBACK = 'personal-jacky' and invokes a one-shot startup warning logger ('deprecated default tenant in use'). Add vitest covering: explicit env → that value, no env → fallback + warning called once. Do NOT remove the fallback or fail startup when unset (phase 2 waits on D-003). Do NOT wire portfolio collectors, oauth, or scripts in this task (T-0070). No API shape changes.",
+      "acceptance": [
+        "pnpm --filter @orbita/platform test",
+        "pnpm --filter @orbita/platform build",
+        "rg -n \"ORBITA_HUB_CLIENT_ID|resolveHubClientId|DEPRECATED_HUB_CLIENT_ID\" packages/lane-platform/src"
+      ],
+      "deps": [],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "REPLAN 2026-10-01: E-14 first pass (1/6) — tenant config contract before call-site wiring."
+      ]
+    },
+    {
+      "id": "T-0070",
+      "lane": "platform",
+      "phase": "consultos-a0",
+      "title": "Wire hub client id through collectors, oauth default, and portfolio scripts",
+      "description": "Epic E-14 strand 1 phase 1 wiring. Use resolveHubClientId from @orbita/platform (T-0069) in apps/orbita-api/src/portfolio-git-collector.ts and portfolio-zeabur-collector.ts instead of hard-coded HUB_CLIENT_ID. packages/lane-oauth/src/config.ts: ORBITA_MCP_OAUTH_DEFAULT_CLIENT_ID should default via the same hub resolver (env ORBITA_HUB_CLIENT_ID still wins; fallback behaviour unchanged). packages/lane-portfolio/src/normalize-deploy.ts: error/helper text must use the configured id, not a string literal. scripts/portfolio-git-collect-setup-harness.sh, portfolio-git-collect-verify-output.sh, portfolio-zeabur-collect-setup-harness.sh, portfolio-zeabur-collect-verify-output.sh: require ORBITA_CLIENT_ID or ORBITA_HUB_CLIENT_ID (document both); exit 1 with clear message when neither is set — remove silent personal-jacky default from scripts only. Done-when: `! rg -n \"personal-jacky\" apps packages scripts --glob '!*.test.*'` except the single DEPRECATED_HUB_CLIENT_ID_FALLBACK constant in lane-platform (document in PR body). Do NOT implement phase 2 (remove fallback). Do not touch E-04/E-13 tasks.",
+      "acceptance": [
+        "pnpm -r typecheck",
+        "pnpm -r test",
+        "! rg -n \"personal-jacky\" apps/orbita-api/src/portfolio-git-collector.ts apps/orbita-api/src/portfolio-zeabur-collector.ts packages/lane-portfolio/src/normalize-deploy.ts scripts/portfolio-git-collect-setup-harness.sh scripts/portfolio-git-collect-verify-output.sh scripts/portfolio-zeabur-collect-setup-harness.sh scripts/portfolio-zeabur-collect-verify-output.sh",
+        "rg -n \"resolveHubClientId|ORBITA_HUB_CLIENT_ID\" apps/orbita-api/src/portfolio-git-collector.ts packages/lane-oauth/src/config.ts"
+      ],
+      "deps": [
+        "T-0069"
+      ],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "REPLAN 2026-10-01: E-14 first pass (2/6) — call-site wiring; scripts fail closed without client id."
+      ]
+    },
+    {
+      "id": "T-0071",
+      "lane": "platform",
+      "phase": "consultos-a0",
+      "title": "Offline SQL sync check (lane drizzle vs init.sql)",
+      "description": "Epic E-14 strand 2. Add scripts/check-sql-sync.mjs (no database): parse CREATE TABLE / ADD COLUMN / CREATE INDEX from packages/*/drizzle/*.sql and apps/orbita-api/migrations/init.sql; fail exit 1 when a table/column/index exists in a lane file but not in init.sql. Support docs/autopilot/sql-sync-allowlist.json (create empty array file) for optional migration files E-16 will add later. Add a negative vitest or node test using a tiny fixture directory proving a deliberate missing column fails. Wire into root package.json as a script (e.g. check:sql-sync) — do NOT edit framework-owned scripts/agent-verify.sh. Do not change init.sql or lane SQL except to fix a mismatch the check proves; if you must fix, list every fix in task feedback. Additive-only SQL fixes.",
+      "acceptance": [
+        "node scripts/check-sql-sync.mjs",
+        "test -f docs/autopilot/sql-sync-allowlist.json",
+        "test -f scripts/check-sql-sync.test.mjs",
+        "node --test scripts/check-sql-sync.test.mjs"
+      ],
+      "deps": [],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "REPLAN 2026-10-01: E-14 first pass (3/6) — schema drift guard before ConsultOS DDL epics."
+      ]
+    },
+    {
+      "id": "T-0072",
+      "lane": "platform",
+      "phase": "consultos-a0",
+      "title": "Harness tick: isolate collector run failures (try/catch per run)",
+      "description": "Epic E-14 strand 3 (part 1). packages/lane-harness/src/tick.ts (or equivalent): wrap each harness/collector run invocation so an thrown error or rejected promise is caught, logged (harness id + error message, no secrets), and the tick loop continues with remaining harnesses. Preserve T-0066 semantics: next_run_at still advances after terminal outcomes; this task only ensures one failure cannot abort the entire tick. Add/extend unit tests in tick.test.ts with a fake db and a collector that throws — assert the tick completes and other harnesses still run. No schema migration in this task. No advisory lock yet (T-0073).",
+      "acceptance": [
+        "pnpm --filter @orbita/harness test",
+        "pnpm -r typecheck",
+        "rg -n \"catch|try\" packages/lane-harness/src/tick.ts"
+      ],
+      "deps": [],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "REPLAN 2026-10-01: E-14 first pass (4/6) — scheduler resilience: per-run isolation."
+      ]
+    },
+    {
+      "id": "T-0073",
+      "lane": "platform",
+      "phase": "consultos-a0",
+      "title": "Harness tick: Postgres advisory leader lock + cron timezone",
+      "description": "Epic E-14 strand 3 (part 2). (1) Before processing cron harnesses, attempt a Postgres advisory lock (document lock key constant); if lock not acquired, skip this tick quietly (debug log). If the lock RPC errors, log warning and continue (degraded multi-replica behaviour per epic). (2) Honour harness row timezone when computing next_run_at from cron expression (UTC remains default when unset); add unit tests with a non-UTC timezone fixture proving next slot differs from UTC-only math. Fake-db tests only (tick.test.ts style). Do not change portfolio-git-collect harness name or cron schedule. Stale 'started' fingerprint retry is T-0074.",
+      "acceptance": [
+        "pnpm --filter @orbita/harness test",
+        "pnpm -r typecheck",
+        "rg -n \"advisory|pg_advisory|timezone\" packages/lane-harness/src"
+      ],
+      "deps": [
+        "T-0072"
+      ],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "REPLAN 2026-10-01: E-14 first pass (5/6) — leader election + timezone-aware cron."
+      ]
+    },
+    {
+      "id": "T-0074",
+      "lane": "platform",
+      "phase": "consultos-a0",
+      "title": "Harness runs: finished state + retry stale started fingerprint",
+      "description": "Epic E-14 strand 3 (part 3). Additive schema only (IF NOT EXISTS): extend harness_runs (or fingerprint table used by tick) with nullable finished_at and/or status enum values started|finished|failed — match existing naming in packages/lane-harness drizzle + apps/orbita-api/migrations/init.sql (both must stay in sync; run check-sql-sync from T-0071 if merged, else manual parity). On run start record started; on terminal outcome set finished_at and status. If a row stays started longer than configurable timeout (env default e.g. 15m), allow the cron slot to retry (self-heal wedged run) with a warning log. Unit tests for stale-started retry path. Keep T-0066 next_run_at advance rules. No renames to existing harnesses.",
+      "acceptance": [
+        "pnpm --filter @orbita/harness test",
+        "pnpm -r typecheck",
+        "rg -n \"finished_at|stale|started\" packages/lane-harness/src/tick.ts packages/lane-harness/drizzle",
+        "grep -q finished_at apps/orbita-api/migrations/init.sql || grep -q finished_at packages/lane-harness/drizzle/*.sql"
+      ],
+      "deps": [
+        "T-0073"
+      ],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "REPLAN 2026-10-01: E-14 first pass (6/6) — wedged-run self-heal; docs strand 4 deferred to next REPLAN."
+      ]
     }
   ]
 }
