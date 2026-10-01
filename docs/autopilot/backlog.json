@@ -711,6 +711,27 @@
         "PR https://github.com/jackyckma/orbita/pull/29 opened from hub Track B; package test, pnpm -r test, pnpm -r typecheck, and pnpm build were green (2026-09-30). Dispatched from hub session via Cursor Cloud Agent (Track B).",
         "Checker 2026-09-30: verify-all PASS; scope matches task (harness tick cron advance + tests); merged PR #29 (b19295e)."
       ]
+    },
+    {
+      "id": "T-0067",
+      "lane": "docs",
+      "phase": "framework",
+      "title": "framework 1.9.0 sync (orbita, docs/comment-level)",
+      "description": "Docs/comment-level sync of ai-dev-methodologies 1.9.0 (source e0c47069) into Orbita. Replaced BEHIND files: .agents/instructions/METHODOLOGIES.md, .agents/instructions/README.md, .agents/instructions/framework-adoption.md, and scripts/autopilot/dispatch-core.mjs (comment wording only; non-comment lines unchanged). Added .agents/instructions/portfolio-hub-reporting.md, docs/autopilot/report.example.json, and docs/autopilot/report.schema.json. docs/README.md drops only the stale v1.1.0 wording; AGENTS.md had no version pin and was left unchanged. Kept exactly as on main: .agents/instructions/cursor-autopilot.md, .cursor/rules/shared-instructions.mdc, AGENTS.md, docs/autopilot/README.md, docs/autopilot/automations.md, docs/autopilot/playbook.md, and scripts/autopilot/decide-next-action.mjs. Do not set orbita_hub. Do not edit decide-next-action.mjs, playbook.md, or automations.md. Deferred to a separate behavioural PR: 1.5 no-autopilot-scaffolds preflight, emit(), playbook section 0, and stop-steps in automation prompts.",
+      "acceptance": [
+        "grep -qx 'version: \"1.9.0\"' .agents/METHODOLOGY.lock",
+        "grep -q framework-manifest.json .agents/instructions/framework-adoption.md",
+        "node --check scripts/autopilot/dispatch-core.mjs && node --check scripts/autopilot/decide-next-action.mjs",
+        "grep -nF 'test(\"T-[0-9]{4}\")' scripts/autopilot/decide-next-action.mjs",
+        "test -f docs/autopilot/report.schema.json"
+      ],
+      "deps": [],
+      "flag": null,
+      "status": "in_review",
+      "retries": 0,
+      "feedback": [
+        "PR https://github.com/jackyckma/orbita/pull/30 opened; docs/comment-level framework 1.9.0 sync. Dispatched from hub session via Cursor Cloud Agent (Track B)."
+      ]
     }
   ]
 }
