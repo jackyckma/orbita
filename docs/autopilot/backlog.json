@@ -782,7 +782,7 @@
       "acceptance": [
         "pnpm -r typecheck",
         "pnpm -r test",
-        "! rg -n \"personal-jacky\" apps/orbita-api/src/portfolio-git-collector.ts apps/orbita-api/src/portfolio-zeabur-collector.ts packages/lane-portfolio/src/normalize-deploy.ts scripts/portfolio-git-collect-setup-harness.sh scripts/portfolio-git-collect-verify-output.sh scripts/portfolio-zeabur-collect-setup-harness.sh scripts/portfolio-zeabur-collect-verify-output.sh",
+        "! rg -n \"personal-jacky\" apps packages scripts --glob '!*.test.*' | rg -v DEPRECATED_HUB_CLIENT_ID_FALLBACK",
         "rg -n \"resolveHubClientId|ORBITA_HUB_CLIENT_ID\" apps/orbita-api/src/portfolio-git-collector.ts packages/lane-oauth/src/config.ts"
       ],
       "deps": [
@@ -792,7 +792,8 @@
       "status": "ready",
       "retries": 0,
       "feedback": [
-        "REPLAN 2026-10-01: E-14 first pass (2/6) — call-site wiring; scripts fail closed without client id."
+        "REPLAN 2026-10-01: E-14 first pass (2/6) — call-site wiring; scripts fail closed without client id.",
+        "2026-10-01 hub review (claude-hub-session): previous grep missed lane-oauth and was narrower than the epic's done-when."
       ]
     },
     {
@@ -800,19 +801,21 @@
       "lane": "platform",
       "phase": "consultos-a0",
       "title": "Offline SQL sync check (lane drizzle vs init.sql)",
-      "description": "Epic E-14 strand 2. Add scripts/check-sql-sync.mjs (no database): parse CREATE TABLE / ADD COLUMN / CREATE INDEX from packages/*/drizzle/*.sql and apps/orbita-api/migrations/init.sql; fail exit 1 when a table/column/index exists in a lane file but not in init.sql. Support docs/autopilot/sql-sync-allowlist.json (create empty array file) for optional migration files E-16 will add later. Add a negative vitest or node test using a tiny fixture directory proving a deliberate missing column fails. Wire into root package.json as a script (e.g. check:sql-sync) — do NOT edit framework-owned scripts/agent-verify.sh. Do not change init.sql or lane SQL except to fix a mismatch the check proves; if you must fix, list every fix in task feedback. Additive-only SQL fixes.",
+      "description": "Epic E-14 strand 2. Add scripts/check-sql-sync.mjs (no database): parse CREATE TABLE / ADD COLUMN / CREATE INDEX from packages/*/drizzle/*.sql and apps/orbita-api/migrations/init.sql; fail exit 1 when a table/column/index exists in a lane file but not in init.sql. Support docs/autopilot/sql-sync-allowlist.json (create empty array file) for optional migration files E-16 will add later. Add a negative vitest or node test using a tiny fixture directory proving a deliberate missing column fails. Wire into root package.json as a script (e.g. check:sql-sync) — do NOT edit framework-owned scripts/agent-verify.sh. Do not change init.sql or lane SQL except to fix a mismatch the check proves; if you must fix, list every fix in task feedback. Additive-only SQL fixes. SCOPE NOTE (verified 2026-10-01): not every lane has packages/<lane>/drizzle SQL - the harness schema lives in packages/lane-harness/src/db/schema.ts. Scan the lane SQL files that exist (packages/*/drizzle/*.sql); for lanes whose DDL lives in TS, either parse the table/column names from the schema file in a simple, tested way or print them as a documented 'not covered' list from the script - never silently skip. Add the script to the root package.json as `check:sql-sync`.",
       "acceptance": [
         "node scripts/check-sql-sync.mjs",
         "test -f docs/autopilot/sql-sync-allowlist.json",
         "test -f scripts/check-sql-sync.test.mjs",
-        "node --test scripts/check-sql-sync.test.mjs"
+        "node --test scripts/check-sql-sync.test.mjs",
+        "node -e \"const p=JSON.parse(require('fs').readFileSync('package.json','utf8')); if(!p.scripts||!p.scripts['check:sql-sync']) process.exit(1)\""
       ],
       "deps": [],
       "flag": null,
       "status": "ready",
       "retries": 0,
       "feedback": [
-        "REPLAN 2026-10-01: E-14 first pass (3/6) — schema drift guard before ConsultOS DDL epics."
+        "REPLAN 2026-10-01: E-14 first pass (3/6) — schema drift guard before ConsultOS DDL epics.",
+        "2026-10-01 hub review (claude-hub-session): harness DDL is in schema.ts not drizzle/; require check:sql-sync and do not silently skip TS schemas."
       ]
     },
     {
@@ -820,18 +823,19 @@
       "lane": "platform",
       "phase": "consultos-a0",
       "title": "Harness tick: isolate collector run failures (try/catch per run)",
-      "description": "Epic E-14 strand 3 (part 1). packages/lane-harness/src/tick.ts (or equivalent): wrap each harness/collector run invocation so an thrown error or rejected promise is caught, logged (harness id + error message, no secrets), and the tick loop continues with remaining harnesses. Preserve T-0066 semantics: next_run_at still advances after terminal outcomes; this task only ensures one failure cannot abort the entire tick. Add/extend unit tests in tick.test.ts with a fake db and a collector that throws — assert the tick completes and other harnesses still run. No schema migration in this task. No advisory lock yet (T-0073).",
+      "description": "Epic E-14 strand 3 (part 1). VERIFIED 2026-10-01: packages/lane-harness/src/tick.ts around line 148 already wraps the collector run in try/catch, so first AUDIT which run paths can still throw out of the tick loop (other job types, harness dispatch, post-run db writes, the fingerprint insert). For every uncovered path add isolation (log harness id + error message only, no secrets) and a unit test in tick.test.ts with the fake db proving the tick continues with the remaining harnesses after one throws. If every path is already isolated, add only the missing tests and say so plainly in the task feedback. Preserve T-0066 semantics (next_run_at advances after every terminal outcome). No schema migration, no advisory lock (T-0073).",
       "acceptance": [
         "pnpm --filter @orbita/harness test",
         "pnpm -r typecheck",
-        "rg -n \"catch|try\" packages/lane-harness/src/tick.ts"
+        "rg -n \"continues .*after.*(throw|fail)\" packages/lane-harness/src/tick.test.ts"
       ],
       "deps": [],
       "flag": null,
       "status": "ready",
       "retries": 0,
       "feedback": [
-        "REPLAN 2026-10-01: E-14 first pass (4/6) — scheduler resilience: per-run isolation."
+        "REPLAN 2026-10-01: E-14 first pass (4/6) — scheduler resilience: per-run isolation.",
+        "2026-10-01 hub review (claude-hub-session): existing try/catch already satisfied the old grep; require a test that the tick continues after a throw."
       ]
     },
     {
@@ -839,11 +843,13 @@
       "lane": "platform",
       "phase": "consultos-a0",
       "title": "Harness tick: Postgres advisory leader lock + cron timezone",
-      "description": "Epic E-14 strand 3 (part 2). (1) Before processing cron harnesses, attempt a Postgres advisory lock (document lock key constant); if lock not acquired, skip this tick quietly (debug log). If the lock RPC errors, log warning and continue (degraded multi-replica behaviour per epic). (2) Honour harness row timezone when computing next_run_at from cron expression (UTC remains default when unset); add unit tests with a non-UTC timezone fixture proving next slot differs from UTC-only math. Fake-db tests only (tick.test.ts style). Do not change portfolio-git-collect harness name or cron schedule. Stale 'started' fingerprint retry is T-0074.",
+      "description": "Epic E-14 strand 3 (part 2). (1) Before processing cron harnesses, attempt a Postgres advisory lock (document lock key constant); if lock not acquired, skip this tick quietly (debug log). If the lock RPC errors, log warning and continue (degraded multi-replica behaviour per epic). (2) Honour harness row timezone when computing next_run_at from cron expression (UTC remains default when unset); add unit tests with a non-UTC timezone fixture proving next slot differs from UTC-only math. Fake-db tests only (tick.test.ts style). Do not change portfolio-git-collect harness name or cron schedule. Stale 'started' fingerprint retry is T-0074. Timezone support belongs in packages/lane-scheduler/src/schedule.ts computeNextCronRun(cron, from) (verified: it ignores timezone today; the column defaults to 'UTC'). When timezone is 'UTC' or unset the result MUST be identical to today's computation (existing tests stay unchanged and green); only non-UTC rows change.",
       "acceptance": [
         "pnpm --filter @orbita/harness test",
+        "pnpm --filter @orbita/scheduler test",
         "pnpm -r typecheck",
-        "rg -n \"advisory|pg_advisory|timezone\" packages/lane-harness/src"
+        "rg -n \"pg_advisory\" packages/lane-harness/src/tick.ts",
+        "rg -n \"timezone\" packages/lane-scheduler/src/schedule.ts"
       ],
       "deps": [
         "T-0072"
@@ -852,7 +858,8 @@
       "status": "ready",
       "retries": 0,
       "feedback": [
-        "REPLAN 2026-10-01: E-14 first pass (5/6) — leader election + timezone-aware cron."
+        "REPLAN 2026-10-01: E-14 first pass (5/6) — leader election + timezone-aware cron.",
+        "2026-10-01 hub review (claude-hub-session): timezone grep already matched existing fields; require pg_advisory in tick.ts and timezone handling in computeNextCronRun, with UTC identical to today."
       ]
     },
     {
@@ -860,12 +867,12 @@
       "lane": "platform",
       "phase": "consultos-a0",
       "title": "Harness runs: finished state + retry stale started fingerprint",
-      "description": "Epic E-14 strand 3 (part 3). Additive schema only (IF NOT EXISTS): extend harness_runs (or fingerprint table used by tick) with nullable finished_at and/or status enum values started|finished|failed — match existing naming in packages/lane-harness drizzle + apps/orbita-api/migrations/init.sql (both must stay in sync; run check-sql-sync from T-0071 if merged, else manual parity). On run start record started; on terminal outcome set finished_at and status. If a row stays started longer than configurable timeout (env default e.g. 15m), allow the cron slot to retry (self-heal wedged run) with a warning log. Unit tests for stale-started retry path. Keep T-0066 next_run_at advance rules. No renames to existing harnesses.",
+      "description": "Epic E-14 strand 3 (part 3). VERIFIED 2026-10-01: harness_runs already has started_at and finished_at (apps/orbita-api/migrations/init.sql ~line 174) and a TEXT status with the values 'completed' and 'failed'; the harness schema lives in packages/lane-harness/src/db/schema.ts (there is NO packages/lane-harness/drizzle directory). Do NOT create a Postgres ENUM, do NOT rename or repurpose 'completed'/'failed'. Goal: a run whose row stays 'started' (crash after the fingerprint insert) must not silence its cron slot forever: record the started state using existing columns (status text 'started' if not already used) and, when a started row is older than a configurable timeout (env, default 15 minutes), allow the slot to retry with a warning log. Only if a new column is truly unavoidable, add it as nullable ADD COLUMN IF NOT EXISTS to BOTH the schema and init.sql (run `pnpm check:sql-sync` once T-0071 exists). Keep T-0066 next_run_at rules. No renames of existing harnesses.",
       "acceptance": [
         "pnpm --filter @orbita/harness test",
         "pnpm -r typecheck",
-        "rg -n \"finished_at|stale|started\" packages/lane-harness/src/tick.ts packages/lane-harness/drizzle",
-        "grep -q finished_at apps/orbita-api/migrations/init.sql || grep -q finished_at packages/lane-harness/drizzle/*.sql"
+        "rg -n \"stale.?started\" packages/lane-harness/src/tick.test.ts",
+        "! rg -n \"CREATE TYPE\" packages/lane-harness apps/orbita-api/migrations/init.sql | rg -i \"harness\""
       ],
       "deps": [
         "T-0073"
@@ -874,7 +881,30 @@
       "status": "ready",
       "retries": 0,
       "feedback": [
-        "REPLAN 2026-10-01: E-14 first pass (6/6) — wedged-run self-heal; docs strand 4 deferred to next REPLAN."
+        "REPLAN 2026-10-01: E-14 first pass (6/6) — wedged-run self-heal; docs strand 4 deferred to next REPLAN.",
+        "2026-10-01 hub review (claude-hub-session): finished_at already exists and the drizzle/ path is wrong; forbid CREATE TYPE and require a stale-started test."
+      ]
+    },
+    {
+      "id": "T-0075",
+      "lane": "docs",
+      "phase": "consultos-a0",
+      "title": "Docs catch-up: architecture, lanes, status, MCP tool list, troubleshooting, multi-replica note",
+      "description": "Epic E-14 strand 4. docs/product-architecture.md (harness is no longer a W27 design; add the mcp, oauth and portfolio lanes), docs/DEVELOPMENT_LANES.md and docs/CURRENT_STATUS.md (E-02, D-001 and T-0020 are done), README and connector docs (the code registers 16 MCP tools; docs say 11 - list the real ones from the tool registry), docs/note-search-troubleshooting.md (points at the wrong package), docs/ops-multi-replica.md (state that the harness tick runs per replica unless the advisory lock from T-0073 is active). Verify every statement against CODE before writing it; do not create docs/project-progress.md; documentation only - no code changes.",
+      "acceptance": [
+        "rg -n \"lane-mcp|lane-oauth|lane-portfolio|mcp|oauth|portfolio\" docs/product-architecture.md",
+        "rg -n \"advisory\" docs/ops-multi-replica.md",
+        "! rg -n \"11 (MCP )?tools\" README.md docs",
+        "./scripts/agent-verify.sh"
+      ],
+      "deps": [
+        "T-0074"
+      ],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "REPLAN 2026-10-01 (hub addition): E-14 strand 4 so the docs work is not dropped when REPLAN moves to the next epic."
       ]
     }
   ]
