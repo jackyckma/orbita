@@ -114,6 +114,115 @@
         ],
         "when_dispatch_ships": "Create a SEPARATE credential named github_dispatch with contents:write (and pull_requests:write if dispatch goes via PR), used only by the gated dispatch path — never by the collectors. Note that fine-grained PATs cannot scope to paths: any write token can modify source code, not just docs/autopilot/*.json. That is a further argument for PR-based dispatch, so the target repo's own Checker reviews what the hub proposes rather than the hub pushing straight to main."
       }
+    },
+    {
+      "id": "D-003",
+      "title": "Set the hub tenant explicitly in Zeabur, then remove the hard-coded default",
+      "type": "contract",
+      "context": "E-14 phase 1 adds explicit tenant config (for example ORBITA_HUB_CLIENT_ID) and keeps the old hard-coded 'personal-jacky' only as a warned fallback so production keeps booting. Phase 2 removes the fallback so an unset tenant fails at startup. Only the founder can set Zeabur environment variables. Tenants will later be separate servers, so a hard-coded identity must not survive.",
+      "options": [
+        {
+          "id": "A",
+          "label": "Set ORBITA_HUB_CLIENT_ID (and the OAuth default client id) in Zeabur, then approve removal of the fallback",
+          "implication": "production is explicit; if a variable is forgotten the API fails at startup - verify the warning log first"
+        },
+        {
+          "id": "B",
+          "label": "Keep the warned fallback for now",
+          "implication": "works, but the hard-coded identity stays and every new tenant server must override it"
+        }
+      ],
+      "recommendation": "A, after confirming in the Zeabur logs that the deprecated-default warning no longer appears",
+      "default_if_silent": null,
+      "opened_at": "2026-10-01",
+      "sla_days": 7,
+      "unblocks": ["E-14 phase 2 task"],
+      "status": "open",
+      "decided_option": null,
+      "decided_note": null
+    },
+    {
+      "id": "D-004",
+      "title": "Create the GitHub App and its credentials for near-real-time git sync",
+      "type": "compliance",
+      "context": "E-15 builds the receiver, App-auth and sync code behind ORBITA_GITHUB_APP_ENABLED (default off). Activating it needs credentials only the founder can create: a GitHub App (repository permission Contents: read-only, event Push, installed on the portfolio registry repositories), then the webhook secret, private key (.pem), App id and installation id stored in the Orbita credential vault through POST /v1/admin/credentials (write-once; never paste them into chat), then the flag set in Zeabur. D-002 option C (GitHub App) was earlier judged heavy; the founder chose it on 2026-10-01 because it also replaces the long-lived read token with short-lived read-only tokens.",
+      "options": [
+        {
+          "id": "A",
+          "label": "Create the App now and store the credentials",
+          "implication": "activation task can run; webhook points at /v1/inbound/github on api.get-orbita.com"
+        },
+        {
+          "id": "B",
+          "label": "Postpone",
+          "implication": "sync stays daily; the portfolio brief stays up to a day stale"
+        }
+      ],
+      "recommendation": "A once E-15's receiver is deployed with the flag off (the endpoint must exist before the App is pointed at it)",
+      "default_if_silent": null,
+      "opened_at": "2026-10-01",
+      "sla_days": 7,
+      "unblocks": ["E-15 activation task"],
+      "status": "open",
+      "decided_option": null,
+      "decided_note": null
+    },
+    {
+      "id": "D-005",
+      "title": "Enable the ticket system in production (ORBITA_TICKETS_ENABLED=1)",
+      "type": "product-direction",
+      "context": "E-16 ships tickets behind ORBITA_TICKETS_ENABLED (default off): flag off means no DDL, no routes, no MCP tools, no behaviour change. Switching it on creates the new tables at the next API start (runMigrations has no try/catch and runs before the server listens, so a faulty DDL would stop production from booting).",
+      "options": [
+        {
+          "id": "A",
+          "label": "Enable after the checklist: e2e-tier-a green with the flag on in GitHub CI, and the DDL applied twice on a scratch database",
+          "implication": "low risk, tickets available to agents"
+        },
+        {
+          "id": "B",
+          "label": "Keep off",
+          "implication": "nothing changes; E-17 principals have nothing to protect yet"
+        }
+      ],
+      "recommendation": "A",
+      "default_if_silent": null,
+      "opened_at": "2026-10-01",
+      "sla_days": 7,
+      "unblocks": ["first real tickets","E-17 ticket scopes"],
+      "status": "open",
+      "decided_option": null,
+      "decided_note": null
+    },
+    {
+      "id": "D-006",
+      "title": "Move agent scope checks from shadow to enforce, and create principals for real agents",
+      "type": "compliance",
+      "context": "E-17 adds per-agent principals and tool-level scopes. Mode shadow only logs would-deny decisions; enforce blocks. Existing keys keep working as the built-in 'legacy-full' principal. Before any external agent (for example a Grok Bot that browses untrusted pages) is connected it needs its own least-privilege principal that cannot call github_*, trigger_automation, admin or note writes.",
+      "options": [
+        {
+          "id": "A",
+          "label": "Review the shadow audit log for a week, then enforce; create bot principals afterwards",
+          "implication": "safest rollout"
+        },
+        {
+          "id": "B",
+          "label": "Enforce immediately",
+          "implication": "faster, risk of blocking a legitimate tool call"
+        },
+        {
+          "id": "C",
+          "label": "Stay in shadow",
+          "implication": "no protection yet; do not connect external agents"
+        }
+      ],
+      "recommendation": "A",
+      "default_if_silent": null,
+      "opened_at": "2026-10-01",
+      "sla_days": 7,
+      "unblocks": ["external agent pilot"],
+      "status": "open",
+      "decided_option": null,
+      "decided_note": null
     }
   ]
 }
