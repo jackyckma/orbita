@@ -907,6 +907,27 @@
       "feedback": [
         "REPLAN 2026-10-01 (hub addition): E-14 strand 4 so the docs work is not dropped when REPLAN moves to the next epic."
       ]
+    },
+    {
+      "id": "T-0076",
+      "lane": "platform",
+      "phase": "l1-hardening",
+      "title": "E-04: log a structured reason whenever an embedding attempt fails, plus a non-blocking startup embedding self-test",
+      "description": "Epic E-04 diagnosis slice. VERIFIED GAP (2026-10-01): production note_search returns empty even for a note written today, and the Zeabur runtime logs contain no embedding failure line at all - the failure reason (T-0062 embedding_meta) exists only in the PUT response, so a hub session without the API key cannot see why embeddings fail. (1) In packages/lane-memory (embedText and its callers) emit ONE structured warn log line per failed attempt with a discriminated reason: no_api_key | empty_text | http_status (status code) | base_resp_error (status_code + status_msg) | no_vector | dimension_mismatch (actual, expected) | exception (error class + message truncated to 200 chars). Include: model, base URL HOST only (never the full URL or query string), group_id_configured boolean. NEVER log the API key, the GroupId value, the text, or response bodies. Reuse the existing logger. (2) Add a startup self-test: shortly after the server starts listening (fire-and-forget, never blocks boot, never throws, 10s timeout) embed a fixed short string and log exactly one line: `embedding selftest ok dims=<n>` or `embedding selftest failed reason=<...>` using the same reason codes. Controlled by ORBITA_EMBED_SELFTEST ('0' disables; default enabled because it only logs). (3) Unit tests with a mocked fetch for every failure path asserting the log line, the reason code, and that no secret/text/GroupId appears in any captured log output; plus tests for the self-test (ok, failure, timeout, disabled). The test titled \"logs no secret, text, or GroupId\" must capture log output and fail if the API key, GroupId value, or input text appears. Do NOT change what is stored for notes, request format, defaults, retry behaviour or any API response shape; do NOT change embedding dimensions or the vector column; do NOT touch other epics' tasks; no secrets in logs or commits. Purpose: after deploy a hub session can read the reason from the Zeabur logs (re-PUT any note, or read the startup line) without needing an Orbita API key.",
+      "acceptance": [
+        "pnpm --filter @orbita/memory test",
+        "pnpm -r typecheck",
+        "rg -n \"embedding selftest\" packages/lane-memory/src apps/orbita-api/src",
+        "rg -n \"dimension_mismatch\" packages/lane-memory/src",
+        "rg -n \"logs no secret, text, or GroupId\" packages/lane-memory/src/embed.test.ts"
+      ],
+      "deps": [],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "2026-10-01 hub (claude-hub-session): added so E-04 can be diagnosed from Zeabur logs without an Orbita API key; founder asked whether an agent can investigate and fix it."
+      ]
     }
   ]
 }
