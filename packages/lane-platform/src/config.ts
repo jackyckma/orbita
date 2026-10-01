@@ -23,6 +23,8 @@ export const PlatformEnvSchema = z.object({
   /** 0 = unlimited. Rolling 24h window per client_id. */
   ORBITA_QUOTA_SESSIONS_PER_DAY: z.coerce.number().int().nonnegative().default(0),
   ORBITA_QUOTA_MESSAGES_PER_DAY: z.coerce.number().int().nonnegative().default(0),
+  /** Hub tenant client_id; unset uses deprecated fallback (see resolveHubClientId). */
+  ORBITA_HUB_CLIENT_ID: z.string().min(1).optional(),
 });
 
 export type PlatformEnv = z.infer<typeof PlatformEnvSchema>;

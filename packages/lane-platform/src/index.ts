@@ -16,6 +16,12 @@ export type { ApiErrorBody, ErrorCode } from "./errors.js";
 export { createErrorHandler } from "./error-handler.js";
 export { loadPlatformEnv, PlatformEnvSchema } from "./config.js";
 export type { PlatformEnv } from "./config.js";
+export {
+  DEPRECATED_HUB_CLIENT_ID_FALLBACK,
+  resetHubClientIdWarningForTests,
+  resolveHubClientId,
+} from "./hub-client-id.js";
+export type { HubClientIdEnv, ResolveHubClientIdOptions } from "./hub-client-id.js";
 export { createLogger, logRequest } from "./logger.js";
 export type { Logger } from "./logger.js";
 export {
