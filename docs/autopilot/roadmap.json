@@ -77,11 +77,11 @@
       "id": "E-07",
       "title": "Portfolio hub — multi-project reports + instruction dispatch",
       "goal": "Orbita as Jacky’s central hub: ingest project reports, brief via chatbot, dispatch agent instructions into each repo for Cursor Autopilot.",
-      "status": "proposed",
+      "status": "paused",
       "phase": "midline",
       "decomposes_into": [],
       "decisions": [],
-      "notes": "Umbrella vision — stays proposed so Maker cannot invent hub direction. Sketch: docs/personal-steward/portfolio-hub.md. Decompose by approving concrete slices: E-08 (H2 retrieval), E-09 (collection), E-11 (on-demand trigger), E-12 (on-demand GitHub read) are approved slices; E-13 is activation. Remaining: instruction dispatch (H3, still proposed, needs github_dispatch credential — see D-002 _why_read_only)."
+      "notes": "SUPERSEDED 2026-10-01 by E-14..E-17 (founder decision in a hub session): the remaining unbuilt part of this umbrella - instruction dispatch and a work-tracking hub - is now covered by E-14 foundation, E-15 git sync, E-16 lane-tickets and E-17 agent scopes (decision note bf7d6287-a116-49c5-8109-05f54ce34cca). Do not re-approve; slices E-08, E-09, E-11, E-12 are done and E-13 continues. ORIGINAL NOTES: Umbrella vision — stays proposed so Maker cannot invent hub direction. Sketch: docs/personal-steward/portfolio-hub.md. Decompose by approving concrete slices: E-08 (H2 retrieval), E-09 (collection), E-11 (on-demand trigger), E-12 (on-demand GitHub read) are approved slices; E-13 is activation. Remaining: instruction dispatch (H3, still proposed, needs github_dispatch credential — see D-002 _why_read_only)."
     },
     {
       "id": "E-08",

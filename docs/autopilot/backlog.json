@@ -537,10 +537,11 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "needs_human",
+      "status": "done",
       "retries": 0,
       "feedback": [
-        "Maker 2026-08-27: step (1) blocked — no Orbita API key for client personal-jacky. Looked for ORBITA_API_KEY, ORBITA_PERSONAL_API_KEY, PERSONAL_ORBITA_API_KEY in /workspace/.env (missing), $HOME/.orbita-personal.env (missing), and current environment (only CURSOR_API_KEY, GEMINI_API_KEY, ZEABUR_TOKEN injected). ./scripts/portfolio-git-collect-setup-harness.sh exits 1. Founder must provision ~/.orbita-personal.env (or workspace .env) with ORBITA_PERSONAL_API_KEY before Maker can create the harness row, trigger a run, and ship verify-output.sh acceptance."
+        "Maker 2026-08-27: step (1) blocked — no Orbita API key for client personal-jacky. Looked for ORBITA_API_KEY, ORBITA_PERSONAL_API_KEY, PERSONAL_ORBITA_API_KEY in /workspace/.env (missing), $HOME/.orbita-personal.env (missing), and current environment (only CURSOR_API_KEY, GEMINI_API_KEY, ZEABUR_TOKEN injected). ./scripts/portfolio-git-collect-setup-harness.sh exits 1. Founder must provision ~/.orbita-personal.env (or workspace .env) with ORBITA_PERSONAL_API_KEY before Maker can create the harness row, trigger a run, and ship verify-output.sh acceptance.",
+        "2026-10-01 hub (founder decision): closed. The objective was achieved outside this task: the harness row exists (portfolio-git-collect c46c8213-308b-4391-abfe-f00eb037d4b6; wedge fixed by T-0066, PR #29) and its 2026-10-01 06:00 UTC run produced a fresh repo report (portfolio_brief repo line fresh, source sha 1215b1d). The scripts/portfolio-git-collect-verify-output.sh acceptance was never run because no API key existed in the Cursor env; the deploy line (T-0064) is still open and still needs that key."
       ]
     },
     {
