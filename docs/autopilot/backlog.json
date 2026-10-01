@@ -747,10 +747,11 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "in_review",
+      "status": "done",
       "retries": 0,
       "feedback": [
-        "2026-10-01 hub: registered existing PR #21 (opened 2026-08-20, unregistered) so the Checker can review it; merge-tree clean against main."
+        "2026-10-01 hub: registered existing PR #21 (opened 2026-08-20, unregistered) so the Checker can review it; merge-tree clean against main.",
+        "REVIEW PR #21: verify-all PASS; acceptance green; CI e2e-tier-a + verify pass; scope matches T-0068 (initdb locale-independent ordering, db-migrate completeness, AGENTS.md note). Merged (merge commit 17e08b2). No duplicate T-0068 PRs."
       ]
     }
   ]
