@@ -44,6 +44,7 @@ Then customize `.agents/instructions/project-guidelines.md`.
 | B3 | API-first / thin UI | Lane doc §3 layer order |
 | B4 | Autonomous work loop (batch execution, stop conditions) | [autonomous-loop.md](instructions/autonomous-loop.md) |
 | B5 | Cursor Automations Autopilot (Maker/Checker, optional) | [cursor-autopilot.md](instructions/cursor-autopilot.md) · [templates/docs/autopilot/](templates/docs/autopilot/) |
+| B6 | Portfolio hub reporting (six-section contract, repo + runtime edges, optional) | [portfolio-hub-reporting.md](instructions/portfolio-hub-reporting.md) · [report.schema.json](templates/docs/autopilot/report.schema.json) |
 
 ### Tier C — Agent tooling & verification
 
@@ -70,7 +71,7 @@ Then customize `.agents/instructions/project-guidelines.md`.
 |---|----------|------|
 | E1–E4 | Structured state file, AI-first formats, machine-verifiable docs, fixture-first | [agent-native-practices.md](instructions/agent-native-practices.md) |
 
-A Tier E practice is active **only** if listed in the project's `project-guidelines.md` § Adopted optional practices.
+A Tier E practice is active **only** if listed in the project's `project-guidelines.md` § Adopted optional practices. The same gate applies to **B5** and **B6**.
 
 ---
 
@@ -104,6 +105,7 @@ A Tier E practice is active **only** if listed in the project's `project-guideli
 | Multi-module product | A + B1 + B2 + C + live docs |
 | Local + Cloud Agents | A + C2 + `agent-verify.sh` + Zeabur staging (D1) |
 | Multi-tool parallel agents | A + B + C + consider Tier E (E1 state file) |
+| Project in a reporting portfolio | Add B6 (requires `orbita_hub: true` opt-in) |
 
 ---
 
@@ -127,7 +129,7 @@ A Tier E practice is active **only** if listed in the project's `project-guideli
 
 | Field | Value |
 |-------|-------|
-| Bundle version | 1.2.0 |
+| Bundle version | 1.9.0 |
 | Created | 2026-06-15 |
 | Source | Practices from OrbitaDev + Powerhouse, generalized |
 

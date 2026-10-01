@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0",
+  "project": "example-project",
+  "generated_at": "2026-08-07T21:00:00Z",
+  "period": {
+    "since": "2026-08-06T21:00:00Z",
+    "until": "2026-08-07T21:00:00Z"
+  },
+  "status": "ok",
+  "sections": [
+    {
+      "id": "intent_vs_actual",
+      "title": "Intent vs last period",
+      "body": "Last period's ask was to finish the job-posting API before starting UI. Actual: API merged, UI not started — matches intent. E-03 hardening did not move; no capacity, not blocked."
+    },
+    {
+      "id": "shipped",
+      "title": "Shipped / merged",
+      "body": "T-0002 job posting contract + API merged and deployed. Two follow-up fixes for the SQLite fallback path.",
+      "items": [
+        { "text": "T-0002 job posting API", "url": "https://github.com/example/example-project/pull/141" }
+      ]
+    },
+    {
+      "id": "needs_founder",
+      "title": "Blocked / needs founder",
+      "body": "D-002 pricing model for job posts — free, flat fee, or per-view. Impact: the /jobs UI cannot ship a payment path until this is chosen, so T-0003 will land without monetisation and need rework."
+    },
+    {
+      "id": "autopilot",
+      "title": "Autopilot health",
+      "body": "Maker last ran 2026-08-07 07:00Z, Checker 08:00Z, both green. 3 ready, 1 in_review, 0 needs_human. No locks held, no pause.",
+      "items": [
+        { "text": "Queue status", "url": "https://github.com/example/example-project/blob/main/docs/autopilot/backlog.json" }
+      ]
+    },
+    {
+      "id": "risks",
+      "title": "Risks / drift",
+      "body": "T-0005 has retried twice on an acceptance command that assumes a package filter name that may not exist. If it retries once more it goes needs_human. Worth fixing the acceptance line rather than the code."
+    },
+    {
+      "id": "ask",
+      "title": "Ask",
+      "body": "Decide D-002 (job post pricing). Everything else can proceed without you."
+    }
+  ]
+}

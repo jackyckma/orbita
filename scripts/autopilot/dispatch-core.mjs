@@ -267,9 +267,10 @@ export function decideChecker(state) {
   // projects — event-triggered on every new draft PR, plus its own schedule —
   // while Maker may only run once or twice a day. Waiting for Maker's own
   // next tick to notice its own crash could mean a stuck task sits for most
-  // of a day. This does not blur "Checker never writes feature code": this
-  // action only clears a lock and flips a status, the same escalation Maker
-  // would have done to itself.
+  // of a day. This does not blur "Checker never writes feature code": the
+  // action here only clears a lock and flips a status to needs_human, the
+  // exact same administrative escalation Maker would perform on itself —
+  // Checker is just often the first lane to get a chance to run it.
   const staleImplement = findStaleLock(state.locks ?? {}, tasksById, { ...staleOpts, statusMatch: "in_progress" });
   if (staleImplement) {
     return {

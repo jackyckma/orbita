@@ -38,136 +38,199 @@ Bootstrap writes `.agents/METHODOLOGY.lock` recording which bundle version the p
 
 ---
 
-## 2. File tiers (what to touch on update)
+## 2. File classes (what sync may touch)
 
-> **Canonical list.** This section is the single source of truth for which
-> paths are framework-owned. Other docs (e.g. `CHANGELOG-GUIDE.md`) link
-> here — if you find a second copy elsewhere, that copy is the bug.
-> Path mapping: framework repo `instructions/x.md` ↔ project
-> `.agents/instructions/x.md`; framework `templates/<p>` ↔ project `<p>`.
+> **Authoritative list:** [`framework-manifest.json`](../framework-manifest.json)
+> at the root of this repo (`schema_version`, `framework_version`, `entries[]`
+> of `{source, dest, class, note?}`). This section is the human-readable copy
+> and must name the same dest paths. If the two disagree, the manifest wins
+> and this section is the bug.
+>
+> `scripts/framework-sync.mjs` reads the manifest. It does not re-parse this
+> document. Mappings follow `scripts/bootstrap-project.sh`: framework
+> `instructions/x.md` → project `.agents/instructions/x.md`; framework
+> `templates/<p>` → project `<p>`, except templated rows whose source name
+> differs from dest.
 
-When the founder says the methodology was updated, apply changes **by tier** — not by re-importing everything.
+| Class | `--apply` behaviour |
+|-------|---------------------|
+| `overwrite` | Copy when missing. Replace when the project file matches a known baseline. Never overwrite a modified file; write a patch. |
+| `merge` | Replace an unmodified baseline copy. Do not create the file when it is missing. Never overwrite a modified file; write a patch. |
+| `project` | Never write. |
+| `ignore` | Never write. Generated or runtime state. |
+| `templated` | Bootstrap fills these in. Sync never copies them. |
 
-### Framework-owned — safe to replace from upstream
+A modified overwrite or merge file is left untouched. The tool writes `<project>/.framework-sync/<dest>.patch` (project file vs current template) and lists it as manual merge required. There is no automatic 3-way merge.
 
-Copy from a fresh clone of `ai-dev-methodologies` at the target version (tag or commit):
+### overwrite
 
 ```text
+.agents/README.md
+.agents/compatibility/local-vs-cloud-agents.md
+.agents/defaults/README.md
+.agents/defaults/ai-providers.md
+.agents/defaults/cloudflare.md
+.agents/defaults/zeabur.md
 .agents/instructions/METHODOLOGIES.md
-.agents/instructions/karpathy-guidelines.md
-.agents/instructions/judgment-rubrics.md
-.agents/instructions/session-handoff.md
-.agents/instructions/decision-authority.md
-.agents/instructions/agent-tooling-guardrails.md
-.agents/instructions/model-orchestration.md
-.agents/instructions/autonomous-loop.md
-.agents/instructions/cursor-autopilot.md          # optional practice; still sync the file
 .agents/instructions/agent-native-practices.md
-.agents/instructions/issue-quality.md
-.agents/instructions/lane-based-development.md   # if project uses lanes
+.agents/instructions/agent-tooling-guardrails.md
+.agents/instructions/autonomous-loop.md
+.agents/instructions/cursor-autopilot.md
+.agents/instructions/decision-authority.md
 .agents/instructions/framework-adoption.md
 .agents/instructions/framework-evolution.md
-.agents/defaults/*.md
-.agents/README.md
-.agents/skills/**/SKILL.md                        # bundled skills only, not lane-* skills
-AGENTS.md
-CLAUDE.md
-.cursor/rules/shared-instructions.mdc
-scripts/setup-cloud-agent-env.sh
-scripts/autopilot/*.mjs                           # Cursor Autopilot helpers (if project uses them)
+.agents/instructions/issue-quality.md
+.agents/instructions/judgment-rubrics.md
+.agents/instructions/karpathy-guidelines.md
+.agents/instructions/lane-based-development.md
+.agents/instructions/model-orchestration.md
+.agents/instructions/portfolio-hub-reporting.md
+.agents/instructions/session-handoff.md
+.agents/skills/README.md
+.agents/skills/complexity-review/SKILL.md
+.agents/skills/deferred-shortcuts/SKILL.md
 docs/autopilot/README.md
-docs/autopilot/playbook.md
-docs/autopilot/automations.md
+docs/autopilot/report.example.json
+docs/autopilot/report.schema.json
+scripts/autopilot/apply-decision-defaults.mjs
+scripts/autopilot/deploy-watchdog.mjs
+scripts/autopilot/dispatch-core.mjs
+scripts/autopilot/queue-status.mjs
+scripts/autopilot/render-report.mjs
+scripts/autopilot/verify-all.mjs
+scripts/autopilot/weekly-report.mjs
+scripts/setup-cloud-agent-env.sh
 ```
 
-Replace the project's copy with the upstream file. If the project never adopted a new file (e.g. no `judgment-rubrics.md` yet), **add** it.
+`docs/autopilot/report.schema.json` is the shared hub-report contract. If the shape is wrong, fix it upstream and re-release. `dispatch-core.mjs` is overwrite. `decide-next-action.mjs` is merge.
 
-**Cursor Autopilot JSON state** (`backlog.json`, `decisions.json`, `roadmap.json`, `locks.json`, `pause-state.json`, `reports/*`, filled `planner-preferences.md`) is **project-owned** — sync scripts/playbook/README/automations only; never overwrite a live backlog from upstream.
-
-### Project-owned — never overwrite from upstream
+### merge
 
 ```text
-.agents/instructions/project-guidelines.md
+.agents/instructions/README.md
+.cursor/rules/shared-instructions.mdc
+AGENTS.md
+CLAUDE.md
+docs/README.md
+docs/autopilot/automations.md
+docs/autopilot/playbook.md
+scripts/autopilot/decide-next-action.mjs
+```
+
+`decide-next-action.mjs`: a copy that lacks the 1.5 `IDLE` / `no-autopilot-scaffolds` preflight and otherwise matches an older baseline is replaced, so the preflight arrives with the template. A copy with local edits is not replaced; the preflight is only in the patch.
+
+### project
+
+```text
+.agents/skills/lane-*/SKILL.md
 docs/CURRENT_STATUS.md
 docs/SESSION_HANDOFF.md
+docs/autopilot/backlog.json
+docs/autopilot/decisions.json
+docs/autopilot/lessons.md
+docs/autopilot/planner-preferences.md
+docs/autopilot/project-hooks.json
+docs/autopilot/roadmap.json
+docs/errors-and-learnings.md
 docs/product-*.md
 docs/project-progress.md
 docs/traceability-index.md
-docs/errors-and-learnings.md
 packages/**/INTERFACE.md
-.agents/skills/lane-*/SKILL.md
 ```
 
-Keep the project's version. If upstream adds a **new optional** section to a template, merge manually — do not blind overwrite.
+`project-hooks.json` keeps the project's `prod_smoke_cmd` and hub opt-in. Sync does not merge new keys into it. `backlog.json`, `roadmap.json`, and `decisions.json` are live project data.
 
-### Hybrid — merge carefully
+### ignore
 
-| File | Rule |
-|------|------|
-| `scripts/agent-verify.sh` | Keep project's `VERIFY_L0` / `VERIFY_L1`; take upstream structural changes only if CHANGELOG says so |
-| `docs/AGENT_ENV.md` | Keep project-specific matrix; merge new rows from [agent-capability-matrix.template.md](../compatibility/agent-capability-matrix.template.md) if needed |
-| `.cursor/rules/shared-instructions.mdc` | Keep project-specific bullets (e.g. language); merge new shared rules from upstream |
-| `docs/README.md`, `docs/SESSION_HANDOFF.md` (structure) | Project-owned content; adopt new upstream template **sections** (not content) when CHANGELOG names them |
-| `docs/autopilot/project-hooks.json` | Keep project's `prod_smoke_cmd`; merge new keys from upstream template if CHANGELOG adds them |
-| `docs/autopilot/backlog.json` / `roadmap.json` / `decisions.json` | **Never** replace from upstream on an active loop — project task/decision data |
+```text
+docs/autopilot/locks.json
+docs/autopilot/pause-state.json
+docs/autopilot/reports/**
+docs/autopilot/reports/README.md
+docs/autopilot/watchdog-state.json
+```
 
-If the project edited a **framework-owned** file locally, treat it as hybrid: note the path in `METHODOLOGY.lock` → `customized_files` and merge by hand on update.
+Generated reports (`docs/autopilot/reports/latest.json` and dated copies) stay in the project. Sync never writes under `reports/`.
+
+### templated
+
+Bootstrap substitutes values. Sync never byte-copies these. Dest paths:
+
+```text
+.agents/METHODOLOGY.lock
+.agents/instructions/project-guidelines.md
+docs/AGENT_ENV.md
+scripts/agent-verify.sh
+```
+
+| Source in this repo | Project dest |
+|---------------------|--------------|
+| `templates/.agents/METHODOLOGY.lock` | `.agents/METHODOLOGY.lock` |
+| `templates/project-guidelines.template.md` | `.agents/instructions/project-guidelines.md` |
+| `compatibility/agent-capability-matrix.template.md` | `docs/AGENT_ENV.md` |
+| `templates/scripts/agent-verify.sh` | `scripts/agent-verify.sh` |
+
+`scripts/agent-verify.sh` keeps the project's `VERIFY_L0` / `VERIFY_L1`. `docs/AGENT_ENV.md` keeps the project's matrix; new rows from the capability-matrix template are a manual edit when CHANGELOG asks for them. `--apply` rewrites `.agents/METHODOLOGY.lock` to lock schema v2 (it does not copy the template over the lock). Existing keys, including `customized_files`, are kept.
+
+If the project edited an overwrite-class file, sync will not replace it. Note the path in `customized_files` and apply the patch by hand.
 
 ---
 
-## 3. Manual update process
+## 3. Update process
 
-Triggered when the founder says e.g. *「methodology 更新到 1.2.0，請 sync」*.
+Triggered when the founder says the methodology was updated. Run the tool from a checkout of **this** repo. The script is not copied into projects. Do not use `bootstrap-project.sh --force` to update an active project.
 
-### Step 1 — Read upstream release notes
+### Step 1 — Dry-run
 
 ```bash
 git clone https://github.com/jackyckma/ai-dev-methodologies.git /tmp/ai-dev-methodologies
-cd /tmp/ai-dev-methodologies && git checkout v1.2.0   # or the commit the founder names
+cd /tmp/ai-dev-methodologies && git checkout <tag-or-commit>
 cat CHANGELOG.md
+node scripts/framework-sync.mjs --project /path/to/your-project
 ```
 
-Read what changed. Note `[breaking]` or migration sections.
+Read the table. `IDENTICAL` needs nothing. `BEHIND(<id>)` matches an older baseline and has no local edit. `MODIFIED` matches no known hash (the closest baseline is named when the line diff can be measured). `MISSING` is absent. `N/A` is `project`, `ignore`, or `templated` and is never changed. Note `[breaking]` or migration sections in `CHANGELOG.md`.
 
-### Step 2 — Compare with project lock
+### Step 2 — Locks empty, and consider pausing
 
-Read `.agents/METHODOLOGY.lock` in the target project:
+- `docs/autopilot/locks.json` must have no active lease before `--apply`. An absent file is fine. If a lease is present, wait until that Maker/Checker tick finishes and the lock clears. The tool refuses `--apply` otherwise, and it never edits the file.
+- Consider pausing the repo first (`docs/autopilot/pause-state.json` with `"paused": true`). The tool prints a warning when the loop is not paused. It does not pause for you and it never edits `pause-state.json` or any other autopilot JSON.
 
-- `version` — what the project has now
-- `customized_files` — paths to skip or merge manually
+The project git working tree must be clean, or `--apply` refuses. `--allow-dirty` overrides that check only.
 
-Tell the founder briefly: **from → to**, which framework-owned files will change, any hybrid merges needed.
+### Step 3 — Apply
 
-### Step 3 — Apply framework-owned files
-
-Copy only files listed in §2 Framework-owned (and any paths named in CHANGELOG). Do **not** run `bootstrap-project.sh --force` unless the founder explicitly requests a full reset.
-
-### Step 4 — Hybrid merges
-
-For each hybrid file, diff project vs upstream and merge. Preserve project-specific values.
-
-### Step 5 — Update lock and verify
-
-Update `.agents/METHODOLOGY.lock`:
-
-```yaml
-version: "1.2.0"
-source_commit: "<git rev-parse HEAD in framework repo>"
-synced_at: "YYYY-MM-DD"
-synced_by: "agent session / founder name"
-customized_files: []   # keep or extend; do not remove entries without checking
-notes: "Optional one-line summary of what was merged"
+```bash
+node scripts/framework-sync.mjs --project /path/to/your-project --apply
 ```
 
-Run `./scripts/agent-verify.sh` if present. Note result in handoff or commit message.
+`--apply` only copies missing `overwrite` files and replaces `overwrite` / `merge` files that are identical to a known baseline. It writes `.agents/METHODOLOGY.lock` at lock schema v2: existing keys including `customized_files` stay, and `files` records sha256 of each overwrite/merge file as it exists after the run. `version`, `source_commit` (framework `git rev-parse HEAD`; dirty trees are noted), `synced_at`, `lock_schema: 2`, and `manifest_version` are set. A v1 lock (no `files` map) is readable.
 
-### Step 6 — Record (optional)
+### Step 4 — Review patches and hand-merge
 
-Add one line to `docs/project-progress.md` § Decisions Log or a short commit:
+Modified files are listed as manual merge required. Each patch is `<project>/.framework-sync/<dest>.patch`. Review it and merge by hand. For `scripts/autopilot/decide-next-action.mjs`, an unmodified file that lacks the 1.5 `no-autopilot-scaffolds` preflight is replaced in step 3; a modified file gets that preflight only via the patch.
 
-```text
-Synced ai-dev-methodologies 1.1.0 → 1.2.0 (framework-owned files only)
+When a hand-merge intentionally keeps local content (typical for `AGENTS.md`, `CLAUDE.md`, `docs/README.md`, `.cursor/rules/shared-instructions.mdc`, `docs/autopilot/automations.md`, `docs/autopilot/playbook.md`, `scripts/autopilot/decide-next-action.mjs`), add that dest path to `customized_files` in `.agents/METHODOLOGY.lock`. The tool does not add paths for you. Then run `--relock`, then `--check`.
+
+When the hand-merge instead makes the file match the template, leave it off `customized_files` and run `--relock` before committing. A hand-merge leaves the tree dirty; `--relock` is allowed on that tree. It rewrites only `.agents/METHODOLOGY.lock` (the `files` sha256 map, plus `version`, `source_commit`, `synced_at`, `lock_schema`, and `manifest_version`) and keeps `customized_files` and any other existing keys. It does not copy or patch anything else.
+
+```bash
+node scripts/framework-sync.mjs --project /path/to/your-project --relock
 ```
+
+Delete `<project>/.framework-sync/` once the patches are merged. `--apply` lists that directory in `.git/info/exclude` so it is not committed by accident; it does not edit `.gitignore`.
+
+### Step 5 — Commit and open a PR
+
+Follow the project's own branch, commit, and PR conventions. Put the lock update and any hand-merged files in that commit. Do not invent a second workflow here.
+
+### Step 6 — Check
+
+```bash
+node scripts/framework-sync.mjs --project /path/to/your-project --check
+```
+
+Exit 0 when every `overwrite` and `merge` file is `ok` (matches both the lock hash and the current template) or `customized` (listed in `customized_files` and matches the lock hash; the template is not compared). Otherwise exit 1 and report each other file as `behind`, `modified-since-sync`, or `missing`. The lock's `version` field is only a claim. `--check` is the authority on whether a project is current. The same command is the weekly drift check. `--check` writes nothing.
 
 ---
 
@@ -189,11 +252,12 @@ There is **no** scheduled auto-sync. With a small portfolio (~5–8 projects), t
 
 | Anti-pattern | Why it fails |
 |--------------|--------------|
-| Re-run `bootstrap-project.sh --force` on active project | Overwrites `project-guidelines.md` and other customized files |
+| Re-run `bootstrap-project.sh --force` on active project | Overwrites framework-owned files. An existing `.agents/METHODOLOGY.lock` (including `files` hashes and `customized_files`) and other project-state files stay unless `--reset-project-state` is also set. Use `framework-sync` to update. |
 | Edit framework-owned files for project-specific rules | Drift; use `project-guidelines.md` instead |
 | Sync without reading CHANGELOG | Miss breaking migrations or skip new required files |
 | No update to `METHODOLOGY.lock` | Next agent cannot tell which version the project runs |
 | Replace project-owned docs from upstream templates | Wipes live project state |
+| Locally edit `report.schema.json` to fit one project | Breaks portfolio comparability — fix upstream instead |
 
 ---
 

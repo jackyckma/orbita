@@ -1,0 +1,93 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/jackyckma/ai-dev-methodologies/blob/main/templates/docs/autopilot/report.schema.json",
+  "title": "Portfolio hub project report",
+  "description": "Shared report contract. Spec: .agents/instructions/portfolio-hub-reporting.md. Framework-owned — a project must NOT edit this file; doing so silently removes it from the portfolio. Accepts schema_version 1.0, 1.1 and 1.2.",
+  "type": "object",
+  "required": ["schema_version", "project", "generated_at", "period", "status", "sections"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "enum": ["1.0", "1.1", "1.2"],
+      "description": "1.1 added the optional 'edge' field (absent = repo). 1.2 added the 'deploy' edge. All remain valid."
+    },
+    "project": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "Stable lowercase slug matching the hub registry. Renaming breaks report history."
+    },
+    "edge": {
+      "enum": ["repo", "deploy", "runtime"],
+      "default": "repo",
+      "description": "Which line produced this report. repo = autopilot/dev state, derived from committed git state. deploy = build and release status, collected by the HUB from the hosting platform API (no project-side work). runtime = live product signals, served by the app itself. A project may be covered by several lines; the hub merges them per period. No line may answer for another."
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source_sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{7,40}$",
+      "description": "Git commit this report describes. THE correlation key across lines: it is what lets the hub say 'task merged as abc123, but its deployment failed'. Include it wherever the line can know it; without it the hub can only correlate on timestamps, which is guesswork."
+    },
+    "period": {
+      "type": "object",
+      "required": ["since", "until"],
+      "additionalProperties": false,
+      "properties": {
+        "since": { "type": "string", "format": "date-time", "description": "Inclusive." },
+        "until": { "type": "string", "format": "date-time", "description": "Exclusive." }
+      }
+    },
+    "status": {
+      "enum": ["ok", "degraded", "failed"],
+      "description": "Health of report GENERATION, not of the product. Product problems belong in the risks section."
+    },
+    "sections": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "description": "Exactly six, in this order. An empty section keeps its key with body 'none' — never omit.",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "body"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "enum": [
+              "intent_vs_actual",
+              "shipped",
+              "needs_founder",
+              "autopilot",
+              "risks",
+              "ask"
+            ]
+          },
+          "title": { "type": "string", "minLength": 1 },
+          "body": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Markdown. Use the literal string 'none' when there is nothing to report."
+          },
+          "provenance": {
+            "enum": ["measured", "derived", "asserted"],
+            "description": "Where this section's content came from. measured = read from an API or file. derived = computed from measured data. asserted = prose a project or agent wrote about itself. The hub uses this to avoid relaying a guess to the founder as a fact."
+          },
+          "items": {
+            "type": "array",
+            "description": "Optional links (PRs, tasks, deployments, dashboards).",
+            "items": {
+              "type": "object",
+              "required": ["text"],
+              "additionalProperties": false,
+              "properties": {
+                "text": { "type": "string", "minLength": 1 },
+                "url": { "type": "string", "format": "uri" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
