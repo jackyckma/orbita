@@ -223,6 +223,37 @@
       "status": "open",
       "decided_option": null,
       "decided_note": null
+    },
+    {
+      "id": "D-007",
+      "title": "Remove the waitlist feature entirely?",
+      "type": "product-direction",
+      "context": "The waitlist is a complete feature, not a placeholder: public POST /v1/waitlist (email + optional message, no rate limit or captcha, CORS allow-list), admin approval that ALWAYS creates an API key (scopes sessions:create, sessions:use) and optionally emails it in plain text through Zeabur ZSend, table waitlist_entries, tests, the public page apps/orbita-web/public/waitlist.html (posts to https://api.get-orbita.com/v1/waitlist) linked from the home page and updates page, docs and two prod e2e scripts. It serves a hosted self-signup model; the direction chosen on 2026-10-01 is consulting deployments (one server per tenant), where nobody signs up on a public list. It also adds an unauthenticated public write endpoint and emails a live API key. Removing it changes documented public behaviour of get-orbita.com/waitlist. The admin UI only lists PENDING entries, so existing approved/rejected/pending rows must be checked before anything is dropped.",
+      "options": [
+        {
+          "id": "A",
+          "label": "Remove it: code, public page and link, docs, scripts, env vars; keep the table untouched until you export or drop it",
+          "implication": "smaller surface and no public write endpoint; the website page must be replaced by a contact link; do the pre-removal checklist first"
+        },
+        {
+          "id": "B",
+          "label": "Keep as is",
+          "implication": "nothing changes; keep the unprotected public endpoint and the plaintext-key email"
+        },
+        {
+          "id": "C",
+          "label": "Keep but harden (rate limit/captcha, never email keys)",
+          "implication": "still maintained for a model you are not pursuing"
+        }
+      ],
+      "recommendation": "A, after the checklist: (1) list ALL waitlist rows (any status) - via the API/DB, not only the pending view; (2) export real signups if any and decide whether those people need a reply; (3) decide what get-orbita.com shows instead of the waitlist page; (4) then approve removal.",
+      "default_if_silent": null,
+      "opened_at": "2026-10-02",
+      "sla_days": 14,
+      "unblocks": ["waitlist removal task","E-18 history section simplification"],
+      "status": "open",
+      "decided_option": null,
+      "decided_note": null
     }
   ]
 }
