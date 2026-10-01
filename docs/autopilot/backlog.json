@@ -727,10 +727,11 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "in_review",
+      "status": "done",
       "retries": 0,
       "feedback": [
-        "PR https://github.com/jackyckma/orbita/pull/30 opened; docs/comment-level framework 1.9.0 sync. Dispatched from hub session via Cursor Cloud Agent (Track B)."
+        "PR https://github.com/jackyckma/orbita/pull/30 opened; docs/comment-level framework 1.9.0 sync. Dispatched from hub session via Cursor Cloud Agent (Track B).",
+        "2026-10-01 hub: PR #30 merged manually (merge commit b7c398f); Checker review queue only accepts head branches matching ^cursor/ (framework-sync-1.9.0 was excluded); verify job green; e2e-tier-a red is pre-existing on main since 2026-06-22."
       ]
     }
   ]
