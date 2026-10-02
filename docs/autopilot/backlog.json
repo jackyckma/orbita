@@ -939,12 +939,13 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "in_review",
+      "status": "done",
       "retries": 0,
       "feedback": [
         "2026-10-01 hub (claude-hub-session): added so E-04 can be diagnosed from Zeabur logs without an Orbita API key; founder asked whether an agent can investigate and fix it.",
         "Maker 2026-10-02: lock on main before branch.",
-        "Maker 2026-10-02: PR https://github.com/jackyckma/orbita/pull/40; acceptance + typecheck green."
+        "Maker 2026-10-02: PR https://github.com/jackyckma/orbita/pull/40; acceptance + typecheck green.",
+        "REVIEW PR #40: verify-all PASS; T-0076 acceptance green; CI verify + e2e-tier-a pass; scope matches (structured embed failure logs + startup selftest, no API shape changes). Merged ed2f7ee. No duplicate T-0076 PRs."
       ]
     },
     {
