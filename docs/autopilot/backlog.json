@@ -967,13 +967,15 @@
       ],
       "deps": [
         "T-0075",
-        "T-0071"
+        "T-0071",
+        "T-0079"
       ],
       "flag": null,
       "status": "ready",
       "retries": 0,
       "feedback": [
-        "2026-10-02 hub (claude-hub-session): written after founder approved D-007 option A."
+        "2026-10-02 hub (claude-hub-session): written after founder approved D-007 option A.",
+        "2026-10-02 hub: now depends on T-0079 so the live waitlist page is removed (and auto-deployed) before the API route it posts to disappears."
       ]
     },
     {
@@ -981,12 +983,13 @@
       "lane": "docs",
       "phase": "consultos-cleanup",
       "title": "E-22: remove the public waitlist page, docs mentions and prod e2e scripts",
-      "description": "Remove apps/orbita-web/public/waitlist.html and every link to it (home page nav in index.html, updates.html, docs/site/setup.md), the docs mentions (docs/api-as-product.md, docs/product-architecture.md, README if present, and AGENTS.md - the one allowed exception), scripts/waitlist-e2e-prod.sh and scripts/waitlist-invite-e2e-prod.sh, and any other waitlist reference outside docs/autopilot (decision history there stays). Find how apps/orbita-web is deployed (read its package.json/scripts/docs) and add the exact FOUNDER-ONLY redeploy steps to this task's feedback (the Maker must not deploy). Do not replace the page with anything. KNOWN 2026-10-02: the public site is the Cloudflare Pages project `orbita-web` (production domains get-orbita.com, www.get-orbita.com, orbita-web.pages.dev), NOT a Zeabur service; the dashboard shows its latest production deployment as ~3 months old. Determine from the repo how it is deployed (wrangler script / GitHub Action / Cloudflare-side Git connection) and write the exact FOUNDER-ONLY steps to publish the change - including the plain 'Create deployment' upload path in the Cloudflare dashboard if no automation exists - into this task's feedback; the Maker must never deploy or use Cloudflare credentials. Note the removal order consequence: until the site is redeployed the live waitlist form keeps posting to an API route that T-0078 removes, so the feedback must also say that the page should be redeployed promptly after T-0079 merges.",
+      "description": "Remove apps/orbita-web/public/waitlist.html and every link to it (home page nav in index.html, updates.html, docs/site/setup.md), the docs mentions (docs/api-as-product.md, docs/product-architecture.md, README if present, and AGENTS.md - the one allowed exception), scripts/waitlist-e2e-prod.sh and scripts/waitlist-invite-e2e-prod.sh, and any other waitlist reference outside docs/autopilot (decision history there stays). Find how apps/orbita-web is deployed (read its package.json/scripts/docs) and add the exact FOUNDER-ONLY redeploy steps to this task's feedback (the Maker must not deploy). Do not replace the page with anything. KNOWN 2026-10-02: the public site is the Cloudflare Pages project `orbita-web` (production domains get-orbita.com, www.get-orbita.com, orbita-web.pages.dev), NOT a Zeabur service; the dashboard shows its latest production deployment as ~3 months old. Determine from the repo how it is deployed (wrangler script / GitHub Action / Cloudflare-side Git connection) and write the exact FOUNDER-ONLY steps to publish the change - including the plain 'Create deployment' upload path in the Cloudflare dashboard if no automation exists - into this task's feedback; the Maker must never deploy or use Cloudflare credentials. Note the removal order consequence: until the site is redeployed the live waitlist form keeps posting to an API route that T-0078 removes, so the feedback must also say that the page should be redeployed promptly after T-0079 merges. DEPLOY NOTE (2026-10-02): the founder chose to automate the website deploy. A GitHub Action .github/workflows/deploy-web.yml (hub PR #32, merged separately by the hub; do NOT create or edit workflow files in this task) runs scripts/deploy-web.sh on every push to main that touches apps/orbita-web/**, docs/site/** or the deploy/build scripts. So this task's feedback only needs to confirm that the site deploys automatically from main and must NOT instruct the founder to deploy by hand; also remove the closing 'Waitlist submits to ...' echo line from scripts/deploy-web.sh (it mentions the waitlist) and keep the rest of that script unchanged.",
       "acceptance": [
         "test ! -e apps/orbita-web/public/waitlist.html",
         "test ! -e scripts/waitlist-e2e-prod.sh",
         "test ! -e scripts/waitlist-invite-e2e-prod.sh",
-        "! rg -n -i \"waitlist\" apps/orbita-web docs scripts README.md AGENTS.md --glob '!docs/autopilot/**'"
+        "! rg -n -i \"waitlist\" apps/orbita-web docs scripts README.md AGENTS.md --glob '!docs/autopilot/**'",
+        "! rg -n -i \"waitlist\" scripts/deploy-web.sh"
       ],
       "deps": [
         "T-0075",
@@ -996,7 +999,8 @@
       "status": "ready",
       "retries": 0,
       "feedback": [
-        "2026-10-02 hub (claude-hub-session): written after founder approved D-007 option A."
+        "2026-10-02 hub (claude-hub-session): written after founder approved D-007 option A.",
+        "2026-10-02 hub: deploy automation decided (option B)."
       ]
     }
   ]
