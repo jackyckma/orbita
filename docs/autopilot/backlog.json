@@ -916,7 +916,7 @@
         "T-0074"
       ],
       "flag": null,
-      "status": "ready",
+      "status": "in_progress",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-01 (hub addition): E-14 strand 4 so the docs work is not dropped when REPLAN moves to the next epic."
