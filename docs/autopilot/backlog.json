@@ -990,13 +990,14 @@
         "T-0079"
       ],
       "flag": null,
-      "status": "in_review",
+      "status": "done",
       "retries": 0,
       "feedback": [
         "2026-10-02 hub (claude-hub-session): written after founder approved D-007 option A.",
         "2026-10-02 hub: now depends on T-0079 so the live waitlist page is removed (and auto-deployed) before the API route it posts to disappears.",
         "Maker 2026-10-02: lock on main before branch.",
-        "Maker 2026-10-02: PR https://github.com/jackyckma/orbita/pull/43; acceptance + agent-verify green. Kept ORBITA_INSTANCE_FROM_EMAIL and ZEABUR_ZSEND_API_KEY in .env.example (used by inbound/instance email, not waitlist-only)."
+        "Maker 2026-10-02: PR https://github.com/jackyckma/orbita/pull/43; acceptance + agent-verify green. Kept ORBITA_INSTANCE_FROM_EMAIL and ZEABUR_ZSEND_API_KEY in .env.example (used by inbound/instance email, not waitlist-only).",
+        "REVIEW PR #43: verify-all PASS; task acceptance (scoped rg, lane-waitlist absent in tree, typecheck) green; scope matches D-007 backend removal, no DROP DDL; T-0079 done first. Merged 4d6221c. No duplicate T-0078 PRs."
       ]
     },
     {
