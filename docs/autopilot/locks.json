@@ -4,8 +4,8 @@
     "T-0080": {
       "by": "maker",
       "since": "2026-10-02T16:25:00.000Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/t-0080-public-openapi-spec",
+      "pr": 44
     }
   }
 }

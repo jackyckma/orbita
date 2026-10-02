@@ -1043,10 +1043,11 @@
         "T-0078"
       ],
       "flag": null,
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
       "feedback": [
-        "2026-10-02 hub (claude-hub-session): added after the founder noticed the public docs link to /v1/openapi.json returns 401; option B chosen."
+        "2026-10-02 hub (claude-hub-session): added after the founder noticed the public docs link to /v1/openapi.json returns 401; option B chosen.",
+        "2026-10-02 maker: PR #44 opened; acceptance + agent-verify green."
       ]
     },
     {
