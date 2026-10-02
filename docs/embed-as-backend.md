@@ -53,7 +53,7 @@ Postgres + `orbita-api` on your infra. See `docs/self-host.md`.
 
 ### C — Hosted (Phase 1)
 
-`api.get-orbita.com` with invite/waitlist API keys — same integration model as self-host.
+`api.get-orbita.com` with invite-only API keys — same integration model as self-host.
 
 **Not required:** Orbita inside your app process. State is externalized to Postgres by design.
 
@@ -61,7 +61,7 @@ Postgres + `orbita-api` on your infra. See `docs/self-host.md`.
 
 ## Minimal integration (5 steps)
 
-1. **Issue API key** — admin or waitlist flow; allow-list one or more `client_id`s.
+1. **Issue API key** — admin invite flow; allow-list one or more `client_id`s.
 2. **Choose profile** — `default`, `research`, `marketing`, or custom static profile (`GET /v1/profiles`).
 3. **Create session** — `POST /v1/sessions` with `{ "agent_profile": "…" }`.
 4. **Send turns** — `POST /v1/sessions/{id}/messages` with structured `input`.

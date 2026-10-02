@@ -52,7 +52,7 @@ Fixed-window counters are replica-safe but not a token bucket. Bursts at window 
 ## Observability
 
 - Trajectory (caller): `GET /v1/sessions/{id}/trajectory` and `/trajectory/replay`
-- Admin usage: `GET /v1/admin/usage/summary` (sessions, messages, tool calls, token estimates, scheduler, waitlist)
+- Admin usage: `GET /v1/admin/usage/summary` (sessions, messages, tool calls, token estimates, scheduler)
 - Admin sessions: `GET /v1/admin/sessions`, `GET /v1/admin/sessions/{id}/trajectory/replay`
 - Admin UI: `/admin` → Usage + Recent sessions panels
 - Prod smoke: `scripts/smoke-prod.sh`

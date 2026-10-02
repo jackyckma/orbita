@@ -9,7 +9,7 @@ purpose: 產品方向 — Orbita hosted 如何對外開放（階段性邀請制 
 # Orbita API as a Product — 產品方向
 
 **狀態：** **已決定方向**（階段性邀請制；正式 SaaS／收費待驗證後）  
-**優先順序：** 先穩定自用（self-host + 個人 hosted），再開 waitlist／邀請，最後才做計費 SaaS。  
+**優先順序：** 先穩定自用（self-host + 個人 hosted），再擴邀請制 hosted，最後才做計費 SaaS。  
 **相關：** `usr/ORBITA_DESIGN.md` §3、§15；`docs/product-architecture.md`；`docs/admin-ui-brainstorm.md`
 
 ---
@@ -20,15 +20,15 @@ purpose: 產品方向 — Orbita hosted 如何對外開放（階段性邀請制 
 
 - 產品剛標出來，需要一段**實戰測試**才能定價與限額。
 - Production 伺服器 loading（LLM + Postgres + tools）**不可能長期完全免費**對公眾開放。
-- **邀請制**可讓朋友先幫忙測（可接受短期免費或低限額），陌生人 meanwhile 只能 **waitlist**，不消耗 API 資源。
+- **邀請制**可讓朋友先幫忙測（可接受短期免費或低限額），陌生人 meanwhile 無 API 存取，不消耗平台資源。
 
 ### 三階段路線
 
 | 階段 | 名稱 | 陌生人 | 受邀／朋友 | 收費 | Orbita 對應 |
 |------|------|--------|------------|------|-------------|
 | **Phase 0**（現在） | 自用 + 穩定 + MA dogfood | 無 API 存取 | 你手動 `/admin` 發 key | 無 | **A + B** ✅；MA1 ✅ |
-| **Phase 1** | 邀請制 hosted | **Waitlist**（`get-orbita.com/waitlist`） | Admin approve → 發 key | 測試期低 quota | **B+** 🔄 FormSubmit 確認 |
-| **Phase 2** | 正式 SaaS | 註冊（或 waitlist → 開通） | 方案、用量 dashboard | **必須收費**（或硬 quota + 超額停） | **C** — W17+ metering + billing |
+| **Phase 1** | 邀請制 hosted | 無自助註冊 | Admin approve → 發 key | 測試期低 quota | **B** ✅ |
+| **Phase 2** | 正式 SaaS | 註冊（或邀請開通） | 方案、用量 dashboard | **必須收費**（或硬 quota + 超額停） | **C** — W17+ metering + billing |
 
 **長期保留：** **模式 A（Self-host）** 與開源 repo — 與 hosted 不衝突。
 
@@ -36,8 +36,7 @@ purpose: 產品方向 — Orbita hosted 如何對外開放（階段性邀請制 
 
 | 項目 | 說明 |
 |------|------|
-| Waitlist | `get-orbita.com` 一頁表單 → 存 DB／表單服務；**不**自動發 key |
-| Invite | 沿用 `/admin` 手動建立 API key；可選 admin「從 waitlist approve」 |
+| Invite | 沿用 `/admin` 手動建立 API key；approve 後發 key（E-22 已移除公開 signup 頁與 API） |
 | 控成本 | 現有 `rate_limit_per_minute`、少數 key、必要時調低 LLM 上限 |
 | 用量可見 | W16 一部分：messages／tool calls 統計（invite 人數變多再做） |
 
@@ -51,9 +50,9 @@ purpose: 產品方向 — Orbita hosted 如何對外開放（階段性邀請制 
 
 | 問題 | 決定 |
 |------|------|
-| 主要客群（短期） | **邀請制 + waitlist**，非陌生人自助 |
+| 主要客群（短期） | **邀請制**，非陌生人自助 |
 | Self-host 是否一級產品 | **是**，長期保留 |
-| 計費（短期） | 朋友測試可免費；公眾 **waitlist 不收費**；正式開放前 **必須**有收費或硬 quota |
+| 計費（短期） | 朋友測試可免費；公眾無 API 存取；正式開放前 **必須**有收費或硬 quota |
 | LLM 成本 | 短期平台包（你的 key）；Phase 2 再定 BYOK 與否 |
 | Dashboard | Phase 0–1：**Admin + API 足夠**；Phase 2 再考慮 user dashboard |
 | W11–W14 | **無論 SaaS 與否都做** — 已完成 |
@@ -66,7 +65,7 @@ purpose: 產品方向 — Orbita hosted 如何對外開放（階段性邀請制 
 
 | 網址 | 性質 | 訪客／開發者實際會看到什麼 |
 |------|------|---------------------------|
-| **https://get-orbita.com** | 行銷站（靜態 HTML） | 介紹 Orbita、Quick start、**Waitlist（Phase 1）**、Updates |
+| **https://get-orbita.com** | 行銷站（靜態 HTML） | 介紹 Orbita、Quick start、Docs、Updates |
 | **https://api.get-orbita.com** | HTTP API 後端 | JSON：`GET /v1/health`、`GET /v1/openapi.json`；未授權路徑 → 401 |
 
 ### 「Branding」在這裡指什麼？
@@ -86,7 +85,7 @@ purpose: 產品方向 — Orbita hosted 如何對外開放（階段性邀請制 
 
 | 角色 | 典型行為 |
 |------|----------|
-| 一般訪客 | get-orbita.com；Phase 1 可填 **waitlist**（仍無 API key） |
+| 一般訪客 | get-orbita.com（仍無 API key） |
 | 開發者／AI agent | `curl`、SDK、OpenAPI；帶 Bearer key 呼叫 sessions / messages |
 | 你（營運） | smoke script、admin 發 key、看 trajectory |
 
@@ -98,7 +97,7 @@ purpose: 產品方向 — Orbita hosted 如何對外開放（階段性邀請制 
 |------|------|------|----------|
 | **A. Self-host** | 想完全自控的開發者 | 自己部署、自己 `ORBITA_ADMIN_TOKEN` 發 key | 使用者自己的 Postgres |
 | **B. Hosted invite-only** | 早期合作方、朋友測試 | Admin 手動發 key；**無**陌生人自助註冊 | 你的 Zeabur + Postgres |
-| **B+. Waitlist + invite** | 陌生人排隊；你 approve | Waitlist 不碰 API；approve 後同 B | 同上 + waitlist 儲存 |
+| **B+. Public signup (removed)** | 曾短期開放公開 signup | E-22 已移除 | — |
 | **C. Hosted SaaS** | 付費或自助外部用戶 | 帳號、自助 key、方案配額 | 多 tenant；metering + billing |
 
 **目前實作狀態：**
@@ -107,10 +106,10 @@ purpose: 產品方向 — Orbita hosted 如何對外開放（階段性邀請制 
 |------|------|
 | A | ✅ Docker、文件、`self-host-smoke.sh` |
 | B | ✅ Zeabur、`/admin`、rate limit、`api.get-orbita.com` |
-| B+ | 📋 Waitlist 頁 + approve 流程（Phase 1） |
+| B+ | ⛔ 已移除（E-22）；回到純 B 邀請制 |
 | C | 📋 W17+（Phase 2，**已決定要做收費**，時機待驗證後） |
 
-**路線：** A 長期保留 → **Phase 0–1 走 B / B+** → 驗證後 **Phase 2 走 C**。
+**路線：** A 長期保留 → **Phase 0–1 走 B（邀請制）** → 驗證後 **Phase 2 走 C**。
 
 ---
 
@@ -149,7 +148,7 @@ purpose: 產品方向 — Orbita hosted 如何對外開放（階段性邀請制 
 
 - ✅ `api.get-orbita.com`（W13）
 - 強化 self-host 文件與一鍵 Docker
-- Waitlist + 邀請制（Phase 1）
+- 邀請制（Phase 1）
 - 公開 GitHub — clone 自建即為有效「產品」
 
 ---
@@ -161,7 +160,7 @@ purpose: 產品方向 — Orbita hosted 如何對外開放（階段性邀請制 
 | 產品階段 | 建議 Wave | 說明 |
 |----------|-----------|------|
 | Phase 0 自用穩定 | W14 polish、E2E、文件 | **進行中** |
-| Phase 1 邀請 + waitlist | 行銷站 waitlist；可選 W15 輕量 accounts | 不必 Stripe |
+| Phase 1 邀請制 | Admin 發 key；可選 W15 輕量 accounts | 不必 Stripe |
 | Phase 2 收費 SaaS | W15–W16（accounts/admin）→ **W17** billing → W18 compliance | 驗證後再開 |
 
 ### W13 — Edge & 統一域名 ✅ Shipped
@@ -172,12 +171,11 @@ purpose: 產品方向 — Orbita hosted 如何對外開放（階段性邀請制 
 | `ORBITA_PUBLIC_BASE_URL` | ✅ |
 | 行銷站 / 文件 base URL | ✅（持續維護） |
 
-### Phase 1 — Waitlist & invite（下一個產品增量）
+### Phase 1 — Invite-only（進行中）
 
 | Task | 說明 |
 |------|------|
-| Waitlist 頁 | `get-orbita.com` 表單；後端可先用表單服務或 Orbita 旁小型 endpoint |
-| Admin approve | 從 waitlist 手動發 key（或純 email + 現有 `/admin`） |
+| Admin invite | `/admin` 手動發 key |
 | 政策文案 | 「測試期邀請制、非公開 API」 |
 
 ### W17 — Quotas, billing & abuse（Phase 2 / SaaS）
@@ -206,7 +204,7 @@ purpose: 產品方向 — Orbita hosted 如何對外開放（階段性邀請制 
 ```text
 W0–W14   平台 + Admin + self-host + sandbox     ✅ Shipped
 Phase 0  穩定自用                               ← 現在
-Phase 1  Waitlist + invite (B+)                 ← 下一個產品里程碑
+Phase 1  Invite-only (B)                        ← 現在
 W15–W16  Multi-user + system admin              ← invite 人數多時；SaaS 前置
 W17–W18  Billing + compliance (C)               ← Phase 2，已決定方向、待驗證後排期
 ```
@@ -244,5 +242,5 @@ Orbita repo = **平台**（HTTP API、lanes、通用 profiles/tools）。
 
 | 日期 | 變更 |
 |------|------|
-| 2026-06-22 | **決定方向：** Phase 0–1 邀請制 + waitlist；Phase 2 收費 SaaS；優先自用穩定 |
+| 2026-06-22 | **決定方向：** Phase 0–1 邀請制；Phase 2 收費 SaaS；優先自用穩定 |
 | 2026-06-22 | 初稿：三種模式、considerations、wave 草案 |

@@ -37,7 +37,7 @@ fi
 
 admin=(-H "x-orbita-admin-token: $ORBITA_ADMIN_TOKEN" -H "Content-Type: application/json")
 
-echo "==> Zeabur API env: email + waitlist invite (process env, not vault only)"
+echo "==> Zeabur API env: instance email + ZSend (process env, not vault only)"
 ZEABUR_KEYS=(
   -k "ORBITA_INSTANCE_FROM_EMAIL=$FROM_EMAIL"
   -k "ORBITA_PUBLIC_BASE_URL=$PUBLIC_BASE"
@@ -45,7 +45,7 @@ ZEABUR_KEYS=(
 if [[ -n "${ZSEND_KEY:-}" ]]; then
   ZEABUR_KEYS+=(-k "ZEABUR_ZSEND_API_KEY=$ZSEND_KEY")
 else
-  echo "WARN: ZEABUR_ZSEND_API_KEY not set — waitlist invite emails will not send"
+  echo "WARN: ZEABUR_ZSEND_API_KEY not set — outbound instance email will not send"
 fi
 if [[ -n "${ORBITA_QUOTA_SESSIONS_PER_DAY:-}" ]]; then
   ZEABUR_KEYS+=(-k "ORBITA_QUOTA_SESSIONS_PER_DAY=$ORBITA_QUOTA_SESSIONS_PER_DAY")
