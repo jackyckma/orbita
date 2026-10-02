@@ -1,0 +1,131 @@
+{
+  "description": "Golden mandate → epic → task chain for contract tests (E-16 T-0083).",
+  "tickets": [
+    {
+      "id": "aaaaaaaa-bbbb-4ccc-dddd-eeeeeeee0001",
+      "client_id": "sim-client",
+      "project": "market-research",
+      "function": "research",
+      "kind": "mandate",
+      "parent_id": null,
+      "title": "Market research mandate",
+      "description": "Standing scan and synthesis for target segments.",
+      "status": "active",
+      "owner": "agent:research-bot",
+      "source": "native",
+      "version": 1,
+      "lease_holder": null,
+      "lease_expires_at": null,
+      "charter": {
+        "purpose": "Maintain timely market intelligence for product and GTM decisions.",
+        "principles": ["Depth on top segments before breadth", "60% execution / 40% exploration"],
+        "guardrails": {
+          "allowed_action_categories": ["L0", "L1"],
+          "forbidden_action_categories": ["money"],
+          "effort_budget_notes": "No paid tools without decision ticket."
+        },
+        "cadence": {
+          "description": "Daily signal scan; weekly synthesis note.",
+          "interval_hours": 168
+        },
+        "reporting": {
+          "expectations": "Weekly brief note linked from completed epic tasks."
+        },
+        "success_measures": ["Brief published within cadence", "Actionable signals cited with sources"],
+        "review_date": "2026-12-31",
+        "assigned_principals": ["principal-research"],
+        "hard_limits": [
+          {
+            "id": "max_open_epics",
+            "description": "Cap concurrent epics under this mandate.",
+            "enforcement": "server",
+            "max_open_epics": 3
+          },
+          {
+            "id": "no_spend",
+            "description": "Executor accounts have no payment methods.",
+            "enforcement": "environment"
+          }
+        ],
+        "soft_constraints": [
+          {
+            "id": "exploration_share",
+            "description": "Keep exploration near 40% of effort.",
+            "metric": "exploration_share",
+            "warn_threshold": 0.5,
+            "block_threshold": 0.65,
+            "target_value": 0.4
+          }
+        ],
+        "epic_auto_approve_policy": {
+          "allowed_risk_tiers": ["L0"]
+        }
+      },
+      "created_at": "2026-10-01T07:00:00.000Z",
+      "updated_at": "2026-10-02T06:00:00.000Z"
+    },
+    {
+      "id": "aaaaaaaa-bbbb-4ccc-dddd-eeeeeeee0002",
+      "client_id": "sim-client",
+      "project": "market-research",
+      "function": "research",
+      "kind": "epic",
+      "parent_id": "aaaaaaaa-bbbb-4ccc-dddd-eeeeeeee0001",
+      "title": "Q4 competitor positioning scan",
+      "description": "Bounded epic under the research mandate.",
+      "status": "active",
+      "owner": "agent:research-bot",
+      "risk_tier": "L0",
+      "source": "native",
+      "version": 2,
+      "lease_holder": null,
+      "lease_expires_at": null,
+      "acceptance_criteria": [
+        "Summary note with >=3 cited sources",
+        "Risk tier L0 actions only"
+      ],
+      "created_at": "2026-10-01T08:00:00.000Z",
+      "updated_at": "2026-10-02T06:30:00.000Z"
+    },
+    {
+      "id": "aaaaaaaa-bbbb-4ccc-dddd-eeeeeeee0003",
+      "client_id": "sim-client",
+      "project": "market-research",
+      "function": "research",
+      "kind": "task",
+      "parent_id": "aaaaaaaa-bbbb-4ccc-dddd-eeeeeeee0002",
+      "title": "Collect public pricing pages",
+      "status": "in_progress",
+      "owner": "agent:research-bot",
+      "next_action": "Draft comparison table",
+      "risk_tier": "L0",
+      "source": "native",
+      "version": 1,
+      "lease_holder": "agent:research-bot",
+      "lease_expires_at": "2026-10-02T20:00:00.000Z",
+      "created_at": "2026-10-02T07:00:00.000Z",
+      "updated_at": "2026-10-02T07:15:00.000Z"
+    }
+  ],
+  "sample_soft_breach": {
+    "event_kind": "soft_breach",
+    "constraint_id": "exploration_share",
+    "metric": "exploration_share",
+    "observed_value": 0.55,
+    "threshold_kind": "warn",
+    "target_value": 0.4,
+    "reason": "Deep dive on one competitor dominated the day.",
+    "mandate_id": "aaaaaaaa-bbbb-4ccc-dddd-eeeeeeee0001"
+  },
+  "sample_git_read_only_error": {
+    "error": {
+      "code": "GIT_READ_ONLY",
+      "message": "Transition not allowed",
+      "request_id": "req-sim-001",
+      "details": {
+        "git_ref": "tickets/epic-001.yaml",
+        "message": "Tickets with source=git are read-only in Orbita; mutate the git file instead."
+      }
+    }
+  }
+}

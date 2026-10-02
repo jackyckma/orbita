@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://orbita.dev/schemas/lane-tickets/verbs/ticket_extend.request.schema.json",
+  "title": "ticket_extend request (lease renewal)",
+  "type": "object",
+  "required": ["ticket_id", "actor", "lease_seconds"],
+  "additionalProperties": false,
+  "properties": {
+    "ticket_id": { "$ref": "../common.schema.json#/definitions/uuid" },
+    "expected_version": { "type": "integer", "minimum": 1 },
+    "lease_seconds": { "type": "integer", "minimum": 60, "maximum": 86400 },
+    "idempotency_key": { "$ref": "../common.schema.json#/definitions/idempotency_key" },
+    "actor": { "$ref": "../common.schema.json#/definitions/actor" }
+  }
+}

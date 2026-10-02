@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://orbita.dev/schemas/lane-tickets/ticket-event.schema.json",
+  "title": "Append-only ticket event",
+  "type": "object",
+  "required": [
+    "id",
+    "ticket_id",
+    "client_id",
+    "seq",
+    "actor",
+    "verb",
+    "at"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "$ref": "common.schema.json#/definitions/uuid" },
+    "ticket_id": { "$ref": "common.schema.json#/definitions/uuid" },
+    "client_id": { "$ref": "common.schema.json#/definitions/client_id" },
+    "seq": { "type": "integer", "minimum": 1 },
+    "actor": { "$ref": "common.schema.json#/definitions/actor" },
+    "verb": { "$ref": "common.schema.json#/definitions/ticket_verb" },
+    "from_status": { "type": ["string", "null"] },
+    "to_status": { "type": ["string", "null"] },
+    "payload": {
+      "oneOf": [
+        { "$ref": "soft-breach-event.schema.json" },
+        { "type": "object" }
+      ]
+    },
+    "at": { "$ref": "common.schema.json#/definitions/iso_date_time" }
+  }
+}

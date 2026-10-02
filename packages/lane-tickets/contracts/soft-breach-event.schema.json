@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://orbita.dev/schemas/lane-tickets/soft-breach-event.schema.json",
+  "title": "soft_breach ticket event payload",
+  "description": "Recorded when an executor crosses a soft_constraint threshold. Never blocks by default.",
+  "type": "object",
+  "required": ["event_kind", "constraint_id", "metric", "observed_value", "threshold_kind"],
+  "additionalProperties": false,
+  "properties": {
+    "event_kind": { "const": "soft_breach" },
+    "constraint_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "description": "Matches soft_constraints[].id on the mandate charter."
+    },
+    "metric": {
+      "type": "string",
+      "enum": [
+        "time_split",
+        "effort_split",
+        "cadence_target",
+        "quality_target",
+        "effort_budget",
+        "exploration_share"
+      ]
+    },
+    "observed_value": { "type": "number" },
+    "threshold_kind": {
+      "type": "string",
+      "enum": ["warn", "block"],
+      "description": "Which soft threshold was crossed; still non-blocking unless promoted to hard_limit."
+    },
+    "target_value": { "type": "number" },
+    "reason": {
+      "type": "string",
+      "description": "Optional executor explanation."
+    },
+    "mandate_id": { "$ref": "common.schema.json#/definitions/uuid" }
+  }
+}

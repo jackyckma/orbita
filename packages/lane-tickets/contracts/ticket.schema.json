@@ -1,0 +1,113 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://orbita.dev/schemas/lane-tickets/ticket.schema.json",
+  "title": "Ticket record",
+  "type": "object",
+  "required": [
+    "id",
+    "client_id",
+    "project",
+    "function",
+    "kind",
+    "title",
+    "status",
+    "source",
+    "version",
+    "created_at",
+    "updated_at"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "$ref": "common.schema.json#/definitions/uuid" },
+    "client_id": { "$ref": "common.schema.json#/definitions/client_id" },
+    "project": { "type": "string", "minLength": 1 },
+    "function": { "$ref": "common.schema.json#/definitions/ticket_function" },
+    "kind": { "$ref": "common.schema.json#/definitions/ticket_kind" },
+    "parent_id": {
+      "oneOf": [{ "$ref": "common.schema.json#/definitions/uuid" }, { "type": "null" }]
+    },
+    "title": { "type": "string", "minLength": 1 },
+    "description": { "type": "string" },
+    "status": { "type": "string", "minLength": 1 },
+    "owner": { "$ref": "common.schema.json#/definitions/owner" },
+    "requester": { "type": "string" },
+    "priority": { "type": "integer", "minimum": 0, "maximum": 4 },
+    "next_action": { "type": "string" },
+    "blocked_on": { "type": "string" },
+    "risk_tier": { "$ref": "common.schema.json#/definitions/risk_tier" },
+    "source": { "$ref": "common.schema.json#/definitions/ticket_source" },
+    "source_ref": { "type": "string" },
+    "git_ref": { "type": "string" },
+    "synced_at": { "$ref": "common.schema.json#/definitions/iso_date_time" },
+    "sync_state": { "$ref": "common.schema.json#/definitions/sync_state" },
+    "version": { "type": "integer", "minimum": 1 },
+    "lease_holder": { "type": ["string", "null"] },
+    "lease_expires_at": {
+      "oneOf": [
+        { "$ref": "common.schema.json#/definitions/iso_date_time" },
+        { "type": "null" }
+      ]
+    },
+    "idempotency_key": { "$ref": "common.schema.json#/definitions/idempotency_key" },
+    "charter": { "$ref": "charter.schema.json" },
+    "acceptance_criteria": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "data": { "type": "object" },
+    "created_at": { "$ref": "common.schema.json#/definitions/iso_date_time" },
+    "updated_at": { "$ref": "common.schema.json#/definitions/iso_date_time" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "kind": { "const": "mandate" } }, "required": ["kind"] },
+      "then": {
+        "properties": {
+          "parent_id": { "type": "null" },
+          "status": { "$ref": "common.schema.json#/definitions/mandate_status" },
+          "charter": { "$ref": "charter.schema.json" }
+        },
+        "required": ["charter"]
+      }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "epic" } }, "required": ["kind"] },
+      "then": {
+        "properties": {
+          "parent_id": { "$ref": "common.schema.json#/definitions/uuid" },
+          "status": { "$ref": "common.schema.json#/definitions/epic_status" }
+        },
+        "required": ["parent_id", "acceptance_criteria"]
+      }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "task" } }, "required": ["kind"] },
+      "then": {
+        "properties": {
+          "parent_id": { "$ref": "common.schema.json#/definitions/uuid" },
+          "status": { "$ref": "common.schema.json#/definitions/work_status" }
+        },
+        "required": ["parent_id"]
+      }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "decision" } }, "required": ["kind"] },
+      "then": {
+        "properties": {
+          "parent_id": { "$ref": "common.schema.json#/definitions/uuid" },
+          "status": { "$ref": "common.schema.json#/definitions/work_status" }
+        },
+        "required": ["parent_id"]
+      }
+    },
+    {
+      "if": { "properties": { "source": { "const": "git" } }, "required": ["source"] },
+      "then": {
+        "required": ["git_ref"],
+        "properties": {
+          "git_ref": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  ]
+}

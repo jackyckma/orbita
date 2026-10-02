@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://orbita.dev/schemas/lane-tickets/verbs/ticket_get.request.schema.json",
+  "title": "ticket_get request (REST GET /v1/tickets/{id}, MCP ticket_get)",
+  "type": "object",
+  "required": ["ticket_id"],
+  "additionalProperties": false,
+  "properties": {
+    "ticket_id": { "$ref": "../common.schema.json#/definitions/uuid" },
+    "include_events": { "type": "boolean", "default": false }
+  }
+}

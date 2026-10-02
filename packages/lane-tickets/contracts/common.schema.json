@@ -1,0 +1,142 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://orbita.dev/schemas/lane-tickets/common.schema.json",
+  "title": "Lane tickets — shared definitions",
+  "definitions": {
+    "uuid": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "client_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Tenant id from auth context only — never from request bodies alone."
+    },
+    "iso_date_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "iso_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "ticket_kind": {
+      "type": "string",
+      "enum": ["mandate", "epic", "task", "decision"]
+    },
+    "ticket_function": {
+      "type": "string",
+      "enum": ["dev", "infra", "support", "marketing", "sales", "ops", "research"]
+    },
+    "risk_tier": {
+      "type": "string",
+      "enum": ["L0", "L1", "L2", "money"]
+    },
+    "ticket_source": {
+      "type": "string",
+      "enum": ["native", "git"]
+    },
+    "sync_state": {
+      "type": "string",
+      "enum": ["confirmed", "pending-sync", "drift"]
+    },
+    "owner": {
+      "type": "string",
+      "minLength": 1,
+      "description": "human | claude | agent:<name>"
+    },
+    "principal_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "enforcement": {
+      "type": "string",
+      "enum": ["server", "environment", "instruction"],
+      "description": "How a hard_limit is enforced: server (Orbita rejects), environment (capability absent), instruction (policy text only)."
+    },
+    "mandate_status": {
+      "type": "string",
+      "enum": ["draft", "active", "paused", "retired"]
+    },
+    "epic_status": {
+      "type": "string",
+      "enum": ["proposed", "approved", "active", "done", "cancelled"]
+    },
+    "work_status": {
+      "type": "string",
+      "enum": [
+        "proposed",
+        "approved",
+        "claimed",
+        "in_progress",
+        "in_review",
+        "done",
+        "waiting_human",
+        "blocked",
+        "cancelled"
+      ]
+    },
+    "ticket_verb": {
+      "type": "string",
+      "enum": [
+        "ticket_create",
+        "ticket_list",
+        "ticket_get",
+        "ticket_approve",
+        "ticket_claim",
+        "ticket_extend",
+        "ticket_progress",
+        "ticket_complete",
+        "ticket_block",
+        "ticket_request_decision",
+        "ticket_comment",
+        "ticket_cancel"
+      ]
+    },
+    "actor": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["human", "agent", "system"]
+        },
+        "principal_id": {
+          "$ref": "#/definitions/principal_id"
+        },
+        "api_key_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "idempotency_key": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "pagination_cursor": {
+      "type": "string",
+      "minLength": 1
+    },
+    "error_envelope": {
+      "type": "object",
+      "required": ["error"],
+      "additionalProperties": false,
+      "properties": {
+        "error": {
+          "type": "object",
+          "required": ["code", "message", "request_id"],
+          "additionalProperties": false,
+          "properties": {
+            "code": { "type": "string", "minLength": 1 },
+            "message": { "type": "string" },
+            "request_id": { "type": "string", "minLength": 1 },
+            "details": { "type": "object" }
+          }
+        }
+      }
+    }
+  }
+}
