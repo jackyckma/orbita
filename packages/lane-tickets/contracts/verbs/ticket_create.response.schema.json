@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://orbita.dev/schemas/lane-tickets/verbs/ticket_create.response.schema.json",
+  "title": "ticket_create response",
+  "type": "object",
+  "required": ["ticket"],
+  "additionalProperties": false,
+  "properties": {
+    "ticket": { "$ref": "../ticket.schema.json" },
+    "record_soft_breach": { "$ref": "../soft-breach-event.schema.json" }
+  }
+}

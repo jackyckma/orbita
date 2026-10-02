@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://orbita.dev/schemas/lane-tickets/verbs/ticket_list.response.schema.json",
+  "title": "ticket_list response",
+  "type": "object",
+  "required": ["tickets"],
+  "additionalProperties": false,
+  "properties": {
+    "tickets": {
+      "type": "array",
+      "items": { "$ref": "../ticket.schema.json" }
+    },
+    "next_cursor": {
+      "oneOf": [
+        { "$ref": "../common.schema.json#/definitions/pagination_cursor" },
+        { "type": "null" }
+      ]
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://orbita.dev/schemas/lane-tickets/verbs/ticket_list.request.schema.json",
+  "title": "ticket_list request (REST GET /v1/tickets query, MCP ticket_list)",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "project": { "type": "string" },
+    "function": { "$ref": "../common.schema.json#/definitions/ticket_function" },
+    "kind": { "$ref": "../common.schema.json#/definitions/ticket_kind" },
+    "status": { "type": "string" },
+    "owner": { "$ref": "../common.schema.json#/definitions/owner" },
+    "parent_id": { "$ref": "../common.schema.json#/definitions/uuid" },
+    "updated_since": { "$ref": "../common.schema.json#/definitions/iso_date_time" },
+    "limit": { "type": "integer", "minimum": 1, "maximum": 200, "default": 50 },
+    "cursor": { "$ref": "../common.schema.json#/definitions/pagination_cursor" }
+  }
+}

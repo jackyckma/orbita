@@ -1,0 +1,157 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://orbita.dev/schemas/lane-tickets/charter.schema.json",
+  "title": "Mandate charter",
+  "description": "Standing responsibility charter stored on mandate tickets (jsonb). Changes are audited; hard_limits changes require human-approved principal.",
+  "type": "object",
+  "required": [
+    "purpose",
+    "principles",
+    "guardrails",
+    "cadence",
+    "reporting",
+    "success_measures",
+    "review_date",
+    "assigned_principals",
+    "hard_limits",
+    "soft_constraints"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "purpose": {
+      "type": "string",
+      "minLength": 1
+    },
+    "principles": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 },
+      "description": "Rough guidance on priorities and time/effort split."
+    },
+    "guardrails": {
+      "type": "object",
+      "required": ["allowed_action_categories", "forbidden_action_categories"],
+      "additionalProperties": false,
+      "properties": {
+        "allowed_action_categories": {
+          "type": "array",
+          "items": { "$ref": "common.schema.json#/definitions/risk_tier" }
+        },
+        "forbidden_action_categories": {
+          "type": "array",
+          "items": { "$ref": "common.schema.json#/definitions/risk_tier" }
+        },
+        "effort_budget_notes": { "type": "string" },
+        "spend_budget_notes": { "type": "string" }
+      }
+    },
+    "cadence": {
+      "type": "object",
+      "required": ["description"],
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Expected rhythm, e.g. daily scan + weekly synthesis."
+        },
+        "interval_hours": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Optional numeric hint for mandate health (stale when last activity exceeds this)."
+        }
+      }
+    },
+    "reporting": {
+      "type": "object",
+      "required": ["expectations"],
+      "additionalProperties": false,
+      "properties": {
+        "expectations": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "success_measures": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "review_date": {
+      "$ref": "common.schema.json#/definitions/iso_date"
+    },
+    "assigned_principals": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "common.schema.json#/definitions/principal_id" }
+    },
+    "hard_limits": {
+      "type": "array",
+      "description": "Never adjustable by executor. Default for ambiguous limits is hard.",
+      "items": { "$ref": "#/definitions/hard_limit" }
+    },
+    "soft_constraints": {
+      "type": "array",
+      "description": "Never blocking by default; breaches become soft_breach events.",
+      "items": { "$ref": "#/definitions/soft_constraint" }
+    },
+    "epic_auto_approve_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "allowed_risk_tiers": {
+          "type": "array",
+          "items": { "$ref": "common.schema.json#/definitions/risk_tier" }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "hard_limit": {
+      "type": "object",
+      "required": ["id", "description", "enforcement"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+        "description": { "type": "string", "minLength": 1 },
+        "enforcement": { "$ref": "common.schema.json#/definitions/enforcement" },
+        "max_open_epics": { "type": "integer", "minimum": 0 },
+        "max_open_tasks": { "type": "integer", "minimum": 0 },
+        "max_creations_per_day": { "type": "integer", "minimum": 0 },
+        "max_writes_per_day": { "type": "integer", "minimum": 0 },
+        "authority_boundary": { "type": "string" }
+      }
+    },
+    "soft_constraint": {
+      "type": "object",
+      "required": ["id", "description", "metric"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+        "description": { "type": "string", "minLength": 1 },
+        "metric": {
+          "type": "string",
+          "enum": [
+            "time_split",
+            "effort_split",
+            "cadence_target",
+            "quality_target",
+            "effort_budget",
+            "exploration_share"
+          ]
+        },
+        "warn_threshold": {
+          "type": "number",
+          "description": "Crossing records soft_breach; does not block."
+        },
+        "block_threshold": {
+          "type": "number",
+          "description": "Second-level threshold for reporting; still non-blocking unless promoted to hard_limit."
+        },
+        "target_value": { "type": "number" },
+        "unit": { "type": "string" }
+      }
+    }
+  }
+}

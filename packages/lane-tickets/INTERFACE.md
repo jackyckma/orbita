@@ -1,0 +1,133 @@
+---
+status: planned
+maintained_by: ai-agents
+created: 2026-10-02
+purpose: First-class tickets with mandate hierarchy and server-enforced state machines (E-16).
+related: docs/autopilot/roadmap.json (E-16)
+---
+
+# Lane — Tickets (E-16)
+
+## Summary
+
+Tickets are **not** notes: atomic claim, versioning, append-only events, deterministic list queries, and mandate → epic → task hierarchy. This lane owns `packages/lane-tickets/` only. Runtime implementation is behind `ORBITA_TICKETS_ENABLED` (default off).
+
+## Hierarchy and `parent_id`
+
+| kind | parent_id | Notes |
+|------|-----------|--------|
+| `mandate` | `null` | Standing responsibility; carries `charter` |
+| `epic` | mandate uuid | Bounded goal; integrator approves (or charter auto-approve policy) |
+| `task` | epic uuid | Executor-created work within guardrails |
+| `decision` | mandate, epic, or task uuid | Human decision requests |
+
+Executors may create children only under parents in their mandate subtree (enforced at runtime).
+
+## Mandate charter (`charter.schema.json`)
+
+- **purpose**, **principles**, **guardrails** (allowed/forbidden risk tiers), **cadence**, **reporting**, **success_measures**, **review_date**, **assigned_principals**
+- **`hard_limits`**: never adjustable by the executor. Each entry has **`enforcement`**: `server` (Orbita rejects), `environment` (capability absent), or `instruction` (policy text; checked after the fact). Default for ambiguous limits is **hard**.
+- **`soft_constraints`**: time/effort split, cadence targets, quality targets, budgets with **warn** and **block** thresholds — **never blocking by default**. Crossing records a **`soft_breach`** event (see `soft-breach-event.schema.json`).
+
+Charter changes are audited; changing **hard_limits** or loosening hard → soft requires a human-approved principal.
+
+## State machines
+
+### Mandate
+
+```
+draft → active → paused → retired
+```
+
+| From | Verb (conceptual) | To |
+|------|-------------------|-----|
+| draft | activate | active |
+| active | pause | paused |
+| paused | resume | active |
+| active / paused | retire | retired |
+
+### Epic
+
+```
+proposed → approved → active → done
+                    ↘ cancelled (from proposed or approved)
+```
+
+| From | Verb | To | Actor |
+|------|------|-----|-------|
+| proposed | ticket_approve | approved | human approver |
+| approved | ticket_progress | active | agent |
+| active | ticket_complete | done | agent |
+| proposed / approved | ticket_cancel | cancelled | human for proposed cancel |
+
+### Task and decision
+
+```
+proposed → approved → claimed → in_progress → in_review → done
+          ↘ cancelled (proposed cancel: human)
+Side: waiting_human, blocked (ticket_block), cancelled
+```
+
+| From | Verb | To | Notes |
+|------|------|-----|-------|
+| proposed | ticket_approve | approved | human |
+| approved | ticket_claim | claimed | atomic lease |
+| claimed | ticket_progress | in_progress | lease holder |
+| in_progress | ticket_progress | in_review | |
+| in_review | ticket_complete | done | requires result_refs |
+| * | ticket_block | blocked | sets blocked_on |
+| approved+ | ticket_extend | (same) | renew lease |
+| proposed | ticket_cancel | cancelled | human only |
+
+Expired lease: runtime returns ticket to **approved** with an event (documented for T-0084+).
+
+## Verbs (API surface)
+
+All verbs share JSON bodies between **REST** (`/v1/tickets…`, separate from notes) and **MCP** tools named `ticket_*`. Schemas live under `contracts/verbs/*.schema.json`.
+
+| Verb | Purpose |
+|------|---------|
+| `ticket_create` | Create mandate / epic / task / decision |
+| `ticket_list` | Filtered cursor list |
+| `ticket_get` | Single ticket (+ optional events) |
+| `ticket_approve` | Human approval transitions |
+| `ticket_claim` | Atomic claim + lease |
+| `ticket_extend` | Lease renewal |
+| `ticket_progress` | Status / owner / next_action updates |
+| `ticket_complete` | Done with result links |
+| `ticket_block` | Block with reason |
+| `ticket_request_decision` | Spawn decision ticket |
+| `ticket_comment` | Append-only comment event |
+| `ticket_cancel` | Cancel (human rules on proposed) |
+
+**Optimistic concurrency:** `expected_version` on mutating verbs. **Idempotency:** `(client_id, verb, idempotency_key)` unique at runtime.
+
+## Git-sourced tickets (read-only)
+
+Tickets with `source=git` reject **all** transition verbs with HTTP **409** and error code **`GIT_READ_ONLY`**, including `git_ref` pointer — see `errors.schema.json`. Native tickets only in early slices.
+
+## Contracts
+
+- `contracts/common.schema.json` — shared enums and envelopes
+- `contracts/charter.schema.json` — mandate charter including **hard_limits** and **soft_constraints**
+- `contracts/ticket.schema.json` — ticket record + parent rules
+- `contracts/ticket-event.schema.json` — append-only events
+- `contracts/soft-breach-event.schema.json` — **soft_breach** payload
+- `contracts/errors.schema.json` — stable error shapes
+- `contracts/verbs/*` — per-verb request/response
+
+Validate: `node --test packages/lane-tickets/contracts/validate-contracts.test.mjs`
+
+## Does not (this slice)
+
+- No `src/` runtime yet (T-0084+)
+- No notes API / MCP note_* changes
+- No DDL or routes until later tasks
+
+## Verification
+
+```bash
+pnpm --filter @orbita/tickets test
+```
+
+Golden fixture: `data/simulators/lane-tickets/mandate-epic-task-chain.json`

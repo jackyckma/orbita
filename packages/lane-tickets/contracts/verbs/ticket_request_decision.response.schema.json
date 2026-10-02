@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://orbita.dev/schemas/lane-tickets/verbs/ticket_request_decision.response.schema.json",
+  "title": "ticket_request_decision response",
+  "type": "object",
+  "required": ["ticket", "decision_ticket", "event"],
+  "additionalProperties": false,
+  "properties": {
+    "ticket": { "$ref": "../ticket.schema.json" },
+    "decision_ticket": { "$ref": "../ticket.schema.json" },
+    "event": { "$ref": "../ticket-event.schema.json" }
+  }
+}
