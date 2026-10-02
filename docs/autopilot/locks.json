@@ -4,8 +4,8 @@
     "T-0073": {
       "by": "maker",
       "since": "2026-10-02T14:05:53Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/t-0073-harness-advisory-lock-timezone",
+      "pr": 36
     }
   }
 }
