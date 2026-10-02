@@ -839,12 +839,13 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "in_review",
+      "status": "done",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-01: E-14 first pass (4/6) — scheduler resilience: per-run isolation.",
         "2026-10-01 hub review (claude-hub-session): existing try/catch already satisfied the old grep; require a test that the tick continues after a throw.",
-        "Maker 2026-10-02: collector path already isolated inside executeHarnessRun; added tick-loop try/catch + next_run_at advance on uncaught throw. PR https://github.com/jackyckma/orbita/pull/35"
+        "Maker 2026-10-02: collector path already isolated inside executeHarnessRun; added tick-loop try/catch + next_run_at advance on uncaught throw. PR https://github.com/jackyckma/orbita/pull/35",
+        "REVIEW PR #35: verify-all PASS; acceptance green; CI verify + e2e-tier-a pass; scope matches T-0072 (tick-loop try/catch, advanceCronNextRunAt on throw, unit test for remaining harnesses; no schema/T-0073). Merged. No duplicate T-0072 PRs."
       ]
     },
     {
