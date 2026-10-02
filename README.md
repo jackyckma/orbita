@@ -27,6 +27,10 @@ curl -s http://127.0.0.1:3000/v1/health | jq .
 
 TypeScript · Node 22 · Hono · Zod · Drizzle · Postgres/pgvector · pnpm monorepo
 
+## MCP (`/v1/mcp`)
+
+Streamable HTTP MCP for agents (PA1). **16 tools** (see `packages/lane-mcp/src/index.ts`): `orbita_whoami`; `memory_*`; `note_*` (including `note_search`); `portfolio_brief`; `trigger_automation`; `github_get_file`, `github_list_commits`, `github_list_pull_requests`. OAuth for Claude Custom Connector: `@orbita/oauth` (PA1.5). Setup: [`docs/personal-steward/connectors-claude.md`](docs/personal-steward/connectors-claude.md).
+
 ## Docs
 
 - [`docs/product-architecture.md`](docs/product-architecture.md) — lanes and build status
