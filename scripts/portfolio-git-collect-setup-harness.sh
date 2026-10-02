@@ -41,6 +41,31 @@ if [[ -z "$CLIENT_ID" ]]; then
   exit 1
 fi
 
+build_post_body() {
+  NAME="$NAME" python3 -c '
+import json, os
+print(json.dumps({
+  "template_id": "portfolio-git-collect@v1",
+  "name": os.environ["NAME"],
+  "overrides": {
+    "loops": {
+      "trigger": {"cron": "0 6 * * *", "timezone": "UTC", "enabled": True}
+    },
+    "application": {
+      "collector": "portfolio_git",
+      "credential_name": "github_read",
+      "period_hours": 24
+    }
+  }
+}))
+'
+}
+
+if [[ "${DRY_RUN:-}" == "1" ]]; then
+  build_post_body
+  exit 0
+fi
+
 if [[ -z "$API_KEY" ]]; then
   echo "error: no Orbita API key found for client '${CLIENT_ID}'." >&2
   echo "  Looked for: ORBITA_API_KEY, ORBITA_PERSONAL_API_KEY, PERSONAL_ORBITA_API_KEY" >&2
@@ -76,23 +101,7 @@ if [[ -n "$EXISTING" ]]; then
   exit 0
 fi
 
-BODY=$(NAME="$NAME" python3 -c '
-import json, os
-print(json.dumps({
-  "template_id": "portfolio-git-collect@v1",
-  "name": os.environ["NAME"],
-  "overrides": {
-    "loops": {
-      "trigger": {"cron": "0 6 * * *", "timezone": "UTC", "enabled": True}
-    },
-    "application": {
-      "collector": "portfolio_git",
-      "credential_name": "github_read",
-      "period_hours": 24
-    }
-  }
-}))
-')
+BODY=$(build_post_body)
 
 RESP=$(curl -4 -sS -w "\n%{http_code}" \
   -X POST \
