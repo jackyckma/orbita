@@ -33,6 +33,23 @@ describe("computeNextCronRun", () => {
     const next = computeNextCronRun("0 * * * *", from);
     expect(next.getTime()).toBeGreaterThan(from.getTime());
   });
+
+  it("UTC and unset match the two-argument form", () => {
+    const from = new Date("2026-06-21T12:30:00Z");
+    const cron = "0 * * * *";
+    const legacy = computeNextCronRun(cron, from);
+    expect(computeNextCronRun(cron, from, "UTC")).toEqual(legacy);
+    expect(computeNextCronRun(cron, from, null)).toEqual(legacy);
+    expect(computeNextCronRun(cron, from, undefined)).toEqual(legacy);
+  });
+
+  it("honours a non-UTC timezone (next slot differs from UTC-only math)", () => {
+    const from = new Date("2026-09-03T05:00:00.000Z");
+    const cron = "0 6 * * *";
+    const utcNext = computeNextCronRun(cron, from, "UTC");
+    const nyNext = computeNextCronRun(cron, from, "America/New_York");
+    expect(nyNext.getTime()).not.toBe(utcNext.getTime());
+  });
 });
 
 describe("isJobDue", () => {

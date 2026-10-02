@@ -11,6 +11,48 @@ import { resolveHarnessRunMessage } from "./templates.js";
 import { resolveHarnessMemoryInjectForRun } from "./memory-inject.js";
 import type { HarnessConfig } from "./types.js";
 
+/**
+ * Postgres `pg_try_advisory_lock` int key for harness cron tick leader election.
+ * All API replicas coordinate on this single cluster-wide value.
+ */
+const HARNESS_TICK_PG_ADVISORY_LOCK_KEY = 0x48525443; // ASCII "HRTC"
+
+type HarnessTickLogger = {
+  info: (obj: object, msg: string) => void;
+  warn: (obj: object, msg: string) => void;
+  debug?: (obj: object, msg: string) => void;
+};
+
+async function tryAcquireHarnessTickLeaderLock(
+  harnessDb: HarnessDb,
+  logger?: HarnessTickLogger,
+): Promise<boolean> {
+  const sql = harnessDb.sql;
+  if (!sql) {
+    return true;
+  }
+  try {
+    const rows = await sql<{ acquired: boolean }[]>`
+      SELECT pg_try_advisory_lock(${HARNESS_TICK_PG_ADVISORY_LOCK_KEY}) AS acquired
+    `;
+    const acquired = rows[0]?.acquired === true;
+    if (!acquired) {
+      logger?.debug?.(
+        { lock_key: HARNESS_TICK_PG_ADVISORY_LOCK_KEY },
+        "harness tick skipped: pg_advisory leader lock held by another session",
+      );
+    }
+    return acquired;
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    logger?.warn(
+      { lock_key: HARNESS_TICK_PG_ADVISORY_LOCK_KEY, error: message },
+      "harness tick pg_advisory lock failed; continuing without leader election",
+    );
+    return true;
+  }
+}
+
 export type SystemCollectorContext = {
   clientId: string;
   harnessId: string;
@@ -48,7 +90,7 @@ export type HarnessRunResult = {
 /** Move a cron harness to the next slot. Does not touch lastRunAt. */
 async function advanceCronNextRunAt(
   harnessDb: HarnessDb,
-  harness: { id: string; cron: string | null },
+  harness: { id: string; cron: string | null; timezone?: string | null },
   trigger: "cron" | "manual",
   now: Date,
 ): Promise<void> {
@@ -56,7 +98,7 @@ async function advanceCronNextRunAt(
   await harnessDb.db
     .update(harnesses)
     .set({
-      nextRunAt: computeNextCronRun(harness.cron, now),
+      nextRunAt: computeNextCronRun(harness.cron, now, harness.timezone),
       updatedAt: now,
     })
     .where(eq(harnesses.id, harness.id));
@@ -163,7 +205,7 @@ export async function executeHarnessRun(
           .set({
             lastRunAt: finishedAt,
             nextRunAt: harness.cron
-              ? computeNextCronRun(harness.cron, finishedAt)
+              ? computeNextCronRun(harness.cron, finishedAt, harness.timezone)
               : null,
             updatedAt: finishedAt,
           })
@@ -232,7 +274,9 @@ export async function executeHarnessRun(
       .update(harnesses)
       .set({
         lastRunAt: finishedAt,
-        nextRunAt: harness.cron ? computeNextCronRun(harness.cron, finishedAt) : null,
+        nextRunAt: harness.cron
+          ? computeNextCronRun(harness.cron, finishedAt, harness.timezone)
+          : null,
         updatedAt: finishedAt,
       })
       .where(eq(harnesses.id, harness.id));
@@ -258,9 +302,14 @@ export function startHarnessTick(
   runTurn: AgentTurnRunner,
   deps: HarnessRunDeps,
   summarizer?: SessionSummarizer,
-  logger?: { info: (obj: object, msg: string) => void; warn: (obj: object, msg: string) => void },
+  logger?: HarnessTickLogger,
 ) {
   setInterval(async () => {
+    const leader = await tryAcquireHarnessTickLeaderLock(harnessDb, logger);
+    if (!leader) {
+      return;
+    }
+
     const rows = await harnessDb.db.select().from(harnesses);
     const now = new Date();
     for (const harness of rows) {

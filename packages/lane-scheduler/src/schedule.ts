@@ -9,8 +9,23 @@ export type SessionJobSchedule = {
   createdAt: Date;
 };
 
-export function computeNextCronRun(cron: string, from: Date): Date {
-  const expr = CronExpressionParser.parse(cron, { currentDate: from });
+/** IANA timezone from harness row; UTC and unset use legacy UTC-only cron math. */
+export function resolveCronTimezone(timezone: string | null | undefined): string | undefined {
+  const trimmed = timezone?.trim();
+  if (!trimmed || trimmed === "UTC") return undefined;
+  return trimmed;
+}
+
+export function computeNextCronRun(
+  cron: string,
+  from: Date,
+  timezone?: string | null,
+): Date {
+  const tz = resolveCronTimezone(timezone);
+  const expr = CronExpressionParser.parse(cron, {
+    currentDate: from,
+    ...(tz ? { tz } : {}),
+  });
   return expr.next().toDate();
 }
 
