@@ -4,8 +4,8 @@
     "T-0078": {
       "by": "maker",
       "since": "2026-10-02T16:16:00.000Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/t-0078-remove-waitlist-backend",
+      "pr": 43
     }
   }
 }

@@ -990,12 +990,13 @@
         "T-0079"
       ],
       "flag": null,
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
       "feedback": [
         "2026-10-02 hub (claude-hub-session): written after founder approved D-007 option A.",
         "2026-10-02 hub: now depends on T-0079 so the live waitlist page is removed (and auto-deployed) before the API route it posts to disappears.",
-        "Maker 2026-10-02: lock on main before branch."
+        "Maker 2026-10-02: lock on main before branch.",
+        "Maker 2026-10-02: PR https://github.com/jackyckma/orbita/pull/43; acceptance + agent-verify green. Kept ORBITA_INSTANCE_FROM_EMAIL and ZEABUR_ZSEND_API_KEY in .env.example (used by inbound/instance email, not waitlist-only)."
       ]
     },
     {
