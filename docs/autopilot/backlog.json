@@ -1067,10 +1067,11 @@
         "T-0074"
       ],
       "flag": null,
-      "status": "blocked",
+      "status": "needs_human",
       "retries": 0,
       "feedback": [
-        "2026-10-02 hub (claude-hub-session): created after reviewing T-0073; blocked until supervised."
+        "2026-10-02 hub (claude-hub-session): created after reviewing T-0073; blocked until supervised.",
+        "2026-10-02 hub: needs_human = supervised by the hub (production-critical scheduler leader election; design in the description). Not to be implemented unattended. Set to ready only when the hub says so. Recorded so that E-14 counts as complete for the REPLAN of the next epic (E-16)."
       ]
     },
     {
