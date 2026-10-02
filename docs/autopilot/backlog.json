@@ -1113,11 +1113,12 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "in_review",
+      "status": "done",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-02: E-16 first pass (1/6) — mandate hierarchy contracts before any implementation.",
-        "MAKER 2026-10-02: PR opened; contracts + simulator fixture; acceptance green."
+        "MAKER 2026-10-02: PR opened; contracts + simulator fixture; acceptance green.",
+        "2026-10-02 Checker: merged PR #46; verify-all + CI verify/e2e-tier-a green; scope matches contracts-only task."
       ]
     },
     {
