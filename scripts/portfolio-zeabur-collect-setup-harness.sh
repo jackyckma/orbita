@@ -37,6 +37,31 @@ if [[ -z "$CLIENT_ID" ]]; then
   exit 1
 fi
 
+build_post_body() {
+  NAME="$NAME" python3 -c '
+import json, os
+print(json.dumps({
+  "template_id": "portfolio-zeabur-collect@v1",
+  "name": os.environ["NAME"],
+  "overrides": {
+    "loops": {
+      "trigger": {"cron": "30 6 * * *", "timezone": "UTC", "enabled": True}
+    },
+    "application": {
+      "collector": "portfolio_zeabur",
+      "credential_name": "zeabur_api",
+      "period_hours": 24
+    }
+  }
+}))
+'
+}
+
+if [[ "${DRY_RUN:-}" == "1" ]]; then
+  build_post_body
+  exit 0
+fi
+
 if [[ -z "$API_KEY" ]]; then
   echo "error: set ORBITA_API_KEY in .env or ~/.orbita-personal.env" >&2
   exit 1
@@ -67,23 +92,7 @@ if [[ -n "$EXISTING" ]]; then
   exit 0
 fi
 
-BODY=$(python3 -c '
-import json
-print(json.dumps({
-  "template_id": "portfolio-zeabur-collect@v1",
-  "name": "'"$NAME"'",
-  "overrides": {
-    "loops": {
-      "trigger": {"cron": "30 6 * * *", "timezone": "UTC", "enabled": True}
-    },
-    "application": {
-      "collector": "portfolio_zeabur",
-      "credential_name": "zeabur_api",
-      "period_hours": 24
-    }
-  }
-})
-')
+BODY=$(build_post_body)
 
 RESP=$(curl -4 -sS -w "\n%{http_code}" \
   -X POST \
