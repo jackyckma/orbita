@@ -1002,6 +1002,28 @@
         "2026-10-02 hub (claude-hub-session): written after founder approved D-007 option A.",
         "2026-10-02 hub: deploy automation decided (option B)."
       ]
+    },
+    {
+      "id": "T-0080",
+      "lane": "platform",
+      "phase": "consultos-a0",
+      "title": "Publish a caller-only OpenAPI spec at GET /v1/openapi.json (currently 401)",
+      "description": "VERIFIED 2026-10-02: GET https://api.get-orbita.com/v1/openapi.json returns 401 'Missing or invalid Authorization header' although the public website (get-orbita.com nav and /docs) and docs/site/index.md:24, docs/site/technical.md:81, docs/product-architecture.md:155-156, docs/DOCUMENTATION.md:12, docs/api-as-product.md:70 present it as public. Cause: in apps/orbita-api/src/index.ts the line `app.doc(\"/v1/openapi.json\", ...)` (~376-383) is registered AFTER `app.route(\"/v1\", protectedApp)` whose `protectedApp.use(\"*\", authMiddleware)` therefore runs first; it has been this way since the first commit and there is no test for the route. DECISION (founder, option B): make the spec PUBLIC but only for caller-facing routes. (1) Serve GET /v1/openapi.json BEFORE the protected group (next to /v1/health, before `const protectedApp`), do not touch the auth middleware itself. (2) The served document is generated lazily from the registered openapi routes and FILTERED: remove every path whose key starts with a prefix in one exported constant OPENAPI_PRIVATE_PATH_PREFIXES = ['/v1/admin', '/v1/inbound'] (so future admin routes such as /v1/admin/overview are excluded automatically); cache the filtered result for a short time; keep openapi 3.1.0, title/version/description as today; no servers block, no examples with secrets; also drop components/tags that become unused only if trivial. (3) The route is unauthenticated, outside rate limiting (like /v1/health), returns application/json and does not set CORS headers. (4) Tests in apps/orbita-api: unauthenticated GET /v1/openapi.json is 200 with body.openapi === '3.1.0'; the spec contains at least /v1/sessions and /v1/notes paths; it contains NO path starting with /v1/admin or /v1/inbound (assert against the constant, also with a fake extra route registered under /v1/admin/test to prove the filter); unauthenticated GET /v1/whoami and /v1/sessions are still 401; /v1/admin/* and /v1/inbound/email behaviour is unchanged. (5) Docs: in docs/site/technical.md (and docs/api-as-product.md) add one sentence that the spec covers the caller API only and that admin and inbound routes are intentionally omitted. Do NOT remove or change the waitlist (T-0078/T-0079 own it), do not change auth behaviour of any other route, do not add dependencies.",
+      "acceptance": [
+        "rg -n \"OPENAPI_PRIVATE_PATH_PREFIXES\" apps/orbita-api/src",
+        "rg -n \"openapi.json\" apps/orbita-api/src --glob \"*.test.ts\"",
+        "pnpm -r typecheck",
+        "node -e \"const fs=require('fs'); const s=fs.readFileSync('apps/orbita-api/src/index.ts','utf8'); const i=s.indexOf('openapi.json'); const p=s.indexOf('const protectedApp'); if(i<0||p<0||i>p){console.error('openapi.json must be registered before const protectedApp'); process.exit(1)}\""
+      ],
+      "deps": [
+        "T-0078"
+      ],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "2026-10-02 hub (claude-hub-session): added after the founder noticed the public docs link to /v1/openapi.json returns 401; option B chosen."
+      ]
     }
   ]
 }
