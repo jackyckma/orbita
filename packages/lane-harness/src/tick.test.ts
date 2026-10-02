@@ -252,3 +252,61 @@ describe("executeHarnessRun cron schedule", () => {
     expect(schedule?.values.nextRunAt).toEqual(computeNextCronRun(CRON, lastRunAt));
   });
 });
+
+describe("startHarnessTick", () => {
+  it("continues with remaining harnesses after executeHarnessRun throws", async () => {
+    const dueAt = new Date("2026-09-03T06:00:00.000Z");
+    const first = harnessRow(dueAt);
+    const second = {
+      ...harnessRow(dueAt),
+      id: "22222222-2222-4222-8222-222222222222",
+      name: "portfolio-git-collect-2",
+    };
+    const base = createFakeDb({ harnessRows: [first, second] });
+    let insertCalls = 0;
+    let runSeq = 0;
+    const harnessDb = {
+      db: {
+        ...base.harnessDb.db,
+        insert: () => ({
+          values: (values: Record<string, unknown>) => ({
+            returning: async () => {
+              insertCalls += 1;
+              if (insertCalls === 1) {
+                throw new Error("fingerprint insert failed");
+              }
+              base.inserts.push(values);
+              runSeq += 1;
+              return [{ id: `run-${runSeq}` }];
+            },
+          }),
+        }),
+      },
+    } as unknown as HarnessDb;
+    const { updates, inserts } = base;
+    const runner = vi.fn(async () => ({ ok: true }));
+    let queued: (() => Promise<void>) | undefined;
+    vi.spyOn(globalThis, "setInterval").mockImplementation((handler) => {
+      queued = handler as () => Promise<void>;
+      return 0 as unknown as ReturnType<typeof setInterval>;
+    });
+    const logger = { info: vi.fn(), warn: vi.fn() };
+
+    startHarnessTick(harnessDb, sessionsDb, runTurn, deps(runner), undefined, logger);
+    await queued!();
+
+    expect(insertCalls).toBe(2);
+    expect(inserts).toHaveLength(1);
+    expect(runner).toHaveBeenCalledOnce();
+    expect(logger.warn).toHaveBeenCalledWith(
+      { harness_id: first.id, error: "fingerprint insert failed" },
+      "harness tick run threw; advanced next_run_at and continuing",
+    );
+    const scheduleUpdates = harnessScheduleUpdate(updates);
+    expect(scheduleUpdates).toHaveLength(2);
+    expect(scheduleUpdates[0]?.values.nextRunAt).toEqual(
+      computeNextCronRun(CRON, scheduleUpdates[0]!.values.updatedAt as Date),
+    );
+    expect(scheduleUpdates[1]?.values.lastRunAt).toBeInstanceOf(Date);
+  });
+});
