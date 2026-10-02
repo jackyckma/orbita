@@ -84,6 +84,7 @@ import {
   requireMcpScope,
 } from "@orbita/oauth";
 import { createInboundEmailRoutes } from "./inbound-email.js";
+import { registerPublicCallerOpenApiRoute } from "./openapi-public.js";
 import { runMigrations } from "./migrate.js";
 import { createE2eMockTurnRunner } from "./e2e-mock.js";
 import { createPortfolioZeaburCollector } from "./portfolio-zeabur-collector.js";
@@ -315,6 +316,9 @@ app.route(
   }),
 );
 
+// Public caller OpenAPI: GET /v1/openapi.json (filtered; registered before auth middleware).
+registerPublicCallerOpenApiRoute(app, VERSION);
+
 const protectedApp = new OpenAPIHono();
 protectedApp.use("*", authMiddleware);
 protectedApp.use("*", rateLimitMiddleware);
@@ -361,15 +365,6 @@ protectedApp.route(
 protectedApp.route("/", createCredentialListRoutes(credentialsDb));
 
 app.route("/v1", protectedApp);
-
-app.doc("/v1/openapi.json", {
-  openapi: "3.1.0",
-  info: {
-    title: "Orbita API",
-    version: VERSION,
-    description: "Agent-native, API-first agent system",
-  },
-});
 
 startSchedulerTick(
   schedulerDb,

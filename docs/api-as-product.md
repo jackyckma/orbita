@@ -66,7 +66,7 @@ purpose: 產品方向 — Orbita hosted 如何對外開放（階段性邀請制 
 | 網址 | 性質 | 訪客／開發者實際會看到什麼 |
 |------|------|---------------------------|
 | **https://get-orbita.com** | 行銷站（靜態 HTML） | 介紹 Orbita、Quick start、Docs、Updates |
-| **https://api.get-orbita.com** | HTTP API 後端 | JSON：`GET /v1/health`、`GET /v1/openapi.json`；未授權路徑 → 401 |
+| **https://api.get-orbita.com** | HTTP API 後端 | JSON：`GET /v1/health`、`GET /v1/openapi.json`（OpenAPI 僅含 caller 路徑，不含 admin／inbound）；未授權路徑 → 401 |
 
 ### 「Branding」在這裡指什麼？
 

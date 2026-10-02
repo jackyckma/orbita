@@ -84,6 +84,9 @@ importers:
       tsx:
         specifier: ^4.19.4
         version: 4.22.4
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.6(@types/node@22.19.21)(tsx@4.22.4)(yaml@2.9.0)
 
   apps/orbita-email-worker:
     dependencies:

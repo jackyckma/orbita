@@ -78,7 +78,7 @@ Requires `ORBITA_INBOUND_EMAIL_TOKEN` on the API host.
 
 ## OpenAPI
 
-Machine-readable spec: `GET /v1/openapi.json`
+Machine-readable spec: `GET /v1/openapi.json` (public, no auth). The document covers **caller-facing** routes only; `/v1/admin/*` and `/v1/inbound/*` are intentionally omitted from the spec.
 
 Compare with live health version: `GET /v1/health`
 
