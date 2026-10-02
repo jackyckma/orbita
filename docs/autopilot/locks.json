@@ -4,8 +4,8 @@
     "T-0084": {
       "by": "maker",
       "since": "2026-10-02T23:12:14Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/t-0084-transition-engine",
+      "pr": 47
     }
   }
 }

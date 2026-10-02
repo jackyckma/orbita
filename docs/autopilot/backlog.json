@@ -1136,10 +1136,11 @@
         "T-0083"
       ],
       "flag": "ORBITA_TICKETS_ENABLED",
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
       "feedback": [
-        "REPLAN 2026-10-02: E-16 first pass (2/6) — state machine before persistence."
+        "REPLAN 2026-10-02: E-16 first pass (2/6) — state machine before persistence.",
+        "MAKER 2026-10-02: PR https://github.com/jackyckma/orbita/pull/47; @orbita/tickets test+build green."
       ]
     },
     {
