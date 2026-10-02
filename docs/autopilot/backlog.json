@@ -871,7 +871,8 @@
         "REPLAN 2026-10-01: E-14 first pass (5/6) — leader election + timezone-aware cron.",
         "2026-10-01 hub review (claude-hub-session): timezone grep already matched existing fields; require pg_advisory in tick.ts and timezone handling in computeNextCronRun, with UTC identical to today.",
         "Maker 2026-10-02: PR https://github.com/jackyckma/orbita/pull/36; acceptance (harness + scheduler tests, typecheck, rg) green.",
-        "REVIEW PR #36: verify-all PASS; acceptance green; CI verify + e2e-tier-a pass; scope matches T-0073 (HRTC advisory lock, resolveCronTimezone, advanceCronNextRunAt timezone). Merged ed7b689. No duplicate T-0073 PRs."
+        "REVIEW PR #36: verify-all PASS; acceptance green; CI verify + e2e-tier-a pass; scope matches T-0073 (HRTC advisory lock, resolveCronTimezone, advanceCronNextRunAt timezone). Merged ed7b689. No duplicate T-0073 PRs.",
+        "2026-10-02 hub review: the advisory-lock part was reverted by hotfix branch cursor/hotfix-t0073-remove-pg-advisory-lock (session-level lock on the shared pool, never unlocked => ticks could be skipped forever); cron timezone part kept; leader election to be redone in T-0081."
       ]
     },
     {
@@ -1031,6 +1032,28 @@
       "retries": 0,
       "feedback": [
         "2026-10-02 hub (claude-hub-session): added after the founder noticed the public docs link to /v1/openapi.json returns 401; option B chosen."
+      ]
+    },
+    {
+      "id": "T-0081",
+      "lane": "platform",
+      "phase": "consultos-a0",
+      "title": "Harness leader election, done correctly (dedicated reserved connection)",
+      "description": "VERIFIED defect in T-0073 (PR #36): pg_try_advisory_lock via the shared postgres.js pool, never unlocked, per-tick skip on acquired=false => ticks can be skipped forever when a different pooled connection holds the lock. Hub removed it (hotfix). Redo ONLY if multi-replica safety is worth it; the design must be: acquire the lock ONCE on a DEDICATED connection reserved for the process lifetime (postgres.js sql.reserve() or an equivalent single long-lived client), keep it while leader, release on shutdown, re-acquire with backoff if that connection drops; the tick checks an in-memory isLeader flag (no per-tick lock query); fail OPEN with a warning if leadership cannot be determined; add a watchdog warning if isLeader has been false for more than 10 minutes while pg_locks shows no other holder. Tests must use a fake pool that returns DIFFERENT sessions for successive queries and prove: no spurious skip, no lock leak, re-acquire after connection loss. Document in docs/ops-multi-replica.md. Do not touch the cron timezone code. STATUS blocked on purpose: the hub supervises this one (production-critical scheduler); flip to ready only when the hub says so.",
+      "acceptance": [
+        "pnpm --filter @orbita/harness test",
+        "pnpm -r typecheck",
+        "rg -n \"reserve\\(\" packages/lane-harness/src",
+        "! rg -n \"pg_try_advisory_lock\" packages/lane-harness/src/tick.ts"
+      ],
+      "deps": [
+        "T-0074"
+      ],
+      "flag": null,
+      "status": "blocked",
+      "retries": 0,
+      "feedback": [
+        "2026-10-02 hub (claude-hub-session): created after reviewing T-0073; blocked until supervised."
       ]
     }
   ]
