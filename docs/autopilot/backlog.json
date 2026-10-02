@@ -891,7 +891,7 @@
         "T-0073"
       ],
       "flag": null,
-      "status": "ready",
+      "status": "in_progress",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-01: E-14 first pass (6/6) — wedged-run self-heal; docs strand 4 deferred to next REPLAN.",
