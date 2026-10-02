@@ -44,7 +44,7 @@ If your ChatGPT / connector supports remote MCP:
 - URL: `https://api.get-orbita.com/v1/mcp`
 - Headers: `Authorization: Bearer …`, `x-orbita-client-id: personal-jacky`
 
-Same 11 tools as Claude MCP. Custom GPT Actions (Mode 2) remains an alternative.
+Same **16 tools** as Claude MCP (registered in `packages/lane-mcp/src/index.ts`). Custom GPT Actions (Mode 2) remains an alternative.
 
 ## What ChatGPT should not do without MCP/Actions
 

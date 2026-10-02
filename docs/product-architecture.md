@@ -2,7 +2,7 @@
 status: active
 maintained_by: ai-agents
 created: 2026-06-20
-last_updated: 2026-06-26
+last_updated: 2026-10-02
 purpose: Lane map, build status, and system wiring for Orbita.
 ---
 
@@ -39,9 +39,15 @@ Agent-native, API-first agent system. Foundation spec: `usr/ORBITA_DESIGN.md`.
 
 **Lane 10 — Admin console:** `@orbita/admin` — ✅ W11+ (`/admin` UI, waitlist, usage, sessions, scheduler, key metering). See `docs/admin-ui-brainstorm.md`.
 
-**Lane 12 — Harness:** `@orbita/harness` — 📋 W27 H1 (`cron-agent` + `editorial-supply` templates). See `docs/harness-design.md`.
-
 **Lane 11 — Waitlist:** `@orbita/waitlist` — ✅ w20 approve → API key + optional ZSend invite.
+
+**Lane 12 — Harness:** `@orbita/harness` — ✅ shipped (`POST/GET/PATCH /v1/harnesses`, cron tick, `memory_inject`, portfolio collectors). Design history: `docs/harness-design.md`.
+
+**Lane 13 — MCP:** `@orbita/mcp` (`packages/lane-mcp`) — ✅ Streamable HTTP `GET/POST /v1/mcp` (16 tools; see personal-steward connector docs).
+
+**Lane 14 — OAuth:** `@orbita/oauth` (`packages/lane-oauth`) — ✅ MCP OAuth + DCR for Claude Custom Connector (PA1.5, w35).
+
+**Lane 15 — Portfolio:** `@orbita/portfolio` (`packages/lane-portfolio`) — ✅ project registry + collector harness templates for the personal hub (`portfolio_brief` MCP tool).
 
 ## Application tracks (not lanes)
 
@@ -77,7 +83,7 @@ Milestones: **MA0…**, **AT0…** (parallel to **W0–Wn**, not lane numbers).
 | **W16** | Inbound email adapter + instance email | ✅ w16–w19 |
 | **W17–W20** | Waitlist, approve, ZSend invite | ✅ Done |
 | **W21–W26** | Admin observability, metering, daily quotas | ✅ Done |
-| **W27** | Harness — optional Loop Engineering infra (`cron-agent` + templates) | 📋 Design — `docs/harness-design.md` |
+| **W27+** | Harness Loop Engineering (`@orbita/harness`) + portfolio collectors (E-14) | ✅ Shipped; multi-replica leader lock deferred to T-0081 |
 | **W17+** | Billing / Stripe (Phase 2) | ⏸️ Deferred — `docs/api-as-product.md` |
 
 ### W11 — Admin console Phase 1 (shipped)
@@ -120,7 +126,7 @@ Milestones: **MA0…**, **AT0…** (parallel to **W0–Wn**, not lane numbers).
 ### Product direction
 
 - **Next milestone:** Dogfood validation — `docs/dogfood-plan.md` (not W15 yet)
-- **Loop infrastructure (optional):** W27 Harness — `docs/harness-design.md` (`cron-agent` canonical template; `editorial-supply@v1` preset for AT)
+- **Loop infrastructure:** `@orbita/harness` — `docs/harness-design.md` (`cron-agent`, `editorial-supply@v1` for AT, portfolio-git-collect for hub)
 - **Admin UI & identity** — `docs/admin-ui-brainstorm.md`
 - **API as hosted product** — Phase 1 ✅ invite + waitlist: `docs/api-as-product.md`
 - **Loose ends** — `docs/loose-ends-checklist.md`
@@ -171,7 +177,7 @@ Cross-cutting quality lane, not a product feature lane:
 | GET | `/v1/sessions/{id}/trajectory/replay` | 9 |
 | POST | `/v1/sessions/{id}/jobs` | 8 |
 
-**Also shipped:** `/v1/waitlist`, `/v1/admin/waitlist/*`, `/v1/admin/usage/*`, `/v1/admin/sessions`, `/v1/admin/scheduler/jobs`, `/v1/inbound/email`, `/v1/auth/device` (W12).
+**Also shipped:** `/v1/waitlist`, `/v1/admin/waitlist/*`, `/v1/admin/usage/*`, `/v1/admin/sessions`, `/v1/admin/scheduler/jobs`, `/v1/inbound/email`, `/v1/auth/device` (W12), `/v1/harnesses` + `/v1/harnesses/{id}/trigger`, `/v1/mcp`, OAuth metadata + `/oauth/*` (PA1.5), `/v1/notes/export` (w36).
 
 **Planned:** `/v1/me/*` (W15).
 

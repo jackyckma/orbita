@@ -94,7 +94,16 @@ claude mcp add --transport http orbita https://api.get-orbita.com/v1/mcp \
 
 If Custom Connector OAuth fails, use `claude_desktop_config.json` with `mcp-remote` (see previous revision in git history).
 
-Tools once connected: `memory_list`, `memory_get`, `memory_put`, `note_list`, `note_get`, `note_put`, `note_link`, `note_search`, `note_neighbors`, `note_links`, `orbita_whoami`.
+Tools once connected (**16**, from `registerOrbitaTools` in `packages/lane-mcp/src/index.ts`):
+
+| Group | Tool names |
+|-------|------------|
+| Identity | `orbita_whoami` |
+| Flat memory | `memory_list`, `memory_get`, `memory_put` |
+| Notes graph | `note_list`, `note_get`, `note_put`, `note_link`, `note_search`, `note_neighbors`, `note_links` |
+| Portfolio hub | `portfolio_brief` |
+| Ops (orbita only) | `trigger_automation` |
+| GitHub read (`github_read` credential) | `github_get_file`, `github_list_commits`, `github_list_pull_requests` |
 
 Prefer MCP over curl when available. Curl (sections A/B) still works as fallback.
 

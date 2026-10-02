@@ -52,4 +52,4 @@ embeddings, so results were empty.
 - Index path: `upsertNote` → `embedText(..., { purpose: "db" })`
 - Search path: `searchNotes` → `embedText(..., { purpose: "query" })`
 - HTTP: `GET /v1/notes/search` in `packages/lane-memory/src/routes/notes.ts`
-- Tool: `note_search` in `packages/lane-tools`
+- MCP tool: `note_search` in `packages/lane-mcp/src/index.ts` (same `searchNotes` path as HTTP)

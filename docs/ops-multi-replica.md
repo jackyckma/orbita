@@ -21,6 +21,14 @@ Each replica runs `startSchedulerTick` (5s poll). **Multiple replicas can fire t
 
 **Recommendation for production:** one scheduler-active replica, or accept duplicate ticks and make webhook consumers idempotent.
 
+### Harness tick
+
+Each replica runs `startHarnessTick` (5s poll) and evaluates cron harnesses independently. **Duplicate cron harness runs are possible** with multiple API replicas (same class of problem as the scheduler tick).
+
+T-0073 briefly added a Postgres **advisory** leader lock around harness cron processing; it was **reverted** (session-level lock on the shared pool could skip ticks indefinitely). As of today there is **no** active advisory lock in `packages/lane-harness/src/tick.ts`. Multi-replica leader election is planned again in **T-0081** (dedicated reserved connection + in-process `isLeader`).
+
+Until then: prefer **one API replica** for harness-heavy workloads, or accept duplicate runs and rely on harness idempotency (cron fingerprint, stale-`started` retry — see `@orbita/harness` `INTERFACE.md`).
+
 ### Migrations
 
 `runMigrations` runs on every API startup. Migrations are idempotent (`IF NOT EXISTS`). Safe on parallel deploys; brief lock contention possible.
