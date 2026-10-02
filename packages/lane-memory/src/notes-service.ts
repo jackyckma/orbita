@@ -83,7 +83,10 @@ function toNoteRecord(row: {
   };
 }
 
-function noteEmbedText(title: string | null | undefined, body: string): string {
+export function noteEmbedText(
+  title: string | null | undefined,
+  body: string,
+): string {
   return title?.trim() ? `${title.trim()}\n${body}` : body;
 }
 

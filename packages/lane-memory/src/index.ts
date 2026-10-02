@@ -28,6 +28,11 @@ export type {
 } from "./embed.js";
 export { setEmbedLogger } from "./embed-log.js";
 export {
+  isEmbedBackfillEnabled,
+  loadEmbedBackfillConfig,
+  startEmbedBackfill,
+} from "./embed-backfill.js";
+export {
   isEmbeddingSelfTestEnabled,
   startEmbeddingSelfTest,
 } from "./embed-selftest.js";

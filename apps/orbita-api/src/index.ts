@@ -40,6 +40,7 @@ import {
   loadMemoryEnv,
   searchNotes,
   setEmbedLogger,
+  startEmbedBackfill,
   startEmbeddingSelfTest,
   upsertMemory,
   upsertNote,
@@ -435,5 +436,7 @@ serve(
       "orbita-api listening",
     );
     startEmbeddingSelfTest(memoryEnv, logger);
+    // ORBITA_EMBED_BACKFILL=1 enables background note embedding backfill.
+    startEmbedBackfill(memoryDb, memoryEnv, logger);
   },
 );

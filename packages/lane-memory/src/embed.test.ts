@@ -1,5 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { loadMemoryEnv } from "./config.js";
+import {
+  resetEmbedRateLimitBreakerForTests,
+} from "./embed-breaker.js";
 import { setEmbedLogger, type EmbedLogger } from "./embed-log.js";
 import {
   embedFailureReason,
@@ -17,11 +20,6 @@ function createWarnCapture() {
       warnCalls.push({ obj: obj as Record<string, unknown>, msg });
     },
     info: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn(),
-    trace: vi.fn(),
-    fatal: vi.fn(),
-    child: () => logger,
   } as EmbedLogger;
   return { logger, warnCalls };
 }
@@ -53,6 +51,7 @@ describe("embedText", () => {
   let warnCapture: ReturnType<typeof createWarnCapture>;
 
   beforeEach(() => {
+    resetEmbedRateLimitBreakerForTests();
     warnCapture = createWarnCapture();
     setEmbedLogger(warnCapture.logger);
   });
@@ -279,5 +278,77 @@ describe("embedText", () => {
     expect(w.obj.group_id_configured).toBe(true);
     const fetchUrl = fetchMock.mock.calls.at(0)?.at(0);
     expect(String(fetchUrl)).toContain("GroupId=");
+  });
+
+  it("opens breaker on MiniMax 1002 and short-circuits fetch for 60s", async () => {
+    vi.useFakeTimers();
+    const fetchMock = vi.fn(async () =>
+      Response.json({
+        vectors: [],
+        base_resp: { status_code: 1002, status_msg: "rate limit" },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const env = loadMemoryEnv({ MINIMAX_API_KEY: "test-key" });
+    expect(await embedText(env, "first")).toBeNull();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(warnCapture.logger.info).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event: "embedding_rate_limit_breaker_opened",
+      }),
+      "embedding rate limit breaker opened",
+    );
+
+    expect(await embedText(env, "second")).toBeNull();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const w = lastWarn(warnCapture.warnCalls);
+    expect(w.obj.reason).toBe("rate_limited_breaker");
+
+    vi.advanceTimersByTime(60_000);
+    fetchMock.mockResolvedValueOnce(
+      Response.json({
+        vectors: [Array.from({ length: 1024 }, () => 0.01)],
+        base_resp: { status_code: 0 },
+      }),
+    );
+    expect(await embedText(env, "third")).not.toBeNull();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(warnCapture.logger.info).toHaveBeenCalledWith(
+      { event: "embedding_rate_limit_breaker_closed" },
+      "embedding rate limit breaker closed",
+    );
+    vi.useRealTimers();
+  });
+
+  it("does not open breaker on HTTP 401", async () => {
+    const fetchMock = vi.fn(async () =>
+      Response.json({ error: "nope" }, { status: 401 }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const env = loadMemoryEnv({ MINIMAX_API_KEY: "test-key" });
+    expect(await embedText(env, "a")).toBeNull();
+    expect(await embedText(env, "b")).toBeNull();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(warnCapture.logger.info).not.toHaveBeenCalled();
+  });
+
+  it("does not open breaker on dimension mismatch", async () => {
+    const fetchMock = vi.fn(async () =>
+      Response.json({
+        vectors: [Array.from({ length: 512 }, () => 0.1)],
+        base_resp: { status_code: 0 },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const env = loadMemoryEnv({
+      MINIMAX_API_KEY: "test-key",
+      EMBEDDING_DIMENSIONS: "1024",
+    });
+    expect(await embedText(env, "a")).toBeNull();
+    expect(await embedText(env, "b")).toBeNull();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 });
