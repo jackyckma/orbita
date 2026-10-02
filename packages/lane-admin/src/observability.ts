@@ -29,7 +29,6 @@ export type UsageSummary = {
   }>;
   providers: Array<{ provider: string; turn_count: number }>;
   scheduler: { enabled_jobs: number; total_jobs: number };
-  waitlist: { pending: number; approved: number; rejected: number };
 };
 
 export type AdminSessionRow = {
@@ -151,29 +150,12 @@ export async function getUsageSummary(adminDb: AdminDb): Promise<UsageSummary> {
     // session_jobs may be missing in minimal test DBs
   }
 
-  let waitlist = { pending: 0, approved: 0, rejected: 0 };
-  try {
-    const rows = await adminDb.sql<{ status: string; count: number }[]>`
-      SELECT status, COUNT(*)::int AS count
-      FROM waitlist_entries
-      GROUP BY status
-    `;
-    for (const row of rows) {
-      if (row.status === "pending") waitlist.pending = row.count;
-      if (row.status === "approved") waitlist.approved = row.count;
-      if (row.status === "rejected") waitlist.rejected = row.count;
-    }
-  } catch {
-    // waitlist table optional
-  }
-
   return {
     generated_at: new Date().toISOString(),
     periods: { hours_24, days_7, all },
     top_clients,
     providers,
     scheduler,
-    waitlist,
   };
 }
 

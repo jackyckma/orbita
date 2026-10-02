@@ -61,13 +61,6 @@ import {
   type AgentTurnRunner,
 } from "@orbita/sessions";
 import {
-  createWaitlistAdminRoutes,
-  createWaitlistDb,
-  createWaitlistPublicRoutes,
-  ensureWaitlistSchema,
-  loadWaitlistEnv,
-} from "@orbita/waitlist";
-import {
   createTrajectoryRoutes,
   createTrajectoryDb,
   logTrajectoryEvent,
@@ -101,7 +94,6 @@ const VERSION = "0.0.1-w36";
 const env = loadPlatformEnv();
 const agentEnv = loadAgentEnv();
 const memoryEnv = loadMemoryEnv();
-const waitlistEnv = loadWaitlistEnv();
 const logger = createLogger(env.NODE_ENV);
 
 if (!env.DATABASE_URL) {
@@ -130,9 +122,6 @@ const harnessDb = createHarnessDb(env.DATABASE_URL);
 const oauthDb = createOAuthDb(env.DATABASE_URL);
 const credentialsDb = createCredentialsDb(env.DATABASE_URL);
 const adminDb = createAdminDb(env.DATABASE_URL);
-const waitlistDb = createWaitlistDb(env.DATABASE_URL);
-
-await ensureWaitlistSchema(waitlistDb);
 
 await loadDeploymentHttpPolicy(adminDb);
 
@@ -305,11 +294,9 @@ adminApp.route(
   createCredentialAdminRoutes(credentialsDb, env.ORBITA_SECRETS_KEY!),
 );
 adminApp.route("/", createAdminRoutes(authDb));
-adminApp.route("/", createWaitlistAdminRoutes({ waitlistDb, authDb, waitlistEnv }));
 
 app.route("/v1/admin", adminApp);
 
-app.route("/v1", createWaitlistPublicRoutes(waitlistDb, waitlistEnv));
 app.route(
   "/v1",
   createInboundEmailRoutes({
