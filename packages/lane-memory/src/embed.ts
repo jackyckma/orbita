@@ -1,4 +1,5 @@
 import type { MemoryEnv } from "./config.js";
+import { logEmbedAttemptFailure } from "./embed-log.js";
 
 export type EmbedPurpose = "db" | "query";
 
@@ -131,6 +132,7 @@ export async function embedText(
     return result.vector;
   }
   embedFailureReason = result.failure;
+  logEmbedAttemptFailure(env, result.failure);
   return null;
 }
 

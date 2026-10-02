@@ -39,6 +39,8 @@ import {
   getNoteById,
   loadMemoryEnv,
   searchNotes,
+  setEmbedLogger,
+  startEmbeddingSelfTest,
   upsertMemory,
   upsertNote,
 } from "@orbita/memory";
@@ -437,6 +439,8 @@ logger.info(
   "starting orbita-api",
 );
 
+setEmbedLogger(logger);
+
 serve(
   {
     fetch: app.fetch,
@@ -448,5 +452,6 @@ serve(
       { url: `http://${info.address}:${info.port}`, admin: `/admin` },
       "orbita-api listening",
     );
+    startEmbeddingSelfTest(memoryEnv, logger);
   },
 );
