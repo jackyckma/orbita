@@ -62,17 +62,7 @@ DNS records (proxied CNAME):
 
 API: **https://api.get-orbita.com** — marketing site links there.
 
-## Waitlist (Product Phase 1)
-
-- Page: https://get-orbita.com/waitlist
-- API: `POST https://api.get-orbita.com/v1/waitlist` (JSON `{ email, message? }`)
-- CORS origins: `ORBITA_WAITLIST_ALLOWED_ORIGINS` (default `https://get-orbita.com`, `https://www.get-orbita.com`)
-- Admin: https://api.get-orbita.com/admin → **Waitlist** panel (approve / reject)
-- Deploy site: `./scripts/deploy-web.sh` (no FormSubmit)
-
-Optional operator inbox: Cloudflare Email Routing on `waitlist@get-orbita.com` for human notifications (not required for API storage).
-
-Instance outbound email design: `docs/instance-email.md`.
+Hosted API access is **invite-only** (admin issues keys). Deploy site: `./scripts/deploy-web.sh` (also runs from GitHub Actions on `main` when `apps/orbita-web/**` or docs site paths change). Instance outbound email: `docs/instance-email.md`.
 
 ## Env
 

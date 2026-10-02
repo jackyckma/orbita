@@ -10,7 +10,7 @@ nav_order: 1
 
 Production API: **https://api.get-orbita.com**
 
-1. Join the [waitlist](https://get-orbita.com/waitlist.html) for hosted access (invite-only during early access).
+1. Request hosted access via the operator (invite-only during early access).
 2. Or **self-host** below and point your orchestrator at your own base URL.
 
 ## Self-host prerequisites

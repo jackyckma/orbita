@@ -25,4 +25,4 @@ NODE_OPTIONS='--dns-result-order=ipv4first' pnpm exec wrangler pages deploy publ
   --branch=main \
   --commit-dirty=true
 
-echo "==> done. Waitlist submits to POST https://api.get-orbita.com/v1/waitlist"
+echo "==> done."

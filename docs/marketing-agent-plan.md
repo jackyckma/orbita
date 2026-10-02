@@ -58,7 +58,7 @@ related: marketing-agent/ (gitignored), docs/use-cases/marketing-agent.md, docs/
 
 ## 與產品路線
 
-- Hosted invite-only：`docs/api-as-product.md` Phase 0–1 先穩定自用 + MA dogfood，再 waitlist。
+- Hosted invite-only：`docs/api-as-product.md` Phase 0–1 先穩定自用 + MA dogfood，再擴邀請。
 - Marketing 業務 logic **永不** 默認進 `packages/*`；MA4 若要做 generic `marketing` profile 才開 W wave 討論。
 
 ---
@@ -69,6 +69,6 @@ related: marketing-agent/ (gitignored), docs/use-cases/marketing-agent.md, docs/
 |------|------|
 | 2026-06-24 | MA4 ✅ `marketing` profile + `memory_put`/`memory_get` tools（dogfooding patch, still w14） |
 | 2026-06-24 | MA3 ✅ X HTTP allow-list、draft→approve runbook；vault `x_api` 待 Bearer |
-| 2026-06-24 | MA1 ✅ dogfood X drafts；Phase 1 waitlist 頁上線 |
+| 2026-06-24 | MA1 ✅ dogfood X drafts；Phase 1 邀請制行銷站更新 |
 | 2026-06-22 | MA0 ✅；初稿 MA track |
 | 2026-06-22 | 初稿：MA track 與 W waves 並行、唔做 lane |

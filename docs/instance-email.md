@@ -50,7 +50,7 @@ Agent call pattern: `http_post` with `credential_ref: zsend` (vault stores the Z
 
 1. **Service registration** — Agent uses `ORBITA_INSTANCE_FROM_EMAIL` on signup forms; verification mail arrives at `orbita@` (Cloudflare → Worker → agent turn).
 2. **Transactional send** — Agent `http_post` to ZSend after approval (invite, reply, newsletter draft).
-3. **Waitlist ops** — Postgres + Admin today; optional: approve → ZSend invite email.
+3. **Invite ops** — Admin approve → optional ZSend invite email.
 
 ## Setup (hosted)
 
@@ -100,5 +100,5 @@ Setup: `docs/cloudflare-email-worker.md`
 ## Next steps (when needed)
 
 - Optional `send_email` tool wrapper (validate from-address, templates).
-- Waitlist approve → send invite via ZSend.
+- Admin invite approve → send invite via ZSend.
 - ZSend webhooks for bounce/complaint handling.

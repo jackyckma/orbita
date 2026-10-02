@@ -16,7 +16,7 @@ Outbound send uses **Zeabur Email (ZSend)** via agent `http_post` + credential v
 
 ## Prerequisites
 
-1. **Email Routing** enabled on `get-orbita.com` (already used for waitlist forwarding).
+1. **Email Routing** enabled on `get-orbita.com`.
 2. **Orbita API** env on Zeabur:
    - `ORBITA_INBOUND_EMAIL_TOKEN` — random secret (min 16 chars), shared with Worker
    - `ORBITA_INBOUND_CLIENT_ID` — default `orbita-instance`
@@ -60,8 +60,6 @@ In Cloudflare Dashboard → **Email** → **Routing** → **Routes**:
 | Custom address | Action |
 |----------------|--------|
 | `orbita@get-orbita.com` | Send to Worker **`orbita-email-worker`** |
-
-(Keep separate rules for `waitlist@` → Gmail if you use human notifications.)
 
 ## Local dev
 

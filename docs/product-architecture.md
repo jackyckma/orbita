@@ -37,9 +37,7 @@ Agent-native, API-first agent system. Foundation spec: `usr/ORBITA_DESIGN.md`.
 | 8 | Scheduler | `@orbita/scheduler` | ✅ Shipped | cron, webhook, admin jobs list | Leader election (optional) |
 | 9 | Trajectory | `@orbita/trajectory` | ✅ Shipped | replay + eval | LLM judge (future) |
 
-**Lane 10 — Admin console:** `@orbita/admin` — ✅ W11+ (`/admin` UI, waitlist, usage, sessions, scheduler, key metering). See `docs/admin-ui-brainstorm.md`.
-
-**Lane 11 — Waitlist:** `@orbita/waitlist` — ✅ w20 approve → API key + optional ZSend invite.
+**Lane 10 — Admin console:** `@orbita/admin` — ✅ W11+ (`/admin` UI, usage, sessions, scheduler, key metering). See `docs/admin-ui-brainstorm.md`.
 
 **Lane 12 — Harness:** `@orbita/harness` — ✅ shipped (`POST/GET/PATCH /v1/harnesses`, cron tick, `memory_inject`, portfolio collectors). Design history: `docs/harness-design.md`.
 
@@ -81,7 +79,7 @@ Milestones: **MA0…**, **AT0…** (parallel to **W0–Wn**, not lane numbers).
 | **W14** | Docker sandbox (tools) | ✅ Done (docker_echo tier) |
 | **W15** | Multi-user accounts + whitelist register | ⏸️ Deferred (post-dogfood) |
 | **W16** | Inbound email adapter + instance email | ✅ w16–w19 |
-| **W17–W20** | Waitlist, approve, ZSend invite | ✅ Done |
+| **W17–W20** | Invite approve, ZSend email | ✅ Done (public signup removed E-22) |
 | **W21–W26** | Admin observability, metering, daily quotas | ✅ Done |
 | **W27+** | Harness Loop Engineering (`@orbita/harness`) + portfolio collectors (E-14) | ✅ Shipped; multi-replica leader lock deferred to T-0081 |
 | **W17+** | Billing / Stripe (Phase 2) | ⏸️ Deferred — `docs/api-as-product.md` |
@@ -119,7 +117,7 @@ Milestones: **MA0…**, **AT0…** (parallel to **W0–Wn**, not lane numbers).
 
 ### W17–W26 — Phase 1 product + quota prep (shipped)
 
-- Waitlist API + admin approve → API key + optional invite email (w20)
+- Admin invite approve → API key + optional invite email (w20; public signup removed E-22)
 - Admin: usage summary, cross-client sessions, trajectory replay, scheduler jobs, per-key metering (w21–w25)
 - Daily quota hard-stop: `ORBITA_QUOTA_SESSIONS_PER_DAY` / `ORBITA_QUOTA_MESSAGES_PER_DAY` (w26)
 
@@ -128,7 +126,7 @@ Milestones: **MA0…**, **AT0…** (parallel to **W0–Wn**, not lane numbers).
 - **Next milestone:** Dogfood validation — `docs/dogfood-plan.md` (not W15 yet)
 - **Loop infrastructure:** `@orbita/harness` — `docs/harness-design.md` (`cron-agent`, `editorial-supply@v1` for AT, portfolio-git-collect for hub)
 - **Admin UI & identity** — `docs/admin-ui-brainstorm.md`
-- **API as hosted product** — Phase 1 ✅ invite + waitlist: `docs/api-as-product.md`
+- **API as hosted product** — Phase 1 ✅ invite-only: `docs/api-as-product.md`
 - **Loose ends** — `docs/loose-ends-checklist.md`
 
 ### W10 — Ops & trajectory replay (shipped)
@@ -177,7 +175,7 @@ Cross-cutting quality lane, not a product feature lane:
 | GET | `/v1/sessions/{id}/trajectory/replay` | 9 |
 | POST | `/v1/sessions/{id}/jobs` | 8 |
 
-**Also shipped:** `/v1/waitlist`, `/v1/admin/waitlist/*`, `/v1/admin/usage/*`, `/v1/admin/sessions`, `/v1/admin/scheduler/jobs`, `/v1/inbound/email`, `/v1/auth/device` (W12), `/v1/harnesses` + `/v1/harnesses/{id}/trigger`, `/v1/mcp`, OAuth metadata + `/oauth/*` (PA1.5), `/v1/notes/export` (w36).
+**Also shipped:** `/v1/admin/usage/*`, `/v1/admin/sessions`, `/v1/admin/scheduler/jobs`, `/v1/inbound/email`, `/v1/auth/device` (W12), `/v1/harnesses` + `/v1/harnesses/{id}/trigger`, `/v1/mcp`, OAuth metadata + `/oauth/*` (PA1.5), `/v1/notes/export` (w36).
 
 **Planned:** `/v1/me/*` (W15).
 
