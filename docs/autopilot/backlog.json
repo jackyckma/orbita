@@ -916,10 +916,11 @@
         "T-0074"
       ],
       "flag": null,
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
       "feedback": [
-        "REPLAN 2026-10-01 (hub addition): E-14 strand 4 so the docs work is not dropped when REPLAN moves to the next epic."
+        "REPLAN 2026-10-01 (hub addition): E-14 strand 4 so the docs work is not dropped when REPLAN moves to the next epic.",
+        "Maker 2026-10-02: PR https://github.com/jackyckma/orbita/pull/39; acceptance + agent-verify green."
       ]
     },
     {

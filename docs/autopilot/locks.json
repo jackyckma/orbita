@@ -4,8 +4,8 @@
     "T-0075": {
       "by": "maker",
       "since": "2026-10-02T15:35:00.000Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/autopilot-t0075-docs-catchup",
+      "pr": 39
     }
   }
 }
