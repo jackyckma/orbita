@@ -281,30 +281,48 @@ export function startHarnessTick(
       }
 
       logger?.info({ harness_id: harness.id, client_id: harness.clientId }, "harness tick");
-      const result = await executeHarnessRun(
-        harnessDb,
-        sessionsDb,
-        harness,
-        "cron",
-        harness.nextRunAt ?? now,
-        runTurn,
-        deps,
-        summarizer,
-      );
-      if (result.skipped) {
-        logger?.warn(
-          {
-            harness_id: harness.id,
-            status: result.skipped.status,
-            error: result.skipped.error,
-          },
-          "harness run skipped: already attempted for this slot; advanced next_run_at",
+      try {
+        const result = await executeHarnessRun(
+          harnessDb,
+          sessionsDb,
+          harness,
+          "cron",
+          harness.nextRunAt ?? now,
+          runTurn,
+          deps,
+          summarizer,
         );
-      } else if (result.error) {
+        if (result.skipped) {
+          logger?.warn(
+            {
+              harness_id: harness.id,
+              status: result.skipped.status,
+              error: result.skipped.error,
+            },
+            "harness run skipped: already attempted for this slot; advanced next_run_at",
+          );
+        } else if (result.error) {
+          logger?.warn(
+            { harness_id: harness.id, error: result.error, run_id: result.runId },
+            "harness run failed",
+          );
+        }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
         logger?.warn(
-          { harness_id: harness.id, error: result.error, run_id: result.runId },
-          "harness run failed",
+          { harness_id: harness.id, error: message },
+          "harness tick run threw; advanced next_run_at and continuing",
         );
+        try {
+          await advanceCronNextRunAt(harnessDb, harness, "cron", new Date());
+        } catch (advanceErr) {
+          const advanceMessage =
+            advanceErr instanceof Error ? advanceErr.message : String(advanceErr);
+          logger?.warn(
+            { harness_id: harness.id, error: advanceMessage },
+            "harness tick failed to advance next_run_at after throw",
+          );
+        }
       }
     }
   }, 5_000);
