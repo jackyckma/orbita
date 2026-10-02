@@ -817,7 +817,7 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "ready",
+      "status": "in_progress",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-01: E-14 first pass (3/6) — schema drift guard before ConsultOS DDL epics.",
