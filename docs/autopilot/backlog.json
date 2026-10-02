@@ -1113,7 +1113,7 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "ready",
+      "status": "in_progress",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-02: E-16 first pass (1/6) — mandate hierarchy contracts before any implementation."
