@@ -4,8 +4,8 @@
     "T-0070": {
       "by": "maker",
       "since": "2026-10-02T12:00:00.000Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/t-0070-hub-client-id-wiring",
+      "pr": 33
     }
   }
 }

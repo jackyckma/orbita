@@ -793,11 +793,12 @@
         "T-0069"
       ],
       "flag": null,
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-01: E-14 first pass (2/6) — call-site wiring; scripts fail closed without client id.",
-        "2026-10-01 hub review (claude-hub-session): previous grep missed lane-oauth and was narrower than the epic's done-when."
+        "2026-10-01 hub review (claude-hub-session): previous grep missed lane-oauth and was narrower than the epic's done-when.",
+        "Maker 2026-10-02: PR https://github.com/jackyckma/orbita/pull/33 — acceptance green; DEPRECATED_HUB_CLIENT_ID_FALLBACK only personal-jacky literal left (phase 2 deferred)."
       ]
     },
     {
