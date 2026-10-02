@@ -4,8 +4,8 @@
     "T-0071": {
       "by": "maker",
       "since": "2026-10-02T12:45:00.000Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/t-0071-sql-sync-check",
+      "pr": 34
     }
   }
 }

@@ -817,11 +817,12 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-01: E-14 first pass (3/6) — schema drift guard before ConsultOS DDL epics.",
-        "2026-10-01 hub review (claude-hub-session): harness DDL is in schema.ts not drizzle/; require check:sql-sync and do not silently skip TS schemas."
+        "2026-10-01 hub review (claude-hub-session): harness DDL is in schema.ts not drizzle/; require check:sql-sync and do not silently skip TS schemas.",
+        "Maker 2026-10-02: PR #34 — check-sql-sync.mjs + allowlist + tests; no init/lane SQL drift fixes needed."
       ]
     },
     {
