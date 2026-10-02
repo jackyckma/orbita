@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 # Register (or print) the portfolio Zeabur deploy collector harness.
-# Creates a cron harness on client personal-jacky using template portfolio-zeabur-collect@v1.
+# Creates a cron harness on the configured hub client using template portfolio-zeabur-collect@v1.
 # Idempotent: if a harness with the same name already exists, prints it and exits 0.
 #
 # Usage:
 #   ./scripts/portfolio-zeabur-collect-setup-harness.sh
 #
 # Credentials (never echoed):
-#   ORBITA_API_KEY + ORBITA_CLIENT_ID=personal-jacky
+#   ORBITA_API_KEY | PERSONAL_ORBITA_API_KEY
+# Client id (required): ORBITA_CLIENT_ID or ORBITA_HUB_CLIENT_ID
 #   or ~/.orbita-personal.env
 # Vault credential name: zeabur_api (D-002)
 set -euo pipefail
@@ -28,11 +29,16 @@ fi
 
 : "${ORBITA_API_BASE:=${ORBITA_API_URL:-https://api.get-orbita.com}}"
 API_KEY="${ORBITA_API_KEY:-${PERSONAL_ORBITA_API_KEY:-}}"
-CLIENT_ID="${ORBITA_CLIENT_ID:-personal-jacky}"
+CLIENT_ID="${ORBITA_CLIENT_ID:-${ORBITA_HUB_CLIENT_ID:-}}"
 NAME="${PORTFOLIO_ZEABUR_HARNESS_NAME:-portfolio-zeabur-collect}"
 
+if [[ -z "$CLIENT_ID" ]]; then
+  echo "error: set ORBITA_CLIENT_ID or ORBITA_HUB_CLIENT_ID (hub tenant for portfolio collectors)." >&2
+  exit 1
+fi
+
 if [[ -z "$API_KEY" ]]; then
-  echo "error: set ORBITA_API_KEY (personal-jacky) in .env or ~/.orbita-personal.env" >&2
+  echo "error: set ORBITA_API_KEY in .env or ~/.orbita-personal.env" >&2
   exit 1
 fi
 

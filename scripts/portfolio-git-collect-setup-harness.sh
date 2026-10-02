@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Register (or print) the portfolio git collector harness — same pattern as AT1b harness setup.
-# Creates a cron harness on client personal-jacky using template portfolio-git-collect@v1.
+# Creates a cron harness on the configured hub client using template portfolio-git-collect@v1.
 # Idempotent: if a harness with the same name already exists, prints it and exits 0.
 #
 # Usage:
@@ -8,6 +8,7 @@
 #
 # Credentials (never echoed) — any ONE of these key names is accepted:
 #   ORBITA_API_KEY | ORBITA_PERSONAL_API_KEY | PERSONAL_ORBITA_API_KEY
+# Client id (required): ORBITA_CLIENT_ID or ORBITA_HUB_CLIENT_ID
 # read from ./.env or ~/.orbita-personal.env.
 set -euo pipefail
 
@@ -32,8 +33,13 @@ fi
 # ORBITA_API_KEY / PERSONAL_ORBITA_API_KEY, so a correctly provisioned machine
 # was told the credential was missing when it was simply named differently.
 API_KEY="${ORBITA_API_KEY:-${ORBITA_PERSONAL_API_KEY:-${PERSONAL_ORBITA_API_KEY:-}}}"
-CLIENT_ID="${ORBITA_CLIENT_ID:-${ORBITA_PERSONAL_CLIENT_ID:-personal-jacky}}"
+CLIENT_ID="${ORBITA_CLIENT_ID:-${ORBITA_HUB_CLIENT_ID:-}}"
 NAME="${PORTFOLIO_GIT_HARNESS_NAME:-portfolio-git-collect}"
+
+if [[ -z "$CLIENT_ID" ]]; then
+  echo "error: set ORBITA_CLIENT_ID or ORBITA_HUB_CLIENT_ID (hub tenant for portfolio collectors)." >&2
+  exit 1
+fi
 
 if [[ -z "$API_KEY" ]]; then
   echo "error: no Orbita API key found for client '${CLIENT_ID}'." >&2

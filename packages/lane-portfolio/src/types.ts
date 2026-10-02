@@ -155,6 +155,8 @@ export type NormalizeDeployReportInput = {
   project: string;
   period: ReportPeriod;
   generatedAt: string;
+  /** Hub tenant client_id for credential helper text. */
+  hubClientId: string;
   deployments: ZeaburDeployment[];
   /** Truncated build-log snippets keyed by deployment id (failed only). */
   failedBuildLogs: Record<string, string>;

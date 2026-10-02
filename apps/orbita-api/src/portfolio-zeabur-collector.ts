@@ -8,8 +8,8 @@ import { resolveCredentialSecret } from "@orbita/credentials";
 import type { MemoryDb, MemoryEnv } from "@orbita/memory";
 import { getMemoryByKey, upsertMemory, upsertNote } from "@orbita/memory";
 import type { SystemCollectorRunner } from "@orbita/harness";
+import { resolveHubClientId } from "@orbita/platform";
 
-const HUB_CLIENT_ID = "personal-jacky";
 const DEFAULT_CREDENTIAL = "zeabur_api";
 
 export function createPortfolioZeaburCollector(deps: {
@@ -22,8 +22,11 @@ export function createPortfolioZeaburCollector(deps: {
     warn: (obj: object, msg: string) => void;
   };
 }): SystemCollectorRunner {
+  const hubClientId = resolveHubClientId({
+    ORBITA_HUB_CLIENT_ID: process.env.ORBITA_HUB_CLIENT_ID,
+  });
   return async (ctx) => {
-    const clientId = ctx.clientId || HUB_CLIENT_ID;
+    const clientId = ctx.clientId || hubClientId;
     const app = (ctx.config.application ?? {}) as Record<string, unknown>;
     const credentialName =
       typeof app.credential_name === "string" && app.credential_name.trim()

@@ -2,7 +2,7 @@
 
 ## client_id
 
-`personal-jacky` — isolated from AT editorial (`content-ai-transformation-org`).
+`ORBITA_HUB_CLIENT_ID` hub tenant — isolated from AT editorial (`content-ai-transformation-org`).
 
 ## Registry
 

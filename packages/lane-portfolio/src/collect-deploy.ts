@@ -16,6 +16,7 @@ import {
   fetchZeaburDeploymentsForProject,
   type ZeaburGraphqlDeps,
 } from "./zeabur.js";
+import { resolveHubClientId } from "@orbita/platform";
 
 export type NoteWriter = (input: {
   id?: string;
@@ -62,6 +63,11 @@ export async function collectPortfolioZeaburReports(
   const projects =
     options.projects ?? zeaburPortfolioProjects(loadPortfolioRegistry());
   const generatedAt = options.generatedAt ?? new Date().toISOString();
+  const hubClientId =
+    options.clientId?.trim() ||
+    resolveHubClientId({
+      ORBITA_HUB_CLIENT_ID: process.env.ORBITA_HUB_CLIENT_ID,
+    });
   const deps: ZeaburGraphqlDeps = {
     token: options.token,
     fetchImpl: options.fetchImpl,
@@ -93,6 +99,7 @@ export async function collectPortfolioZeaburReports(
           project: project.slug,
           period: options.period,
           generatedAt,
+          hubClientId,
           deployments: fetched.deployments,
           failedBuildLogs: fetched.failedBuildLogs,
           previousAsk,
@@ -103,6 +110,7 @@ export async function collectPortfolioZeaburReports(
           project: project.slug,
           period: options.period,
           generatedAt,
+          hubClientId,
           deployments: fetched.deployments,
           failedBuildLogs: fetched.failedBuildLogs,
           previousAsk,

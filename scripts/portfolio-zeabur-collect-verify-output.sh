@@ -6,6 +6,7 @@
 #
 # Credentials (never echoed) — same env vars as portfolio-zeabur-collect-setup-harness.sh:
 #   ORBITA_API_KEY | PERSONAL_ORBITA_API_KEY
+# Client id (required): ORBITA_CLIENT_ID or ORBITA_HUB_CLIENT_ID
 # read from ./.env or ~/.orbita-personal.env.
 set -euo pipefail
 
@@ -27,10 +28,15 @@ fi
 : "${ORBITA_API_BASE:=${ORBITA_API_URL:-https://api.get-orbita.com}}"
 
 API_KEY="${ORBITA_API_KEY:-${PERSONAL_ORBITA_API_KEY:-}}"
-CLIENT_ID="${ORBITA_CLIENT_ID:-personal-jacky}"
+CLIENT_ID="${ORBITA_CLIENT_ID:-${ORBITA_HUB_CLIENT_ID:-}}"
+
+if [[ -z "$CLIENT_ID" ]]; then
+  echo "error: set ORBITA_CLIENT_ID or ORBITA_HUB_CLIENT_ID (hub tenant for portfolio collectors)." >&2
+  exit 1
+fi
 
 if [[ -z "$API_KEY" ]]; then
-  echo "error: set ORBITA_API_KEY (personal-jacky) in .env or ~/.orbita-personal.env" >&2
+  echo "error: set ORBITA_API_KEY in .env or ~/.orbita-personal.env" >&2
   exit 1
 fi
 

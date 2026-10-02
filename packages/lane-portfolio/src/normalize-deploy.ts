@@ -185,7 +185,7 @@ export function normalizeDeployReport(
         section("risks", input.fetchError),
         section(
           "ask",
-          "Restore Zeabur API access (credential zeabur_api) for personal-jacky",
+          `Restore Zeabur API access (credential zeabur_api) for ${input.hubClientId}`,
         ),
       ],
     };

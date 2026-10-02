@@ -31,6 +31,7 @@ describe("normalizeDeployReport", () => {
       project: "orbita",
       period: { since: "2026-08-14T00:00:00Z", until: "2026-08-15T00:00:00Z" },
       generatedAt: "2026-08-15T01:00:00Z",
+      hubClientId: "hub-tenant",
       deployments: [dep({ id: "d1" })],
       failedBuildLogs: {},
       previousAsk: null,
@@ -53,6 +54,7 @@ describe("normalizeDeployReport", () => {
       project: "orbita",
       period: { since: "2026-08-14T00:00:00Z", until: "2026-08-15T00:00:00Z" },
       generatedAt: "2026-08-15T01:00:00Z",
+      hubClientId: "hub-tenant",
       deployments: [
         dep({ id: "d-fail", status: "FAILED", commitSha: "deadbeef" }),
       ],
@@ -73,6 +75,7 @@ describe("normalizeDeployReport", () => {
       project: "powerhouse",
       period: { since: "2026-08-14T00:00:00Z", until: "2026-08-15T00:00:00Z" },
       generatedAt: "2026-08-15T01:00:00Z",
+      hubClientId: "hub-tenant",
       deployments: [dep({ id: "d2", commitSha: "", status: "RUNNING" })],
       failedBuildLogs: {},
       previousAsk: null,
@@ -86,6 +89,7 @@ describe("normalizeDeployReport", () => {
       project: "ai-business",
       period: { since: "2026-08-14T00:00:00Z", until: "2026-08-15T00:00:00Z" },
       generatedAt: "2026-08-15T01:00:00Z",
+      hubClientId: "my-hub-client",
       deployments: [],
       failedBuildLogs: {},
       previousAsk: null,
@@ -93,6 +97,9 @@ describe("normalizeDeployReport", () => {
     });
     expect(report.status).toBe("failed");
     expect(report.error).toMatch(/401/);
+    expect(report.sections.find((s) => s.id === "ask")?.body).toMatch(
+      /my-hub-client/,
+    );
     const body = deployReportToNoteBody(report);
     expect(body).toContain('edge: deploy');
     expect(body).toContain("orbita-hub-report-json");
