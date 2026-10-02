@@ -1145,7 +1145,7 @@
       "lane": "platform",
       "phase": "consultos-b",
       "title": "lane-tickets: repository layer + fake db (leases, events, tenancy)",
-      "description": "Epic E-16 task 3. Define TicketRepository interface in packages/lane-tickets/src/repository.ts; implement Postgres-oriented SQL builders in repository.pg.ts (not executed in unit tests) and packages/lane-tickets/src/fake-repository.ts for vitest. Must support: create/list/get with cursor pagination and filters (project, function, status, owner, updated_since); append-only ticket_events with monotonic seq; ticket_claim as atomic pattern (document SQL in comments); lease extend; optimistic concurrency via expected_version; idempotency_key unique per (client_id, verb, key). Every query method requires client_id predicate — add tenant-isolation test proving client A cannot read client B. Use transition engine from T-0084 for write paths. No Fastify routes yet.",
+      "description": "Epic E-16 task 3. Define TicketRepository interface in packages/lane-tickets/src/repository.ts; implement Postgres-oriented SQL builders in repository.pg.ts (not executed in unit tests) and packages/lane-tickets/src/fake-repository.ts for vitest. Must support: create/list/get with cursor pagination and filters (project, function, status, owner, updated_since); append-only ticket_events with monotonic seq; ticket_claim as atomic pattern (document SQL in comments); lease extend; optimistic concurrency via expected_version; idempotency_key unique per (client_id, verb, key). Every query method requires client_id predicate — add tenant-isolation test proving client A cannot read client B. Use transition engine from T-0084 for write paths. No Fastify routes yet. ALSO (hub review): persist soft_breach as ticket_events rows (kind soft_breach with what/how-much/reason) through the repository, and expose a repository method returning, per mandate subtree, counts by status and the last-activity timestamp (used later for mandate health); keep these as pure repository features with fake-repository tests. Also make sure the root package.json build/typecheck/test scripts include @orbita/tickets (the root scripts list packages explicitly: check how @orbita/platform etc. are wired) so `pnpm build` and `pnpm -r typecheck` cover the new package before apps/orbita-api imports it.",
       "acceptance": [
         "pnpm --filter @orbita/tickets test",
         "rg -n \"client_id\" packages/lane-tickets/src/repository",
@@ -1158,7 +1158,8 @@
       "status": "ready",
       "retries": 0,
       "feedback": [
-        "REPLAN 2026-10-02: E-16 first pass (3/6) — repository + fakes before API surface."
+        "REPLAN 2026-10-02: E-16 first pass (3/6) — repository + fakes before API surface.",
+        "2026-10-02 hub review (claude-hub-session): amended before implementation - see description."
       ]
     },
     {
@@ -1166,12 +1167,13 @@
       "lane": "platform",
       "phase": "consultos-b",
       "title": "lane-tickets: REST /v1/tickets routes (flag-gated mount)",
-      "description": "Epic E-16 task 4. Wire packages/lane-tickets/src/routes/tickets.ts with verb-style handlers matching contracts; register in apps/orbita-api ONLY when ORBITA_TICKETS_ENABLED=1 (default OFF, parse like other flags in packages/lane-platform/src/config.ts). Auth: client_id from auth context only. ticket_approve and cancel-of-proposed allowed only when caller API key id is listed in ORBITA_TICKETS_APPROVER_KEY_IDS (comma-separated, default empty = deny). OpenAPI entries under /v1/tickets/* in the protected app (admin paths unchanged). Golden test: with flag OFF, route table / openapi paths unchanged vs baseline snapshot committed in test fixture. Do NOT mount MCP tools (T-0087). Do NOT run DDL (T-0088).",
+      "description": "Epic E-16 task 4. Wire packages/lane-tickets/src/routes/tickets.ts with verb-style handlers matching contracts; register in apps/orbita-api ONLY when ORBITA_TICKETS_ENABLED=1 (default OFF, parse like other flags in packages/lane-platform/src/config.ts). Auth: client_id from auth context only. ticket_approve and cancel-of-proposed allowed only when caller API key id is listed in ORBITA_TICKETS_APPROVER_KEY_IDS (comma-separated, default empty = deny). OpenAPI entries under /v1/tickets/* in the protected app (admin paths unchanged). Golden test: with flag OFF, route table / openapi paths unchanged vs baseline snapshot committed in test fixture. Do NOT mount MCP tools (T-0087). Do NOT run DDL (T-0088). APPROVER SAFETY (hub review): the MCP/OAuth auth context uses a placeholder api key id 'oauth' (verified: the real OAuth client_id is dropped). Treat 'oauth' as NOT approver-capable by default: it is accepted by ORBITA_TICKETS_APPROVER_KEY_IDS only if explicitly listed, and listing it must log a startup warning that every OAuth-connected client can then approve. Add tests: empty allowlist denies everyone; an API key id in the list can approve; 'oauth' is denied unless listed; the approver check never looks at client-supplied headers such as x-orbita-agent or labels.",
       "acceptance": [
         "pnpm -r typecheck",
         "pnpm --filter @orbita/tickets test",
         "rg -n \"ORBITA_TICKETS_ENABLED\" apps/orbita-api/src packages/lane-platform/src",
-        "rg -n \"/v1/tickets\" packages/lane-tickets/src apps/orbita-api/src"
+        "rg -n \"/v1/tickets\" packages/lane-tickets/src apps/orbita-api/src",
+        "rg -n \"approver\" packages/lane-tickets/src/routes"
       ],
       "deps": [
         "T-0085"
@@ -1180,7 +1182,8 @@
       "status": "ready",
       "retries": 0,
       "feedback": [
-        "REPLAN 2026-10-02: E-16 first pass (4/6) — REST surface behind flag."
+        "REPLAN 2026-10-02: E-16 first pass (4/6) — REST surface behind flag.",
+        "2026-10-02 hub review (claude-hub-session): amended before implementation - see description."
       ]
     },
     {
@@ -1188,7 +1191,7 @@
       "lane": "platform",
       "phase": "consultos-b",
       "title": "lane-tickets: MCP ticket_* tools (additive, flag-gated)",
-      "description": "Epic E-16 task 5. Register MCP tools ticket_create, ticket_list, ticket_get, ticket_approve, ticket_claim, ticket_extend, ticket_progress, ticket_complete, ticket_block, ticket_request_decision, ticket_comment, ticket_cancel in packages/lane-mcp (or lane-tickets re-export mounted from mcp) ONLY when ORBITA_TICKETS_ENABLED=1. Tool names and existing 16 tools' input schemas must remain byte-identical when flag OFF — extend golden test from lane-mcp. Each tool inputSchema includes shared optional reported_by/labels fragment ONLY on ticket tools (do not alter non-ticket tools). Map tools to repository + transition engine; same approver key allowlist as REST. Do NOT add admin MCP tools.",
+      "description": "Epic E-16 task 5. Register MCP tools ticket_create, ticket_list, ticket_get, ticket_approve, ticket_claim, ticket_extend, ticket_progress, ticket_complete, ticket_block, ticket_request_decision, ticket_comment, ticket_cancel in packages/lane-mcp (or lane-tickets re-export mounted from mcp) ONLY when ORBITA_TICKETS_ENABLED=1. Tool names and existing 16 tools' input schemas must remain byte-identical when flag OFF — extend golden test from lane-mcp. Each tool inputSchema includes shared optional reported_by/labels fragment ONLY on ticket tools (do not alter non-ticket tools). Map tools to repository + transition engine; same approver key allowlist as REST. Do NOT add admin MCP tools. Approver rule is identical to REST (including the 'oauth' placeholder rule from T-0086); add a test that ticket_approve called through the MCP path with the 'oauth' placeholder is denied when the allowlist does not list it.",
       "acceptance": [
         "pnpm --filter @orbita/mcp test",
         "pnpm --filter @orbita/tickets test",
@@ -1202,7 +1205,8 @@
       "status": "ready",
       "retries": 0,
       "feedback": [
-        "REPLAN 2026-10-02: E-16 first pass (5/6) — MCP verbs behind same flag."
+        "REPLAN 2026-10-02: E-16 first pass (5/6) — MCP verbs behind same flag.",
+        "2026-10-02 hub review (claude-hub-session): amended before implementation - see description."
       ]
     },
     {
@@ -1210,13 +1214,14 @@
       "lane": "platform",
       "phase": "consultos-b",
       "title": "lane-tickets: optional DDL + sql-sync allowlist + docs + tier-A flag-on test",
-      "description": "Epic E-16 task 6. Add additive SQL for tickets + ticket_events in packages/lane-tickets/drizzle/ (IF NOT EXISTS only) AND mirror into apps/orbita-api/migrations/optional-tickets.sql applied from runMigrations only when ORBITA_TICKETS_ENABLED=1 at migration time (document pattern in task feedback). Register optional file in docs/autopilot/sql-sync-allowlist.json. SQL text lint test (no DROP, no ALTER of existing tables). Extend scripts/e2e-tier-a.sh (or dedicated step) to run once with ORBITA_TICKETS_ENABLED=1 and apply DDL twice idempotently. Docs: short section in docs/site/ (rebuild not required in this task — edit source under docs/site/). scripts/tickets-verify-flag-off.sh exits non-zero with clear message when tickets not enabled (model portfolio-git-collect-verify-output.sh). Record decision D-005 founder flip steps in task feedback as needs_human follow-up — Maker must NOT set Zeabur env. Golden: flag OFF => no new tables created on migrate path used in tier-A default run.",
+      "description": "Epic E-16 task 6. Add additive SQL for tickets + ticket_events in packages/lane-tickets/drizzle/ (IF NOT EXISTS only) AND mirror into apps/orbita-api/migrations/optional-tickets.sql applied from runMigrations only when ORBITA_TICKETS_ENABLED=1 at migration time (document pattern in task feedback). Register optional file in docs/autopilot/sql-sync-allowlist.json. SQL text lint test (no DROP, no ALTER of existing tables). Extend scripts/e2e-tier-a.sh (or dedicated step) to run once with ORBITA_TICKETS_ENABLED=1 and apply DDL twice idempotently. Docs: short section in docs/site/ (rebuild not required in this task — edit source under docs/site/). scripts/tickets-verify-flag-off.sh exits non-zero with clear message when tickets not enabled (model portfolio-git-collect-verify-output.sh). Record decision D-005 founder flip steps in task feedback as needs_human follow-up — Maker must NOT set Zeabur env. Golden: flag OFF => no new tables created on migrate path used in tier-A default run. REAL-POSTGRES TEST (hub review, required): extend the tier-A job (runs only in GitHub CI with Docker Postgres, flag ORBITA_TICKETS_ENABLED=1) with an integration test that exercises the Postgres repository SQL for real: create mandate->epic->task; list with cursor pagination and filters; ticket_claim atomicity with two concurrent claimers on one task (exactly one wins, the other gets a clear conflict); lease extend and expiry; expected_version conflict; idempotency_key replay returns the first result; tenant isolation (client A cannot read or claim client B's ticket); ticket_events seq monotonic. This test must not run when the flag is off. The Maker loop has no Docker: write the test so that it is skipped unless TICKETS_E2E_DATABASE_URL (or the project's existing tier-A variable) is set, and say in the PR body that CI e2e-tier-a is the proof.",
       "acceptance": [
         "node scripts/check-sql-sync.mjs",
         "pnpm -r typecheck",
         "test -f scripts/tickets-verify-flag-off.sh",
         "bash -n scripts/tickets-verify-flag-off.sh",
-        "rg -n \"optional-tickets\" apps/orbita-api/migrations docs/autopilot/sql-sync-allowlist.json"
+        "rg -n \"optional-tickets\" apps/orbita-api/migrations docs/autopilot/sql-sync-allowlist.json",
+        "rg -n \"claim.*concurr|concurrent\" packages/lane-tickets/src apps/orbita-api"
       ],
       "deps": [
         "T-0087"
@@ -1225,7 +1230,8 @@
       "status": "ready",
       "retries": 0,
       "feedback": [
-        "REPLAN 2026-10-02: E-16 first pass (6/6) — DDL gated + docs; production enable stays on D-005 (founder-only)."
+        "REPLAN 2026-10-02: E-16 first pass (6/6) — DDL gated + docs; production enable stays on D-005 (founder-only).",
+        "2026-10-02 hub review (claude-hub-session): amended before implementation - see description."
       ]
     }
   ]
