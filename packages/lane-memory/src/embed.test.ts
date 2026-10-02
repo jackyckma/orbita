@@ -1,11 +1,40 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { loadMemoryEnv } from "./config.js";
+import { setEmbedLogger, type EmbedLogger } from "./embed-log.js";
 import {
   embedFailureReason,
   embedText,
   formatVectorLiteral,
   type EmbedFailureReason,
 } from "./embed.js";
+
+type WarnCall = { obj: Record<string, unknown>; msg?: string };
+
+function createWarnCapture() {
+  const warnCalls: WarnCall[] = [];
+  const logger = {
+    warn: (obj: object, msg?: string) => {
+      warnCalls.push({ obj: obj as Record<string, unknown>, msg });
+    },
+    info: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+    trace: vi.fn(),
+    fatal: vi.fn(),
+    child: () => logger,
+  } as EmbedLogger;
+  return { logger, warnCalls };
+}
+
+function warnPayload(calls: WarnCall[]): string {
+  return JSON.stringify(calls);
+}
+
+function lastWarn(calls: WarnCall[]) {
+  const last = calls.at(-1);
+  expect(last).toBeDefined();
+  return last!;
+}
 
 function expectFailure(
   actual: EmbedFailureReason | null,
@@ -21,6 +50,13 @@ describe("formatVectorLiteral", () => {
 });
 
 describe("embedText", () => {
+  let warnCapture: ReturnType<typeof createWarnCapture>;
+
+  beforeEach(() => {
+    warnCapture = createWarnCapture();
+    setEmbedLogger(warnCapture.logger);
+  });
+
   afterEach(() => {
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
@@ -30,12 +66,16 @@ describe("embedText", () => {
     const env = loadMemoryEnv({ MINIMAX_API_KEY: undefined });
     expect(await embedText(env, "hello")).toBeNull();
     expectFailure(embedFailureReason, { reason: "missing_key" });
+    const w = lastWarn(warnCapture.warnCalls);
+    expect(w.obj.reason).toBe("no_api_key");
+    expect(w.msg).toBe("embedding attempt failed");
   });
 
   it("returns null for blank text and records empty_text", async () => {
     const env = loadMemoryEnv({ MINIMAX_API_KEY: "k" });
     expect(await embedText(env, "   ")).toBeNull();
     expectFailure(embedFailureReason, { reason: "empty_text" });
+    expect(lastWarn(warnCapture.warnCalls).obj.reason).toBe("empty_text");
   });
 
   it("POSTs MiniMax texts+type body (not OpenAI input)", async () => {
@@ -56,6 +96,7 @@ describe("embedText", () => {
     const result = await embedText(env, "note body", { purpose: "db" });
     expect(result).toEqual(vector);
     expect(embedFailureReason).toBeNull();
+    expect(warnCapture.warnCalls).toHaveLength(0);
     expect(fetchMock).toHaveBeenCalledOnce();
     const call = fetchMock.mock.calls[0];
     expect(call).toBeDefined();
@@ -109,6 +150,9 @@ describe("embedText", () => {
       reason: "http_error",
       httpStatus: 401,
     });
+    const w = lastWarn(warnCapture.warnCalls);
+    expect(w.obj.reason).toBe("http_status");
+    expect(w.obj.http_status).toBe(401);
   });
 
   it("returns null when vector length mismatches EMBEDDING_DIMENSIONS", async () => {
@@ -130,6 +174,10 @@ describe("embedText", () => {
       actual: 1536,
       expected: 1024,
     });
+    const w = lastWarn(warnCapture.warnCalls);
+    expect(w.obj.reason).toBe("dimension_mismatch");
+    expect(w.obj.actual).toBe(1536);
+    expect(w.obj.expected).toBe(1024);
   });
 
   it("returns null on MiniMax base_resp error with status details", async () => {
@@ -148,6 +196,10 @@ describe("embedText", () => {
       statusCode: 1004,
       statusMsg: "auth",
     });
+    const w = lastWarn(warnCapture.warnCalls);
+    expect(w.obj.reason).toBe("base_resp_error");
+    expect(w.obj.status_code).toBe(1004);
+    expect(w.obj.status_msg).toBe("auth");
   });
 
   it("returns null when response has no vector and records no_vector", async () => {
@@ -162,6 +214,7 @@ describe("embedText", () => {
     const env = loadMemoryEnv({ MINIMAX_API_KEY: "test-key" });
     expect(await embedText(env, "x")).toBeNull();
     expectFailure(embedFailureReason, { reason: "no_vector" });
+    expect(lastWarn(warnCapture.warnCalls).obj.reason).toBe("no_vector");
   });
 
   it("returns null when vectors[0] is empty and records no_vector", async () => {
@@ -190,5 +243,41 @@ describe("embedText", () => {
       reason: "network_error",
       detail: "fetch failed",
     });
+    const w = lastWarn(warnCapture.warnCalls);
+    expect(w.obj.reason).toBe("exception");
+    expect(w.obj.error_class).toBe("Error");
+    expect(w.obj.message).toBe("fetch failed");
+  });
+
+  it("logs no secret, text, or GroupId", async () => {
+    const secretKey = "super-secret-minimax-key-xyz";
+    const groupId = "my-group-id-42";
+    const noteText = "private note body must not leak";
+
+    const fetchMock = vi.fn(async () =>
+      Response.json({ error: "nope" }, { status: 401 }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const env = loadMemoryEnv({
+      MINIMAX_API_KEY: secretKey,
+      MINIMAX_GROUP_ID: groupId,
+      MINIMAX_BASE_URL: "https://api.minimax.io/v1",
+    });
+
+    expect(await embedText(env, noteText)).toBeNull();
+    expect(warnCapture.warnCalls.length).toBeGreaterThan(0);
+
+    const blob = warnPayload(warnCapture.warnCalls);
+    expect(blob).not.toContain(secretKey);
+    expect(blob).not.toContain(groupId);
+    expect(blob).not.toContain(noteText);
+    expect(blob).not.toContain("GroupId=");
+
+    const w = lastWarn(warnCapture.warnCalls);
+    expect(w.obj.base_url_host).toBe("api.minimax.io");
+    expect(w.obj.group_id_configured).toBe(true);
+    const fetchUrl = fetchMock.mock.calls.at(0)?.at(0);
+    expect(String(fetchUrl)).toContain("GroupId=");
   });
 });

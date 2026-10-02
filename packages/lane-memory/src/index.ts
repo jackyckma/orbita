@@ -20,8 +20,17 @@ export type {
 } from "./memory-inject.js";
 export { createMemoryRoutes } from "./routes/memories.js";
 export { createNoteRoutes } from "./routes/notes.js";
-export { embedText } from "./embed.js";
-export type { EmbedPurpose, EmbedTextOptions } from "./embed.js";
+export { embedText, embedFailureReason } from "./embed.js";
+export type {
+  EmbedFailureReason,
+  EmbedPurpose,
+  EmbedTextOptions,
+} from "./embed.js";
+export { setEmbedLogger } from "./embed-log.js";
+export {
+  isEmbeddingSelfTestEnabled,
+  startEmbeddingSelfTest,
+} from "./embed-selftest.js";
 export {
   createNoteLink,
   embeddingMetaFromEmbed,
