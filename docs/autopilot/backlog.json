@@ -964,10 +964,11 @@
         "T-0070"
       ],
       "flag": null,
-      "status": "ready",
+      "status": "in_progress",
       "retries": 0,
       "feedback": [
-        "2026-10-01 hub (claude-hub-session): added after the T-0064 one-off showed the Zeabur setup script is syntactically broken."
+        "2026-10-01 hub (claude-hub-session): added after the T-0064 one-off showed the Zeabur setup script is syntactically broken.",
+        "Maker 2026-10-02: lock on main before branch."
       ]
     },
     {
