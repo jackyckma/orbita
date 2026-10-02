@@ -4,8 +4,8 @@
     "T-0074": {
       "by": "maker",
       "since": "2026-10-02T14:35:06Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/t0074-harness-stale-started-retry",
+      "pr": 38
     }
   }
 }

@@ -891,11 +891,12 @@
         "T-0073"
       ],
       "flag": null,
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-01: E-14 first pass (6/6) — wedged-run self-heal; docs strand 4 deferred to next REPLAN.",
-        "2026-10-01 hub review (claude-hub-session): finished_at already exists and the drizzle/ path is wrong; forbid CREATE TYPE and require a stale-started test."
+        "2026-10-01 hub review (claude-hub-session): finished_at already exists and the drizzle/ path is wrong; forbid CREATE TYPE and require a stale-started test.",
+        "Maker 2026-10-02: PR https://github.com/jackyckma/orbita/pull/38; harness + typecheck acceptance green."
       ]
     },
     {
