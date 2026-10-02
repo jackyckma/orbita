@@ -964,12 +964,13 @@
         "T-0070"
       ],
       "flag": null,
-      "status": "in_review",
+      "status": "done",
       "retries": 0,
       "feedback": [
         "2026-10-01 hub (claude-hub-session): added after the T-0064 one-off showed the Zeabur setup script is syntactically broken.",
         "Maker 2026-10-02: lock on main before branch.",
-        "Maker 2026-10-02: PR https://github.com/jackyckma/orbita/pull/41; acceptance + agent-verify green."
+        "Maker 2026-10-02: PR https://github.com/jackyckma/orbita/pull/41; acceptance + agent-verify green.",
+        "REVIEW PR #41: verify-all PASS; task acceptance (bash -n + DRY_RUN JSON) green; scope matches (Zeabur setup Python heredoc fix, DRY_RUN on both setup scripts, portfolio-setup-scripts e2e). Merged 310abf0. No duplicate T-0077 PRs."
       ]
     },
     {
