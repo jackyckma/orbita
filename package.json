@@ -13,7 +13,8 @@
     "db:migrate": "bash scripts/db-migrate.sh",
     "deploy:web": "bash scripts/deploy-web.sh",
     "build:docs": "bash scripts/build-web-docs.sh",
-    "deploy:email-worker": "bash scripts/deploy-email-worker.sh"
+    "deploy:email-worker": "bash scripts/deploy-email-worker.sh",
+    "check:sql-sync": "node scripts/check-sql-sync.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.15.30",
