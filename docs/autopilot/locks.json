@@ -4,8 +4,8 @@
     "T-0082": {
       "by": "maker",
       "since": "2026-10-02T18:26:00.000Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/t-0082-embed-rate-limit-backfill",
+      "pr": 45
     }
   }
 }

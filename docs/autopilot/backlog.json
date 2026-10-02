@@ -1087,11 +1087,12 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
       "feedback": [
         "2026-10-02 hub (claude-hub-session): added after the T-0076 startup self-test revealed MiniMax rate-limit 1002 on every embedding attempt.",
-        "2026-10-02 hub: description revised before the Maker ran - inline retry/backoff removed (would block every note write ~35 s while the account is rate limited); retry is now the background backfill plus a 60 s in-memory circuit breaker."
+        "2026-10-02 hub: description revised before the Maker ran - inline retry/backoff removed (would block every note write ~35 s while the account is rate limited); retry is now the background backfill plus a 60 s in-memory circuit breaker.",
+        "2026-10-02 Maker: PR https://github.com/jackyckma/orbita/pull/45; @orbita/memory tests + pnpm -r typecheck green after pnpm build."
       ]
     }
   ]
