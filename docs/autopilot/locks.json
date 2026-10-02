@@ -4,8 +4,8 @@
     "T-0076": {
       "by": "maker",
       "since": "2026-10-02T15:45:00.000Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/T-0076-embed-failure-logs-selftest",
+      "pr": 40
     }
   }
 }

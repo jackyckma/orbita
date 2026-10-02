@@ -939,11 +939,12 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
       "feedback": [
         "2026-10-01 hub (claude-hub-session): added so E-04 can be diagnosed from Zeabur logs without an Orbita API key; founder asked whether an agent can investigate and fix it.",
-        "Maker 2026-10-02: lock on main before branch."
+        "Maker 2026-10-02: lock on main before branch.",
+        "Maker 2026-10-02: PR https://github.com/jackyckma/orbita/pull/40; acceptance + typecheck green."
       ]
     },
     {
