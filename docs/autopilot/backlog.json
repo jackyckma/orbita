@@ -1015,7 +1015,7 @@
         "T-0071"
       ],
       "flag": null,
-      "status": "ready",
+      "status": "in_progress",
       "retries": 0,
       "feedback": [
         "2026-10-02 hub (claude-hub-session): written after founder approved D-007 option A.",
