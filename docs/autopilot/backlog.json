@@ -916,11 +916,12 @@
         "T-0074"
       ],
       "flag": null,
-      "status": "in_review",
+      "status": "done",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-01 (hub addition): E-14 strand 4 so the docs work is not dropped when REPLAN moves to the next epic.",
-        "Maker 2026-10-02: PR https://github.com/jackyckma/orbita/pull/39; acceptance + agent-verify green."
+        "Maker 2026-10-02: PR https://github.com/jackyckma/orbita/pull/39; acceptance + agent-verify green.",
+        "REVIEW PR #39: verify-all PASS; T-0075 acceptance green; CI verify + e2e-tier-a pass; scope matches (docs-only E-14 strand 4: architecture lanes, 16 MCP tools, ops multi-replica). Merged 9decc94. No duplicate T-0075 PRs."
       ]
     },
     {
