@@ -1087,7 +1087,7 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "ready",
+      "status": "in_progress",
       "retries": 0,
       "feedback": [
         "2026-10-02 hub (claude-hub-session): added after the T-0076 startup self-test revealed MiniMax rate-limit 1002 on every embedding attempt.",
