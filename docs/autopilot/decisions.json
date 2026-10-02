@@ -251,9 +251,9 @@
       "opened_at": "2026-10-02",
       "sla_days": 14,
       "unblocks": ["waitlist removal task","E-18 history section simplification"],
-      "status": "open",
-      "decided_option": null,
-      "decided_note": null
+      "status": "decided",
+      "decided_option": "A",
+      "decided_note": "2026-10-02 founder (hub session) approved A: remove the waitlist entirely, including the public page on get-orbita.com WITHOUT a replacement for now. Verified before deciding: waitlist_entries had 5 rows, all status approved, emails on example.com/gmail.com dated 2026-06-24..26 = e2e/dev tests, no real signups; the five waitlist-* API keys (and nine smoke keys) were revoked by the founder on 2026-10-02. The table waitlist_entries stays in production untouched until the founder drops it AFTER the code removal is deployed, because every boot runs CREATE TABLE IF NOT EXISTS for it."
     }
   ]
 }

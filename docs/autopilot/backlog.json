@@ -953,6 +953,51 @@
       "feedback": [
         "2026-10-01 hub (claude-hub-session): added after the T-0064 one-off showed the Zeabur setup script is syntactically broken."
       ]
+    },
+    {
+      "id": "T-0078",
+      "lane": "platform",
+      "phase": "consultos-cleanup",
+      "title": "E-22: remove the waitlist backend, admin section and schema wiring",
+      "description": "Remove the waitlist feature from the running system (D-007 decided A). Delete packages/lane-waitlist entirely and its references: apps/orbita-api dependency and index.ts wiring (route mounting, ensureWaitlistSchema call), the admin waitlist routes and the Waitlist section/handlers in the admin console (packages/lane-admin), the waitlist counts in the usage summary (observability), the OpenAPI entries, tests, workspace/lockfile entries (update pnpm-lock.yaml consistently), and the waitlist DDL and index in apps/orbita-api/migrations/init.sql (remove the CREATE statements only; DO NOT add any DROP and do not touch other tables). Remove env vars ORBITA_WAITLIST_ALLOWED_ORIGINS and ORBITA_WAITLIST_INVITE_CLIENT_ID from config/.env.example; remove ZEABUR_ZSEND_API_KEY and ORBITA_INSTANCE_FROM_EMAIL ONLY if grep proves nothing else uses them (otherwise keep and say so in feedback). Keep `pnpm check:sql-sync` (if it exists) green. Do NOT touch api_keys behaviour. Verify every claim against code first (grep -rn -i waitlist).",
+      "acceptance": [
+        "! rg -n -i \"waitlist\" apps/orbita-api/src apps/orbita-api/migrations packages pnpm-lock.yaml pnpm-workspace.yaml package.json",
+        "test ! -e packages/lane-waitlist",
+        "pnpm -r typecheck"
+      ],
+      "deps": [
+        "T-0075",
+        "T-0071"
+      ],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "2026-10-02 hub (claude-hub-session): written after founder approved D-007 option A."
+      ]
+    },
+    {
+      "id": "T-0079",
+      "lane": "docs",
+      "phase": "consultos-cleanup",
+      "title": "E-22: remove the public waitlist page, docs mentions and prod e2e scripts",
+      "description": "Remove apps/orbita-web/public/waitlist.html and every link to it (home page nav in index.html, updates.html, docs/site/setup.md), the docs mentions (docs/api-as-product.md, docs/product-architecture.md, README if present, and AGENTS.md - the one allowed exception), scripts/waitlist-e2e-prod.sh and scripts/waitlist-invite-e2e-prod.sh, and any other waitlist reference outside docs/autopilot (decision history there stays). Find how apps/orbita-web is deployed (read its package.json/scripts/docs) and add the exact FOUNDER-ONLY redeploy steps to this task's feedback (the Maker must not deploy). Do not replace the page with anything.",
+      "acceptance": [
+        "test ! -e apps/orbita-web/public/waitlist.html",
+        "test ! -e scripts/waitlist-e2e-prod.sh",
+        "test ! -e scripts/waitlist-invite-e2e-prod.sh",
+        "! rg -n -i \"waitlist\" apps/orbita-web docs scripts README.md AGENTS.md --glob '!docs/autopilot/**'"
+      ],
+      "deps": [
+        "T-0075",
+        "T-0071"
+      ],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "2026-10-02 hub (claude-hub-session): written after founder approved D-007 option A."
+      ]
     }
   ]
 }
