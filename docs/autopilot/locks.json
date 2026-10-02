@@ -4,8 +4,8 @@
     "T-0083": {
       "by": "maker",
       "since": "2026-10-02T18:46:15.000Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/t-0083-lane-tickets-contracts",
+      "pr": 46
     }
   }
 }
