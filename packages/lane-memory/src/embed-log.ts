@@ -4,6 +4,7 @@ import type { EmbedFailureReason } from "./embed.js";
 /** Minimal sink reused by orbita-api pino logger and unit tests. */
 export type EmbedLogger = {
   warn: (obj: Record<string, unknown>, msg?: string) => void;
+  info?: (obj: Record<string, unknown>, msg?: string) => void;
 };
 
 export type EmbedLogReason =
@@ -17,12 +18,14 @@ export type EmbedLogReason =
     }
   | { code: "no_vector" }
   | { code: "dimension_mismatch"; actual: number; expected: number }
-  | { code: "exception"; error_class: string; message: string };
+  | { code: "exception"; error_class: string; message: string }
+  | { code: "rate_limited_breaker" };
 
 let embedLogger: EmbedLogger | null = null;
 
 const silentLogger: EmbedLogger = {
   warn: () => {},
+  info: () => {},
 };
 
 export function setEmbedLogger(logger: EmbedLogger): void {
@@ -83,6 +86,8 @@ export function embedFailureToLogReason(
         error_class: "Error",
         message: (failure.detail ?? "unknown").slice(0, 200),
       };
+    case "rate_limited_breaker":
+      return { code: "rate_limited_breaker" };
     default: {
       const _exhaustive: never = failure;
       return _exhaustive;
@@ -106,6 +111,8 @@ export function formatEmbedSelfTestReasonLabel(reason: EmbedLogReason): string {
       return `dimension_mismatch:${reason.actual},${reason.expected}`;
     case "exception":
       return `exception:${reason.error_class}`;
+    case "rate_limited_breaker":
+      return "rate_limited_breaker";
     default: {
       const _exhaustive: never = reason;
       return String(_exhaustive);
@@ -149,5 +156,24 @@ export function logEmbedAttemptFailure(
       ...logReasonFields(logReason),
     },
     "embedding attempt failed",
+  );
+}
+
+export function logEmbedBreakerOpened(env: MemoryEnv): void {
+  const logger = getEmbedLogger();
+  logger.info?.(
+    {
+      event: "embedding_rate_limit_breaker_opened",
+      ...embedLogContext(env),
+    },
+    "embedding rate limit breaker opened",
+  );
+}
+
+export function logEmbedBreakerClosed(): void {
+  const logger = getEmbedLogger();
+  logger.info?.(
+    { event: "embedding_rate_limit_breaker_closed" },
+    "embedding rate limit breaker closed",
   );
 }

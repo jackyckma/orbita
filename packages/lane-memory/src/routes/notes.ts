@@ -45,6 +45,7 @@ const EmbedFailureReasonSchema = z.union([
     reason: z.literal("network_error"),
     detail: z.string().optional(),
   }),
+  z.object({ reason: z.literal("rate_limited_breaker") }),
 ]);
 
 const EmbeddingMetaSchema = z.object({

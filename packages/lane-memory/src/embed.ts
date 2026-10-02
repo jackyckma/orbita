@@ -1,4 +1,8 @@
 import type { MemoryEnv } from "./config.js";
+import {
+  gateEmbedRateLimitBreaker,
+  recordEmbedRateLimitFailure,
+} from "./embed-breaker.js";
 import { logEmbedAttemptFailure } from "./embed-log.js";
 
 export type EmbedPurpose = "db" | "query";
@@ -28,7 +32,8 @@ export type EmbedFailureReason =
       actual: number;
       expected: number;
     }
-  | { reason: "network_error"; detail?: string };
+  | { reason: "network_error"; detail?: string }
+  | { reason: "rate_limited_breaker" };
 
 export type EmbedResult =
   | { ok: true; vector: number[] }
@@ -126,12 +131,20 @@ export async function embedText(
   text: string,
   options?: EmbedTextOptions,
 ): Promise<number[] | null> {
+  const gate = gateEmbedRateLimitBreaker();
+  if (gate.blocked) {
+    embedFailureReason = gate.failure;
+    logEmbedAttemptFailure(env, gate.failure);
+    return null;
+  }
+
   const result = await embedTextResult(env, text, options);
   if (result.ok) {
     embedFailureReason = null;
     return result.vector;
   }
   embedFailureReason = result.failure;
+  recordEmbedRateLimitFailure(env, result.failure);
   logEmbedAttemptFailure(env, result.failure);
   return null;
 }
