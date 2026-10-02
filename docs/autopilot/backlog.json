@@ -1096,6 +1096,137 @@
         "2026-10-02 Maker: PR https://github.com/jackyckma/orbita/pull/45; @orbita/memory tests + pnpm -r typecheck green after pnpm build.",
         "2026-10-02 Checker: merged PR #45; verify-all + CI verify/e2e-tier-a green."
       ]
+    },
+    {
+      "id": "T-0083",
+      "lane": "platform",
+      "phase": "consultos-b",
+      "title": "lane-tickets: INTERFACE.md + JSON-Schema contracts (mandate hierarchy)",
+      "description": "Epic E-16 task 1 — contracts only, NO runtime TypeScript implementation yet. Scaffold packages/lane-tickets/ with INTERFACE.md (status planned), packages/lane-tickets/contracts/ JSON Schemas for: ticket kinds mandate|epic|task|decision with parent_id rules; mandate charter (purpose, principles, guardrails, cadence, reporting, success_measures, review_date, assigned principals) including hard_limits (with enforcement enum server|environment|instruction) and soft_constraints (warn/block thresholds, never blocking by default); soft_breach event shape; three state machines documented in INTERFACE.md (mandate: draft->active->paused->retired; epic: proposed->approved->active->done|cancelled; task/decision: proposed->approved->claimed->in_progress->in_review->done plus waiting_human, blocked, cancelled); all verbs from the epic (ticket_create, ticket_list, ticket_get, ticket_approve, ticket_claim, ticket_extend, ticket_progress, ticket_complete, ticket_block, ticket_request_decision, ticket_comment, ticket_cancel); request/response shapes for REST/MCP; git-sourced read-only 409 contract. Add packages/lane-tickets/contracts/validate-contracts.test.mjs (node:test) that every *.schema.json parses and $ref resolves. Add .agents/skills/lane-tickets/SKILL.md (scope packages/lane-tickets only, read INTERFACE first). Add data/simulators/lane-tickets/ with at least one golden fixture (mandate + epic + task chain) validating against schemas. Add minimal packages/lane-tickets/package.json name @orbita/tickets version 0.0.0 private with script test pointing at validate-contracts only — do NOT add src/ yet. Do NOT touch notes API, init.sql, or apps/orbita-api routes.",
+      "acceptance": [
+        "test -f packages/lane-tickets/INTERFACE.md",
+        "test -f .agents/skills/lane-tickets/SKILL.md",
+        "test -d packages/lane-tickets/contracts",
+        "test -d data/simulators/lane-tickets",
+        "node --test packages/lane-tickets/contracts/validate-contracts.test.mjs",
+        "rg -n \"hard_limits|soft_constraints|soft_breach\" packages/lane-tickets"
+      ],
+      "deps": [],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "REPLAN 2026-10-02: E-16 first pass (1/6) — mandate hierarchy contracts before any implementation."
+      ]
+    },
+    {
+      "id": "T-0084",
+      "lane": "platform",
+      "phase": "consultos-b",
+      "title": "lane-tickets: pure transition engine (three state machines + guardrails)",
+      "description": "Epic E-16 task 2. Implement packages/lane-tickets/src/transitions.ts (and small types module) as PURE functions: given kind, current status, verb, actor context (human vs agent), and mandate charter snapshot, return allow/deny with stable error codes. Cover mandate, epic, and task/decision machines from T-0083 contracts; enforce server-side hard_limits that are enforceable without DB (caps on open epics/tasks per mandate, daily creation counts as config numbers in tests); soft_constraints never block — return allowed + record_soft_breach hint for callers. proposed->approved and cancel-of-proposed require human actor; git source tickets reject all transitions with GIT_READ_ONLY code. Exhaustive (kind x status x verb) table test in transitions.test.ts using vitest. No database, no HTTP, no imports from other lanes' src. Export from package main entry.",
+      "acceptance": [
+        "pnpm --filter @orbita/tickets test",
+        "pnpm --filter @orbita/tickets build",
+        "rg -n \"GIT_READ_ONLY|soft_breach\" packages/lane-tickets/src"
+      ],
+      "deps": [
+        "T-0083"
+      ],
+      "flag": "ORBITA_TICKETS_ENABLED",
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "REPLAN 2026-10-02: E-16 first pass (2/6) — state machine before persistence."
+      ]
+    },
+    {
+      "id": "T-0085",
+      "lane": "platform",
+      "phase": "consultos-b",
+      "title": "lane-tickets: repository layer + fake db (leases, events, tenancy)",
+      "description": "Epic E-16 task 3. Define TicketRepository interface in packages/lane-tickets/src/repository.ts; implement Postgres-oriented SQL builders in repository.pg.ts (not executed in unit tests) and packages/lane-tickets/src/fake-repository.ts for vitest. Must support: create/list/get with cursor pagination and filters (project, function, status, owner, updated_since); append-only ticket_events with monotonic seq; ticket_claim as atomic pattern (document SQL in comments); lease extend; optimistic concurrency via expected_version; idempotency_key unique per (client_id, verb, key). Every query method requires client_id predicate — add tenant-isolation test proving client A cannot read client B. Use transition engine from T-0084 for write paths. No Fastify routes yet.",
+      "acceptance": [
+        "pnpm --filter @orbita/tickets test",
+        "rg -n \"client_id\" packages/lane-tickets/src/repository",
+        "rg -n \"FakeTicketRepository|fake-repository\" packages/lane-tickets/src"
+      ],
+      "deps": [
+        "T-0084"
+      ],
+      "flag": "ORBITA_TICKETS_ENABLED",
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "REPLAN 2026-10-02: E-16 first pass (3/6) — repository + fakes before API surface."
+      ]
+    },
+    {
+      "id": "T-0086",
+      "lane": "platform",
+      "phase": "consultos-b",
+      "title": "lane-tickets: REST /v1/tickets routes (flag-gated mount)",
+      "description": "Epic E-16 task 4. Wire packages/lane-tickets/src/routes/tickets.ts with verb-style handlers matching contracts; register in apps/orbita-api ONLY when ORBITA_TICKETS_ENABLED=1 (default OFF, parse like other flags in packages/lane-platform/src/config.ts). Auth: client_id from auth context only. ticket_approve and cancel-of-proposed allowed only when caller API key id is listed in ORBITA_TICKETS_APPROVER_KEY_IDS (comma-separated, default empty = deny). OpenAPI entries under /v1/tickets/* in the protected app (admin paths unchanged). Golden test: with flag OFF, route table / openapi paths unchanged vs baseline snapshot committed in test fixture. Do NOT mount MCP tools (T-0087). Do NOT run DDL (T-0088).",
+      "acceptance": [
+        "pnpm -r typecheck",
+        "pnpm --filter @orbita/tickets test",
+        "rg -n \"ORBITA_TICKETS_ENABLED\" apps/orbita-api/src packages/lane-platform/src",
+        "rg -n \"/v1/tickets\" packages/lane-tickets/src apps/orbita-api/src"
+      ],
+      "deps": [
+        "T-0085"
+      ],
+      "flag": "ORBITA_TICKETS_ENABLED",
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "REPLAN 2026-10-02: E-16 first pass (4/6) — REST surface behind flag."
+      ]
+    },
+    {
+      "id": "T-0087",
+      "lane": "platform",
+      "phase": "consultos-b",
+      "title": "lane-tickets: MCP ticket_* tools (additive, flag-gated)",
+      "description": "Epic E-16 task 5. Register MCP tools ticket_create, ticket_list, ticket_get, ticket_approve, ticket_claim, ticket_extend, ticket_progress, ticket_complete, ticket_block, ticket_request_decision, ticket_comment, ticket_cancel in packages/lane-mcp (or lane-tickets re-export mounted from mcp) ONLY when ORBITA_TICKETS_ENABLED=1. Tool names and existing 16 tools' input schemas must remain byte-identical when flag OFF — extend golden test from lane-mcp. Each tool inputSchema includes shared optional reported_by/labels fragment ONLY on ticket tools (do not alter non-ticket tools). Map tools to repository + transition engine; same approver key allowlist as REST. Do NOT add admin MCP tools.",
+      "acceptance": [
+        "pnpm --filter @orbita/mcp test",
+        "pnpm --filter @orbita/tickets test",
+        "rg -n \"ticket_\" packages/lane-mcp/src",
+        "pnpm -r typecheck"
+      ],
+      "deps": [
+        "T-0086"
+      ],
+      "flag": "ORBITA_TICKETS_ENABLED",
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "REPLAN 2026-10-02: E-16 first pass (5/6) — MCP verbs behind same flag."
+      ]
+    },
+    {
+      "id": "T-0088",
+      "lane": "platform",
+      "phase": "consultos-b",
+      "title": "lane-tickets: optional DDL + sql-sync allowlist + docs + tier-A flag-on test",
+      "description": "Epic E-16 task 6. Add additive SQL for tickets + ticket_events in packages/lane-tickets/drizzle/ (IF NOT EXISTS only) AND mirror into apps/orbita-api/migrations/optional-tickets.sql applied from runMigrations only when ORBITA_TICKETS_ENABLED=1 at migration time (document pattern in task feedback). Register optional file in docs/autopilot/sql-sync-allowlist.json. SQL text lint test (no DROP, no ALTER of existing tables). Extend scripts/e2e-tier-a.sh (or dedicated step) to run once with ORBITA_TICKETS_ENABLED=1 and apply DDL twice idempotently. Docs: short section in docs/site/ (rebuild not required in this task — edit source under docs/site/). scripts/tickets-verify-flag-off.sh exits non-zero with clear message when tickets not enabled (model portfolio-git-collect-verify-output.sh). Record decision D-005 founder flip steps in task feedback as needs_human follow-up — Maker must NOT set Zeabur env. Golden: flag OFF => no new tables created on migrate path used in tier-A default run.",
+      "acceptance": [
+        "node scripts/check-sql-sync.mjs",
+        "pnpm -r typecheck",
+        "test -f scripts/tickets-verify-flag-off.sh",
+        "bash -n scripts/tickets-verify-flag-off.sh",
+        "rg -n \"optional-tickets\" apps/orbita-api/migrations docs/autopilot/sql-sync-allowlist.json"
+      ],
+      "deps": [
+        "T-0087"
+      ],
+      "flag": "ORBITA_TICKETS_ENABLED",
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "REPLAN 2026-10-02: E-16 first pass (6/6) — DDL gated + docs; production enable stays on D-005 (founder-only)."
+      ]
     }
   ]
 }
