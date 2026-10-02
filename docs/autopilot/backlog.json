@@ -1015,12 +1015,13 @@
         "T-0071"
       ],
       "flag": null,
-      "status": "in_review",
+      "status": "done",
       "retries": 0,
       "feedback": [
         "2026-10-02 hub (claude-hub-session): written after founder approved D-007 option A.",
         "2026-10-02 hub: deploy automation decided (option B).",
-        "2026-10-02 maker: get-orbita.com deploys automatically on merge to main via .github/workflows/deploy-web.yml (scripts/deploy-web.sh). No founder manual Cloudflare deploy. Merge T-0079 before T-0078 so the live signup page is gone before the API route is removed."
+        "2026-10-02 maker: get-orbita.com deploys automatically on merge to main via .github/workflows/deploy-web.yml (scripts/deploy-web.sh). No founder manual Cloudflare deploy. Merge T-0079 before T-0078 so the live signup page is gone before the API route is removed.",
+        "2026-10-02 checker: merged PR #42; verify-all + acceptance green; site auto-deploy expected from main."
       ]
     },
     {
