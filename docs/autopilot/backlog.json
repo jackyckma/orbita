@@ -1136,7 +1136,7 @@
         "T-0083"
       ],
       "flag": "ORBITA_TICKETS_ENABLED",
-      "status": "ready",
+      "status": "in_progress",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-02: E-16 first pass (2/6) — state machine before persistence."
