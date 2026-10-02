@@ -891,12 +891,13 @@
         "T-0073"
       ],
       "flag": null,
-      "status": "in_review",
+      "status": "done",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-01: E-14 first pass (6/6) — wedged-run self-heal; docs strand 4 deferred to next REPLAN.",
         "2026-10-01 hub review (claude-hub-session): finished_at already exists and the drizzle/ path is wrong; forbid CREATE TYPE and require a stale-started test.",
-        "Maker 2026-10-02: PR https://github.com/jackyckma/orbita/pull/38; harness + typecheck acceptance green."
+        "Maker 2026-10-02: PR https://github.com/jackyckma/orbita/pull/38; harness + typecheck acceptance green.",
+        "REVIEW PR #38: verify-all PASS; T-0074 acceptance green; CI verify + e2e-tier-a pass; scope matches (stale in-progress fingerprint abandon, ORBITA_HARNESS_STALE_STARTED_MINUTES, no ENUM). Merged a86e53a. No duplicate T-0074 PRs."
       ]
     },
     {
