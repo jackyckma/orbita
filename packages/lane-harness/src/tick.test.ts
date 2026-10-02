@@ -5,6 +5,7 @@ import type { HarnessDb } from "./db/client.js";
 import { harnessRuns, harnesses } from "./db/schema.js";
 import {
   executeHarnessRun,
+  resolveHarnessStaleStartedTimeoutMs,
   startHarnessTick,
   type HarnessRunDeps,
   type SystemCollectorRunner,
@@ -54,7 +55,13 @@ function harnessRow(nextRunAt: Date) {
 
 function createFakeDb(opts: {
   harnessRows?: ReturnType<typeof harnessRow>[];
-  existingRuns?: Array<{ id: string; status: string; error: string | null }>;
+  existingRuns?: Array<{
+    id: string;
+    status: string;
+    error: string | null;
+    startedAt?: Date;
+    finishedAt?: Date | null;
+  }>;
 }) {
   const updates: UpdateCall[] = [];
   const inserts: Array<Record<string, unknown>> = [];
@@ -66,7 +73,11 @@ function createFakeDb(opts: {
           table === harnesses
             ? (opts.harnessRows ?? [])
             : table === harnessRuns
-              ? (opts.existingRuns ?? [])
+              ? (opts.existingRuns ?? []).map((run) => ({
+                  ...run,
+                  startedAt: run.startedAt ?? new Date("2026-09-03T06:00:00.000Z"),
+                  finishedAt: run.finishedAt ?? null,
+                }))
               : [];
         const promise = Promise.resolve(rows);
         return {
@@ -118,7 +129,10 @@ function harnessScheduleUpdate(updates: UpdateCall[]) {
 }
 
 function runStatusUpdate(updates: UpdateCall[]) {
-  return updates.find((call) => call.table === harnessRuns && call.values.status);
+  const runUpdates = updates.filter(
+    (call) => call.table === harnessRuns && call.values.status,
+  );
+  return runUpdates[runUpdates.length - 1];
 }
 
 afterEach(() => {
@@ -250,6 +264,53 @@ describe("executeHarnessRun cron schedule", () => {
     expect(lastRunAt).toBeInstanceOf(Date);
     expect(schedule?.values.updatedAt).toBe(lastRunAt);
     expect(schedule?.values.nextRunAt).toEqual(computeNextCronRun(CRON, lastRunAt));
+  });
+
+  it("retries a stale started fingerprint after the timeout", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-09-03T07:00:00.000Z"));
+    const dueAt = new Date("2026-09-03T06:00:00.000Z");
+    const row = harnessRow(dueAt);
+    const { harnessDb, updates, inserts } = createFakeDb({
+      existingRuns: [
+        {
+          id: "run-wedged",
+          status: "started",
+          error: null,
+          startedAt: new Date("2026-09-03T06:00:00.000Z"),
+          finishedAt: null,
+        },
+      ],
+    });
+    const runner = vi.fn(async () => ({ ok: true }));
+
+    const result = await executeHarnessRun(
+      harnessDb,
+      sessionsDb,
+      row,
+      "cron",
+      dueAt,
+      runTurn,
+      deps(runner),
+    );
+
+    expect(resolveHarnessStaleStartedTimeoutMs()).toBe(15 * 60 * 1000);
+    expect(result).toEqual({
+      ran: true,
+      runId: "run-1",
+      staleStartedRetried: { abandonedRunId: "run-wedged" },
+    });
+    expect(runner).toHaveBeenCalledOnce();
+    expect(inserts).toHaveLength(1);
+    expect(inserts[0]?.status).toBe("started");
+    const abandoned = updates.find(
+      (call) =>
+        call.table === harnessRuns &&
+        call.values.status === "failed" &&
+        call.values.cronFingerprint === null,
+    );
+    expect(abandoned?.values.error).toMatch(/stale started/i);
+    vi.useRealTimers();
   });
 
   it("uses the harness row timezone when advancing nextRunAt after success", async () => {

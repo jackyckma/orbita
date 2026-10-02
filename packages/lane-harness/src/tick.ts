@@ -37,12 +37,48 @@ function cronFingerprint(cron: string, dueAt: Date): string {
   return `${cron}:${dueAt.toISOString().slice(0, 16)}`;
 }
 
+const TERMINAL_HARNESS_RUN_STATUSES = new Set(["completed", "failed"]);
+
+/** In-flight run statuses that block a new fingerprint insert until stale. */
+const IN_PROGRESS_HARNESS_RUN_STATUSES = new Set([
+  "started",
+  "collector_running",
+  "agent_running",
+]);
+
+const DEFAULT_STALE_STARTED_MINUTES = 15;
+
+export function resolveHarnessStaleStartedTimeoutMs(
+  env: NodeJS.ProcessEnv = process.env,
+): number {
+  const raw = env.ORBITA_HARNESS_STALE_STARTED_MINUTES;
+  const minutes =
+    raw === undefined || raw === "" ? DEFAULT_STALE_STARTED_MINUTES : Number(raw);
+  if (!Number.isFinite(minutes) || minutes <= 0) {
+    return DEFAULT_STALE_STARTED_MINUTES * 60 * 1000;
+  }
+  return minutes * 60 * 1000;
+}
+
+function isStaleStartedHarnessRun(
+  run: { status: string; startedAt: Date; finishedAt: Date | null },
+  now: Date,
+  timeoutMs: number,
+): boolean {
+  if (run.finishedAt !== null) return false;
+  if (TERMINAL_HARNESS_RUN_STATUSES.has(run.status)) return false;
+  if (!IN_PROGRESS_HARNESS_RUN_STATUSES.has(run.status)) return false;
+  return now.getTime() - run.startedAt.getTime() >= timeoutMs;
+}
+
 export type HarnessRunResult = {
   ran: boolean;
   runId?: string;
   error?: string;
   /** Cron fingerprint already has a run for this dueAt. nextRunAt was advanced. */
   skipped?: { status: string; error: string | null };
+  /** A wedged in-progress fingerprint row was abandoned so this slot could retry. */
+  staleStartedRetried?: { abandonedRunId: string };
 };
 
 /** Move a cron harness to the next slot. Does not touch lastRunAt. */
@@ -73,6 +109,12 @@ export async function executeHarnessRun(
   summarizer?: SessionSummarizer,
 ): Promise<HarnessRunResult> {
   const fingerprint = trigger === "cron" && harness.cron ? cronFingerprint(harness.cron, dueAt) : null;
+  let abandonedStaleRunId: string | undefined;
+
+  const withStaleRetry = (result: HarnessRunResult): HarnessRunResult =>
+    abandonedStaleRunId
+      ? { ...result, staleStartedRetried: { abandonedRunId: abandonedStaleRunId } }
+      : result;
 
   if (fingerprint) {
     const [existing] = await harnessDb.db
@@ -80,6 +122,8 @@ export async function executeHarnessRun(
         id: harnessRuns.id,
         status: harnessRuns.status,
         error: harnessRuns.error,
+        startedAt: harnessRuns.startedAt,
+        finishedAt: harnessRuns.finishedAt,
       })
       .from(harnessRuns)
       .where(
@@ -90,12 +134,26 @@ export async function executeHarnessRun(
       );
     if (existing) {
       const now = new Date();
-      await advanceCronNextRunAt(harnessDb, harness, trigger, now);
-      return {
-        ran: false,
-        runId: existing.id,
-        skipped: { status: existing.status, error: existing.error },
-      };
+      const timeoutMs = resolveHarnessStaleStartedTimeoutMs();
+      if (isStaleStartedHarnessRun(existing, now, timeoutMs)) {
+        await harnessDb.db
+          .update(harnessRuns)
+          .set({
+            status: "failed",
+            error: "stale started harness run abandoned for retry",
+            finishedAt: now,
+            cronFingerprint: null,
+          })
+          .where(eq(harnessRuns.id, existing.id));
+        abandonedStaleRunId = existing.id;
+      } else {
+        await advanceCronNextRunAt(harnessDb, harness, trigger, now);
+        return {
+          ran: false,
+          runId: existing.id,
+          skipped: { status: existing.status, error: existing.error },
+        };
+      }
     }
   }
 
@@ -119,13 +177,17 @@ export async function executeHarnessRun(
       harnessId: harness.id,
       clientId: harness.clientId,
       sessionId,
-      status: collectorName ? "collector_running" : "agent_running",
+      status: "started",
       trigger,
       cronFingerprint: fingerprint,
     })
     .returning();
 
   if (collectorName) {
+    await harnessDb.db
+      .update(harnessRuns)
+      .set({ status: "collector_running" })
+      .where(eq(harnessRuns.id, run!.id));
     const runner = deps.systemCollectors?.[collectorName];
     const finishedAt = new Date();
     if (!runner) {
@@ -139,11 +201,11 @@ export async function executeHarnessRun(
         })
         .where(eq(harnessRuns.id, run!.id));
       await advanceCronNextRunAt(harnessDb, harness, trigger, new Date());
-      return {
+      return withStaleRetry({
         ran: false,
         runId: run!.id,
         error,
-      };
+      });
     }
     try {
       const result = await runner({
@@ -168,7 +230,7 @@ export async function executeHarnessRun(
             updatedAt: finishedAt,
           })
           .where(eq(harnesses.id, harness.id));
-        return { ran: true, runId: run!.id };
+        return withStaleRetry({ ran: true, runId: run!.id });
       }
       const error = result.error ?? "collector failed";
       await harnessDb.db
@@ -180,7 +242,7 @@ export async function executeHarnessRun(
         })
         .where(eq(harnessRuns.id, run!.id));
       await advanceCronNextRunAt(harnessDb, harness, trigger, new Date());
-      return { ran: false, runId: run!.id, error };
+      return withStaleRetry({ ran: false, runId: run!.id, error });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       await harnessDb.db
@@ -188,9 +250,14 @@ export async function executeHarnessRun(
         .set({ status: "failed", error: message, finishedAt })
         .where(eq(harnessRuns.id, run!.id));
       await advanceCronNextRunAt(harnessDb, harness, trigger, new Date());
-      return { ran: false, runId: run!.id, error: message };
+      return withStaleRetry({ ran: false, runId: run!.id, error: message });
     }
   }
+
+  await harnessDb.db
+    .update(harnessRuns)
+    .set({ status: "agent_running" })
+    .where(eq(harnessRuns.id, run!.id));
 
   const message = resolveHarnessRunMessage(config, {
     templateId: harness.templateId,
@@ -238,7 +305,7 @@ export async function executeHarnessRun(
         updatedAt: finishedAt,
       })
       .where(eq(harnesses.id, harness.id));
-    return { ran: true, runId: run!.id };
+    return withStaleRetry({ ran: true, runId: run!.id });
   }
 
   const error = agentResult.error ?? "agent_message did not run";
@@ -251,7 +318,7 @@ export async function executeHarnessRun(
     })
     .where(eq(harnessRuns.id, run!.id));
   await advanceCronNextRunAt(harnessDb, harness, trigger, new Date());
-  return { ran: false, runId: run!.id, error };
+  return withStaleRetry({ ran: false, runId: run!.id, error });
 }
 
 export function startHarnessTick(
@@ -294,7 +361,16 @@ export function startHarnessTick(
           deps,
           summarizer,
         );
-        if (result.skipped) {
+        if (result.staleStartedRetried) {
+          logger?.warn(
+            {
+              harness_id: harness.id,
+              abandoned_run_id: result.staleStartedRetried.abandonedRunId,
+              run_id: result.runId,
+            },
+            "harness stale started run abandoned; retrying cron slot",
+          );
+        } else if (result.skipped) {
           logger?.warn(
             {
               harness_id: harness.id,
