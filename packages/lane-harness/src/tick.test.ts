@@ -251,6 +251,32 @@ describe("executeHarnessRun cron schedule", () => {
     expect(schedule?.values.updatedAt).toBe(lastRunAt);
     expect(schedule?.values.nextRunAt).toEqual(computeNextCronRun(CRON, lastRunAt));
   });
+
+  it("uses the harness row timezone when advancing nextRunAt after success", async () => {
+    const dueAt = new Date("2026-09-03T05:00:00.000Z");
+    const row = { ...harnessRow(dueAt), timezone: "America/New_York" };
+    const { harnessDb, updates } = createFakeDb({});
+    const runner = vi.fn(async () => ({ ok: true }));
+
+    const result = await executeHarnessRun(
+      harnessDb,
+      sessionsDb,
+      row,
+      "cron",
+      dueAt,
+      runTurn,
+      deps(runner),
+    );
+
+    expect(result).toEqual({ ran: true, runId: "run-1" });
+    const [schedule] = harnessScheduleUpdate(updates);
+    const lastRunAt = schedule?.values.lastRunAt as Date;
+    const utcOnly = computeNextCronRun(CRON, lastRunAt, "UTC");
+    expect(schedule?.values.nextRunAt).toEqual(
+      computeNextCronRun(CRON, lastRunAt, "America/New_York"),
+    );
+    expect((schedule?.values.nextRunAt as Date).getTime()).not.toBe(utcOnly.getTime());
+  });
 });
 
 describe("startHarnessTick", () => {
@@ -308,5 +334,58 @@ describe("startHarnessTick", () => {
       computeNextCronRun(CRON, scheduleUpdates[0]!.values.updatedAt as Date),
     );
     expect(scheduleUpdates[1]?.values.lastRunAt).toBeInstanceOf(Date);
+  });
+
+  it("skips the tick when pg_advisory leader lock is not acquired", async () => {
+    const dueAt = new Date("2026-09-03T06:00:00.000Z");
+    const row = harnessRow(dueAt);
+    const { harnessDb, updates } = createFakeDb({ harnessRows: [row] });
+    Object.assign(harnessDb, {
+      sql: async () => [{ acquired: false }],
+    });
+    const runner = vi.fn(async () => ({ ok: true }));
+    let queued: (() => Promise<void>) | undefined;
+    vi.spyOn(globalThis, "setInterval").mockImplementation((handler) => {
+      queued = handler as () => Promise<void>;
+      return 0 as unknown as ReturnType<typeof setInterval>;
+    });
+    const logger = { info: vi.fn(), warn: vi.fn(), debug: vi.fn() };
+
+    startHarnessTick(harnessDb, sessionsDb, runTurn, deps(runner), undefined, logger);
+    await queued!();
+
+    expect(runner).not.toHaveBeenCalled();
+    expect(updates).toHaveLength(0);
+    expect(logger.debug).toHaveBeenCalledWith(
+      expect.objectContaining({ lock_key: expect.any(Number) }),
+      "harness tick skipped: pg_advisory leader lock held by another session",
+    );
+  });
+
+  it("continues the tick when pg_advisory lock RPC errors", async () => {
+    const dueAt = new Date("2026-09-03T06:00:00.000Z");
+    const row = harnessRow(dueAt);
+    const { harnessDb } = createFakeDb({ harnessRows: [row] });
+    Object.assign(harnessDb, {
+      sql: async () => {
+        throw new Error("connection reset");
+      },
+    });
+    const runner = vi.fn(async () => ({ ok: true }));
+    let queued: (() => Promise<void>) | undefined;
+    vi.spyOn(globalThis, "setInterval").mockImplementation((handler) => {
+      queued = handler as () => Promise<void>;
+      return 0 as unknown as ReturnType<typeof setInterval>;
+    });
+    const logger = { info: vi.fn(), warn: vi.fn() };
+
+    startHarnessTick(harnessDb, sessionsDb, runTurn, deps(runner), undefined, logger);
+    await queued!();
+
+    expect(runner).toHaveBeenCalledOnce();
+    expect(logger.warn).toHaveBeenCalledWith(
+      expect.objectContaining({ lock_key: expect.any(Number), error: "connection reset" }),
+      "harness tick pg_advisory lock failed; continuing without leader election",
+    );
   });
 });
