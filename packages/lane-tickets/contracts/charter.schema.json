@@ -42,7 +42,29 @@
           "items": { "$ref": "common.schema.json#/definitions/risk_tier" }
         },
         "effort_budget_notes": { "type": "string" },
-        "spend_budget_notes": { "type": "string" }
+        "spend_budget_notes": { "type": "string" },
+        "max_auto_risk_tier": {
+          "$ref": "common.schema.json#/definitions/risk_tier",
+          "description": "Highest risk tier agents may auto-approve for epics/tasks under approval_policy."
+        }
+      }
+    },
+    "approval_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "epics": {
+          "type": "string",
+          "enum": ["integrator", "auto_within_tier"],
+          "default": "integrator",
+          "description": "integrator: agent epics start proposed; auto_within_tier: agent may create approved epics within max_auto_risk_tier."
+        },
+        "tasks": {
+          "type": "string",
+          "enum": ["auto", "integrator"],
+          "default": "auto",
+          "description": "auto: agent tasks/decisions within tier start approved; integrator: proposed until human approve."
+        }
       }
     },
     "cadence": {
@@ -93,18 +115,8 @@
     },
     "soft_constraints": {
       "type": "array",
-      "description": "Never blocking by default; breaches become soft_breach events.",
+      "description": "warn_threshold records soft_breach only; block_threshold denies with SOFT_BLOCK_THRESHOLD_EXCEEDED when observed >= threshold.",
       "items": { "$ref": "#/definitions/soft_constraint" }
-    },
-    "epic_auto_approve_policy": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "allowed_risk_tiers": {
-          "type": "array",
-          "items": { "$ref": "common.schema.json#/definitions/risk_tier" }
-        }
-      }
     }
   },
   "definitions": {
@@ -147,7 +159,7 @@
         },
         "block_threshold": {
           "type": "number",
-          "description": "Second-level threshold for reporting; still non-blocking unless promoted to hard_limit."
+          "description": "When observed >= block_threshold, transition engine denies with SOFT_BLOCK_THRESHOLD_EXCEEDED (and records soft_breach). Omit to never block."
         },
         "target_value": { "type": "number" },
         "unit": { "type": "string" }

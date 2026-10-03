@@ -2,14 +2,20 @@ import { describe, expect, it } from "vitest";
 import {
   ALL_VERBS,
   evaluateTransition,
+  initialStatusOnCreate,
   statusesForKind,
+  validateParentForCreate,
 } from "./transitions.js";
 import type {
   MandateCharter,
+  ParentTicketRef,
   TicketKind,
   TicketVerb,
   TransitionInput,
 } from "./types.js";
+
+const MANDATE_UUID = "aaaaaaaa-bbbb-4ccc-dddd-eeeeeeee0001";
+const EPIC_UUID = "aaaaaaaa-bbbb-4ccc-dddd-eeeeeeee0002";
 
 function emptyCharter(overrides?: Partial<MandateCharter>): MandateCharter {
   return {
@@ -18,6 +24,7 @@ function emptyCharter(overrides?: Partial<MandateCharter>): MandateCharter {
     guardrails: {
       allowed_action_categories: ["L0"],
       forbidden_action_categories: [],
+      max_auto_risk_tier: "L1",
     },
     cadence: { description: "daily" },
     reporting: { expectations: "none" },
@@ -37,12 +44,25 @@ function baseInput(
     actor: { type: "agent" },
     source: "native",
     charter: emptyCharter(),
+    open_children_count: partial.kind === "epic" ? 0 : undefined,
     ...partial,
   };
 }
 
 const human = { type: "human" as const };
-const agent = { type: "agent" as const };
+const agent = { type: "agent" as const, mandate_ids: [MANDATE_UUID] };
+
+const activeMandateParent: ParentTicketRef = {
+  kind: "mandate",
+  status: "active",
+  mandate_id: MANDATE_UUID,
+};
+
+const approvedEpicParent: ParentTicketRef = {
+  kind: "epic",
+  status: "approved",
+  mandate_id: MANDATE_UUID,
+};
 
 describe("evaluateTransition — git read-only", () => {
   it("rejects mutating verbs on git tickets with GIT_READ_ONLY", () => {
@@ -118,16 +138,60 @@ describe("evaluateTransition — hard limits", () => {
       charter,
       create_kind: "epic",
       counters: { open_epics: 2, open_tasks: 0, creations_today: 0, writes_today: 0 },
+      parent: activeMandateParent,
     });
     expect(r.allowed).toBe(false);
     if (!r.allowed) {
       expect(r.error.code).toBe("HARD_LIMIT_EXCEEDED");
     }
   });
+
+  it("denies when server hard limits exist but counters missing", () => {
+    const r = evaluateTransition({
+      kind: "task",
+      status: "approved",
+      verb: "ticket_claim",
+      actor: agent,
+      source: "native",
+      charter,
+      mandate_id: MANDATE_UUID,
+    });
+    expect(r.allowed).toBe(false);
+    if (!r.allowed) {
+      expect(r.error.code).toBe("HARD_LIMIT_COUNTERS_MISSING");
+    }
+  });
 });
 
 describe("evaluateTransition — soft_breach hints", () => {
-  it("never blocks on soft constraint breach", () => {
+  it("records warn-only soft breach without blocking", () => {
+    const charter = emptyCharter({
+      soft_constraints: [
+        {
+          id: "effort",
+          description: "effort",
+          metric: "effort_budget",
+          warn_threshold: 10,
+        },
+      ],
+    });
+    const r = evaluateTransition({
+      kind: "task",
+      status: "in_progress",
+      verb: "ticket_comment",
+      actor: agent,
+      source: "native",
+      charter,
+      mandate_id: MANDATE_UUID,
+      soft_observations: { effort: 12 },
+    });
+    expect(r.allowed).toBe(true);
+    if (r.allowed) {
+      expect(r.record_soft_breach?.[0]?.threshold_kind).toBe("warn");
+    }
+  });
+
+  it("denies when block_threshold exceeded", () => {
     const charter = emptyCharter({
       soft_constraints: [
         {
@@ -142,17 +206,222 @@ describe("evaluateTransition — soft_breach hints", () => {
     const r = evaluateTransition({
       kind: "task",
       status: "in_progress",
-      verb: "ticket_comment",
+      verb: "ticket_progress",
       actor: agent,
       source: "native",
       charter,
+      mandate_id: MANDATE_UUID,
+      counters: { open_epics: 0, open_tasks: 0, creations_today: 0, writes_today: 0 },
       soft_observations: { effort: 25 },
     });
-    expect(r.allowed).toBe(true);
-    if (r.allowed) {
-      expect(r.record_soft_breach?.[0]?.event_kind).toBe("soft_breach");
+    expect(r.allowed).toBe(false);
+    if (!r.allowed) {
+      expect(r.error.code).toBe("SOFT_BLOCK_THRESHOLD_EXCEEDED");
       expect(r.record_soft_breach?.[0]?.threshold_kind).toBe("block");
     }
+  });
+});
+
+describe("mandate kill switch", () => {
+  it("blocks agent claim when mandate paused", () => {
+    const r = evaluateTransition(
+      baseInput({
+        kind: "task",
+        status: "approved",
+        verb: "ticket_claim",
+        actor: agent,
+        mandate_status: "paused",
+        mandate_id: MANDATE_UUID,
+        counters: { open_epics: 0, open_tasks: 0, creations_today: 0, writes_today: 0 },
+      }),
+    );
+    expect(r.allowed).toBe(false);
+    if (!r.allowed) {
+      expect(r.error.code).toBe("MANDATE_NOT_ACTIVE");
+    }
+  });
+
+  it("still allows ticket_block for agents under paused mandate", () => {
+    const r = evaluateTransition(
+      baseInput({
+        kind: "task",
+        status: "in_progress",
+        verb: "ticket_block",
+        actor: agent,
+        mandate_status: "paused",
+        mandate_id: MANDATE_UUID,
+      }),
+    );
+    expect(r.allowed).toBe(true);
+  });
+
+  it("does not block human claim when mandate paused", () => {
+    const r = evaluateTransition(
+      baseInput({
+        kind: "task",
+        status: "approved",
+        verb: "ticket_claim",
+        actor: human,
+        mandate_status: "paused",
+      }),
+    );
+    expect(r.allowed).toBe(true);
+  });
+});
+
+describe("ownership OUTSIDE_MANDATE", () => {
+  it("denies agent claim outside mandate_ids", () => {
+    const r = evaluateTransition(
+      baseInput({
+        kind: "task",
+        status: "approved",
+        verb: "ticket_claim",
+        actor: { type: "agent", mandate_ids: ["other-mandate"] },
+        mandate_id: MANDATE_UUID,
+        counters: { open_epics: 0, open_tasks: 0, creations_today: 0, writes_today: 0 },
+      }),
+    );
+    expect(r.allowed).toBe(false);
+    if (!r.allowed) {
+      expect(r.error.code).toBe("OUTSIDE_MANDATE");
+    }
+  });
+});
+
+describe("parent rules INVALID_PARENT", () => {
+  it("rejects epic under draft mandate", () => {
+    const r = validateParentForCreate("epic", {
+      kind: "mandate",
+      status: "draft",
+      mandate_id: MANDATE_UUID,
+    });
+    expect(r?.allowed).toBe(false);
+    if (r && !r.allowed) {
+      expect(r.error.code).toBe("INVALID_PARENT");
+    }
+  });
+
+  it("rejects task under proposed epic", () => {
+    const r = validateParentForCreate("task", {
+      kind: "epic",
+      status: "proposed",
+      mandate_id: MANDATE_UUID,
+    });
+    expect(r?.allowed).toBe(false);
+  });
+});
+
+describe("epic authority", () => {
+  it("requires human to cancel approved epic", () => {
+    const r = evaluateTransition(
+      baseInput({
+        kind: "epic",
+        status: "approved",
+        verb: "ticket_cancel",
+        actor: agent,
+        mandate_id: MANDATE_UUID,
+      }),
+    );
+    expect(r.allowed).toBe(false);
+    if (!r.allowed) {
+      expect(r.error.code).toBe("HUMAN_ACTOR_REQUIRED");
+    }
+  });
+
+  it("denies epic complete with open children", () => {
+    const r = evaluateTransition(
+      baseInput({
+        kind: "epic",
+        status: "active",
+        verb: "ticket_complete",
+        actor: agent,
+        open_children_count: 2,
+        mandate_id: MANDATE_UUID,
+      }),
+    );
+    expect(r.allowed).toBe(false);
+    if (!r.allowed) {
+      expect(r.error.code).toBe("INVALID_TRANSITION");
+    }
+  });
+});
+
+describe("initialStatusOnCreate", () => {
+  it("mandate: human → draft", () => {
+    const r = initialStatusOnCreate({
+      kind: "mandate",
+      actor: human,
+      charter: emptyCharter(),
+    });
+    expect(r).toEqual({ ok: true, status: "draft", mandate_id: null });
+  });
+
+  it("mandate: agent denied", () => {
+    const r = initialStatusOnCreate({
+      kind: "mandate",
+      actor: agent,
+      charter: emptyCharter(),
+    });
+    expect(r.ok).toBe(false);
+  });
+
+  it("epic: agent → proposed by default", () => {
+    const r = initialStatusOnCreate({
+      kind: "epic",
+      actor: agent,
+      parent: activeMandateParent,
+      charter: emptyCharter(),
+      risk_tier: "L0",
+    });
+    expect(r).toEqual({ ok: true, status: "proposed", mandate_id: MANDATE_UUID });
+  });
+
+  it("epic: agent auto_within_tier → approved", () => {
+    const r = initialStatusOnCreate({
+      kind: "epic",
+      actor: agent,
+      parent: activeMandateParent,
+      charter: emptyCharter({
+        approval_policy: { epics: "auto_within_tier", tasks: "auto" },
+        guardrails: {
+          allowed_action_categories: ["L0"],
+          forbidden_action_categories: [],
+          max_auto_risk_tier: "L1",
+        },
+      }),
+      risk_tier: "L0",
+    });
+    expect(r).toEqual({ ok: true, status: "approved", mandate_id: MANDATE_UUID });
+  });
+
+  it("task: agent auto → approved within tier", () => {
+    const r = initialStatusOnCreate({
+      kind: "task",
+      actor: agent,
+      parent: approvedEpicParent,
+      charter: emptyCharter(),
+      risk_tier: "L0",
+    });
+    expect(r).toEqual({ ok: true, status: "approved", mandate_id: MANDATE_UUID });
+  });
+
+  it("task above tier must be decision proposed", () => {
+    const r = initialStatusOnCreate({
+      kind: "task",
+      actor: agent,
+      parent: approvedEpicParent,
+      charter: emptyCharter({ guardrails: { allowed_action_categories: ["L0"], forbidden_action_categories: [], max_auto_risk_tier: "L0" } }),
+      risk_tier: "L2",
+    });
+    expect(r.ok).toBe(false);
+    const decision = initialStatusOnCreate({
+      kind: "decision",
+      actor: agent,
+      parent: approvedEpicParent,
+      charter: emptyCharter({ guardrails: { allowed_action_categories: ["L0"], forbidden_action_categories: [], max_auto_risk_tier: "L0" } }),
+      risk_tier: "L2",
+    });
+    expect(decision).toEqual({ ok: true, status: "proposed", mandate_id: MANDATE_UUID });
   });
 });
 
@@ -188,7 +457,10 @@ function expectedFor(
     return { allowed: true };
   }
   if (verb === "ticket_create") {
-    return { allowed: true };
+    if (kind === "mandate") {
+      return { allowed: true };
+    }
+    return { allowed: false, code: "INVALID_PARENT" };
   }
 
   if (kind === "mandate") {
@@ -228,8 +500,10 @@ function expectedFor(
         ? { allowed: true, to_status: "cancelled" }
         : humanRequired;
     }
-    if (verb === "ticket_cancel" && status === "approved") {
-      return { allowed: true, to_status: "cancelled" };
+    if (verb === "ticket_cancel" && (status === "approved" || status === "active")) {
+      return actorType === "human"
+        ? { allowed: true, to_status: "cancelled" }
+        : humanRequired;
     }
     return invalid;
   }

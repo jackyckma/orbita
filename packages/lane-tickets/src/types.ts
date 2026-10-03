@@ -40,10 +40,22 @@ export type TicketVerb =
 
 export type ActorType = "human" | "agent" | "system";
 
+export type RiskTier = "L0" | "L1" | "L2" | "money";
+
 export interface Actor {
   type: ActorType;
   principal_id?: string;
   api_key_id?: string;
+  /** Mandate uuids this agent may operate in (required for agent ownership checks). */
+  mandate_ids?: string[];
+}
+
+export type EpicApprovalPolicy = "integrator" | "auto_within_tier";
+export type TaskApprovalPolicy = "auto" | "integrator";
+
+export interface ApprovalPolicy {
+  epics?: EpicApprovalPolicy;
+  tasks?: TaskApprovalPolicy;
 }
 
 export type HardLimitEnforcement = "server" | "environment" | "instruction";
@@ -85,6 +97,7 @@ export interface MandateCharter {
     forbidden_action_categories: string[];
     effort_budget_notes?: string;
     spend_budget_notes?: string;
+    max_auto_risk_tier?: RiskTier;
   };
   cadence: { description: string; interval_hours?: number };
   reporting: { expectations: string };
@@ -93,6 +106,7 @@ export interface MandateCharter {
   assigned_principals: string[];
   hard_limits: HardLimit[];
   soft_constraints: SoftConstraint[];
+  approval_policy?: ApprovalPolicy;
 }
 
 /** Snapshot counts for server-enforceable hard_limits (no database). */
@@ -107,7 +121,12 @@ export type TransitionErrorCode =
   | "GIT_READ_ONLY"
   | "INVALID_TRANSITION"
   | "HUMAN_ACTOR_REQUIRED"
-  | "HARD_LIMIT_EXCEEDED";
+  | "HARD_LIMIT_EXCEEDED"
+  | "MANDATE_NOT_ACTIVE"
+  | "OUTSIDE_MANDATE"
+  | "INVALID_PARENT"
+  | "HARD_LIMIT_COUNTERS_MISSING"
+  | "SOFT_BLOCK_THRESHOLD_EXCEEDED";
 
 export interface SoftBreachHint {
   event_kind: "soft_breach";
@@ -125,6 +144,7 @@ export interface TransitionDeny {
     message: string;
     details?: Record<string, unknown>;
   };
+  record_soft_breach?: SoftBreachHint[];
 }
 
 export interface TransitionAllow {
@@ -134,6 +154,13 @@ export interface TransitionAllow {
 }
 
 export type TransitionResult = TransitionDeny | TransitionAllow;
+
+/** Parent ticket snapshot for create-time parent rules. */
+export interface ParentTicketRef {
+  kind: TicketKind;
+  status: TicketStatus;
+  mandate_id: string;
+}
 
 export interface TransitionInput {
   kind: TicketKind;
@@ -153,4 +180,31 @@ export interface TransitionInput {
    * and mandate retire (progress_target=retired).
    */
   progress_target?: TicketStatus;
+  /** Ancestor mandate lifecycle status (for kill switch on subtree tickets). */
+  mandate_status?: MandateStatus;
+  /** Mandate uuid for this ticket (ownership + kill switch scope). */
+  mandate_id?: string;
+  /** Parent ticket for ticket_create parent/ownership rules. */
+  parent?: ParentTicketRef | null;
+  /** Open non-terminal children under an epic (required for agent epic complete). */
+  open_children_count?: number;
 }
+
+export interface InitialStatusInput {
+  kind: TicketKind;
+  actor: Actor;
+  parent?: ParentTicketRef | null;
+  charter: MandateCharter;
+  risk_tier?: RiskTier;
+}
+
+export type InitialStatusResult =
+  | { ok: true; status: TicketStatus; mandate_id: string | null }
+  | {
+      ok: false;
+      error: {
+        code: TransitionErrorCode;
+        message: string;
+        details?: Record<string, unknown>;
+      };
+    };
