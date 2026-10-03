@@ -1312,6 +1312,48 @@
         "REPLAN 2026-10-02: E-16 first pass (6/6) — DDL gated + docs; production enable stays on D-005 (founder-only).",
         "2026-10-02 hub review (claude-hub-session): amended before implementation - see description."
       ]
+    },
+    {
+      "id": "T-0092",
+      "lane": "agent",
+      "phase": "consultos-byok",
+      "title": "Configurable chat LLM providers: OpenAI-compatible primary and fallback, optional host allowlist",
+      "description": "Today the chat runtime is tied to MiniMax (packages/lane-agent/src/runtime.ts via the OpenAI SDK with MINIMAX_API_KEY/MINIMAX_BASE_URL/MINIMAX_MODEL, tool loop of up to 8 iterations, failover to Anthropic via @anthropic-ai/sdk) and the summarizer likewise (verify the real files first). Make providers configuration WITHOUT changing the default behaviour: if none of the new variables is set, everything works exactly as today. New env: LLM_PRIMARY_PROVIDER = 'minimax' (default) | 'openai_compatible' | 'anthropic'; for openai_compatible: LLM_PRIMARY_BASE_URL, LLM_PRIMARY_API_KEY, LLM_PRIMARY_MODEL (all required) and optional LLM_PRIMARY_EXTRA_HEADERS (JSON object of non-secret headers such as HTTP-Referer/X-Title); for anthropic: ANTHROPIC_API_KEY and LLM_PRIMARY_MODEL. LLM_FALLBACK_* with the same shape (default: anthropic when ANTHROPIC_API_KEY is set, as today; 'none' disables fallback). LLM_SUMMARIZER_* optional, default = primary. LLM_ALLOWED_HOSTS (comma-separated hostnames, optional): when set, a provider whose base URL host is not in the list is REFUSED (fail closed: that provider is not used, one clear error line without secrets at startup and on use; if the primary is refused and no allowed fallback exists the agent turn fails with a clear error instead of silently using another provider). At startup log ONE info line with provider kind, base URL HOST and model of primary/fallback/summarizer and whether the allowlist is on - never keys, never full URLs with query strings. Keep the tool-calling loop, failover rules and token handling unchanged; handle differences between OpenAI-compatible servers defensively (missing usage object, tool_calls null) without changing semantics. Tests with mocked clients/fetch: default unchanged; openai_compatible primary uses the configured URL/model/key/extra headers; anthropic primary; allowlist refuses a disallowed host and allows an allowed one; missing required variable gives a clear error; fallback used when primary fails; summarizer override; no secret in any captured log. Document the variables in .env.example and docs (technical.md or a new docs/llm-providers.md). Do NOT change harness code, agent profiles, embeddings (T-0091), the vault or the DB; no DDL. FOUNDER-ONLY after merge: setting Zeabur env values.",
+      "acceptance": [
+        "pnpm --filter @orbita/agent test",
+        "pnpm -r typecheck",
+        "rg -n \"LLM_PRIMARY_PROVIDER\" packages/lane-agent/src .env.example",
+        "rg -n \"LLM_ALLOWED_HOSTS\" packages/lane-agent/src",
+        "! rg -n \"LLM_PRIMARY_API_KEY|LLM_FALLBACK_API_KEY\" packages/lane-agent/src | rg -i \"log|warn|info\""
+      ],
+      "deps": [],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "2026-10-03 hub (claude-hub-session): written after the founder said productised tenants will bring their own API keys and EU-only operation must be possible."
+      ]
+    },
+    {
+      "id": "T-0093",
+      "lane": "memory",
+      "phase": "consultos-privacy",
+      "title": "Notes: DELETE /v1/notes/{id}, plus admin find/export/erase by data subject",
+      "description": "VERIFIED 2026-10-03: no way to delete a note through the API. Implement behind ORBITA_NOTES_DELETE_ENABLED (default OFF: when off the new routes answer 404, like unknown routes). (1) DELETE /v1/notes/{id} (caller API, client-scoped by the auth context): hard-delete the note row (its embedding is in the same row) and ALL note_links where it is from_id or to_id, in ONE transaction; 204 on success; 404 if not found or belongs to another client; no body content in logs; log one structured info line (event note_deleted, note id, client id, count of removed links). (2) Convention: a note about a person carries frontmatter data_subject (a stable string, e.g. an email or visitor id). (3) Admin routes (admin auth, same pattern as the other /v1/admin routes; they are filtered out of the public OpenAPI): GET /v1/admin/data-subjects/{subject}/notes?client_id=<id> returns the matching notes (id, title, frontmatter, body, created_at, updated_at) for an access/export request (frontmatter->>'data_subject' = subject AND client_id = given); DELETE /v1/admin/data-subjects/{subject}?client_id=<id>&confirm=<subject> hard-deletes all matching notes and their links in one transaction and returns {deleted_notes, deleted_links}; a missing or mismatching confirm -> 400; client_id is REQUIRED (never cross-client); log one structured info line with counts only (event data_subject_erased, client id, a SHA-256 hash of the subject, counts) - never the subject itself or any content. (4) docs/privacy-operations.md: how to answer an access request and an erasure request, the data_subject convention, what is NOT covered (sessions, messages, trajectories, harness runs, logs) and the provider-side retention reminder. (5) Tests with fakes: delete removes note+links of both directions; cross-client isolation (404); flag OFF -> 404; erase-by-subject only touches the given client; confirm mismatch -> 400; admin auth required; no content/subject in captured logs. Do NOT add an MCP tool (destructive for agents; revisit with E-17 scopes), no soft delete or trash, no DDL, no change to export or search. FOUNDER-ONLY after merge: set ORBITA_NOTES_DELETE_ENABLED=1 in Zeabur.",
+      "acceptance": [
+        "pnpm --filter @orbita/memory test",
+        "pnpm -r typecheck",
+        "rg -n \"ORBITA_NOTES_DELETE_ENABLED\" packages apps",
+        "rg -n \"data-subjects\" packages apps",
+        "test -f docs/privacy-operations.md"
+      ],
+      "deps": [],
+      "flag": "ORBITA_NOTES_DELETE_ENABLED",
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "2026-10-03 hub (claude-hub-session): written after the founder approved notes deletion as a prerequisite for storing visitor conversations."
+      ]
     }
   ]
 }

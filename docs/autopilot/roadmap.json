@@ -242,6 +242,26 @@
       "decomposes_into": ["T-0090"],
       "decisions": [],
       "notes": "Small epic OUTSIDE the E-14..E-21 sequence; its task is written and ready. Apply the PRODUCTION SAFETY RULES block at the start of the notes of E-14. Founder decision 2026-10-03: operating the database directly to stop two ai-transformation harnesses was not acceptable; the admin API had no harness routes (the caller API PATCH /v1/harnesses/{id} needs that tenant's own API key). Admin = read plus one action (pause/resume)."
+    },
+    {
+      "id": "E-24",
+      "title": "Configurable LLM providers for chat (BYOK-ready)",
+      "goal": "Make the chat/agent LLM providers configuration (base URL, key, model, fallback, host allowlist) instead of code, so customers can bring their own API keys and operators can restrict providers to chosen regions.",
+      "status": "approved",
+      "phase": "consultos-byok",
+      "decomposes_into": ["T-0092"],
+      "decisions": [],
+      "notes": "Small epic OUTSIDE the E-14..E-21 sequence; its task is written and ready. Apply the PRODUCTION SAFETY RULES block at the start of the notes of E-14 (default behaviour unchanged, no DDL, never log keys). Founder direction 2026-10-03: Orbita is self-use today; productised tenants will bring their own API keys (one server per tenant), so provider choice must be configuration; EU-only operation must be possible via a host allowlist. Embeddings are handled by T-0091 (E-04)."
+    },
+    {
+      "id": "E-25",
+      "title": "Data-subject rights: delete notes and erase by subject",
+      "goal": "Give the operator technical means to delete a note and to find/export/erase all notes about one data subject (GDPR Art. 15 and 17) before any third-party personal data (e.g. website visitor conversations) is stored in Orbita.",
+      "status": "approved",
+      "phase": "consultos-privacy",
+      "decomposes_into": ["T-0093"],
+      "decisions": [],
+      "notes": "Small epic OUTSIDE the E-14..E-21 sequence; its task is written and ready. Apply the PRODUCTION SAFETY RULES block at the start of the notes of E-14 (new behaviour behind an ORBITA_* flag default OFF, no DDL, never log note bodies). Verified 2026-10-03: the public OpenAPI has no DELETE for notes (/v1/notes/{id} has get and put only). NOT in scope: sessions/messages/trajectory personal data (follow-up), a trash/soft delete, an MCP delete tool (destructive for agents; revisit with E-17 scopes such as notes:delete)."
     }
   ]
 }
