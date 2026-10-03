@@ -160,6 +160,12 @@ async function renderDashboard() {
       </div>
 
       <div class="panel">
+        <h2>Harnesses</h2>
+        <div id="harness-help"></div>
+        <div id="harness-table">Loading…</div>
+      </div>
+
+      <div class="panel">
         <h2>HTTP allowed domains</h2>
         <p class="hint">Comma-separated hostnames for <code>http_get</code> / <code>http_post</code>. Empty = allow any HTTPS host.</p>
         <label for="domains">Domains</label>
@@ -275,6 +281,7 @@ async function renderDashboard() {
   await loadUsage();
   await loadSessions();
   await loadScheduler();
+  await loadHarnesses();
   await loadSettings();
   await loadKeys();
   await loadCreds();
@@ -396,6 +403,91 @@ async function loadSessions() {
       }
     };
   });
+  } catch (e) {
+    tableEl.innerHTML = `<div class="error">${esc(e.message)}</div>`;
+  }
+}
+
+function harnessEnabledLabel(enabled) {
+  return enabled ? "Enabled" : "Paused";
+}
+
+function harnessToggleLabel(enabled) {
+  return enabled ? "Pause" : "Resume";
+}
+
+function harnessHelpHtml() {
+  const lines = [
+    "Scheduled agent runs (harnesses) that Orbita starts on a cron for each tenant.",
+    "Check here when a tenant’s scheduled job should be running but is not, or when you need to stop Orbita from firing a schedule without deleting the harness.",
+    "Pausing stops Orbita from starting this scheduled agent run. It does not stop a manual trigger by the tenant and does not change anything outside Orbita.",
+  ];
+  return lines.map((line) => `<p class="hint">${esc(line)}</p>`).join("");
+}
+
+function harnessRowHtml(h) {
+  const badge = harnessEnabledLabel(h.enabled);
+  const schedule = h.cron ? `${esc(h.cron)} (${esc(h.timezone)})` : "—";
+  const nextRun = h.next_run_at ? esc(h.next_run_at) : "—";
+  const last = h.latest_run
+    ? `${esc(h.latest_run.status)} @ ${esc(h.latest_run.finished_at || h.latest_run.started_at)}`
+    : "—";
+  const action = harnessToggleLabel(h.enabled);
+  return `<tr>
+        <td class="mono">${esc(h.name)}</td>
+        <td class="mono">${esc(h.client_id)}</td>
+        <td><span class="badge">${esc(badge)}</span></td>
+        <td>${schedule}</td>
+        <td>${nextRun}</td>
+        <td>${last}</td>
+        <td><button class="secondary" data-harness-toggle="${esc(h.id)}" data-enabled="${h.enabled ? "1" : "0"}">${esc(action)}</button></td>
+      </tr>`;
+}
+
+function renderHarnessTable(harnesses) {
+  const rows = harnesses.map((h) => harnessRowHtml(h)).join("");
+  return `
+    <table>
+      <thead><tr><th>Name</th><th>Client</th><th>Status</th><th>Cron</th><th>Next run</th><th>Last run</th><th></th></tr></thead>
+      <tbody>${rows || '<tr><td colspan="7">No harnesses yet.</td></tr>'}</tbody>
+    </table>`;
+}
+
+async function loadHarnesses() {
+  const helpEl = document.getElementById("harness-help");
+  const tableEl = document.getElementById("harness-table");
+  if (helpEl) helpEl.innerHTML = harnessHelpHtml();
+  try {
+    const { harnesses } = await api("/harnesses");
+    tableEl.innerHTML = renderHarnessTable(harnesses);
+    document.querySelectorAll("[data-harness-toggle]").forEach((btn) => {
+      btn.onclick = async () => {
+        const id = btn.dataset.harnessToggle;
+        const currentlyEnabled = btn.dataset.enabled === "1";
+        const nextEnabled = !currentlyEnabled;
+        const reason = window.prompt(
+          `Reason for ${harnessToggleLabel(currentlyEnabled).toLowerCase()} (required):`,
+        );
+        if (reason == null) return;
+        const trimmed = reason.trim();
+        if (!trimmed) {
+          flash("A short reason is required.", true);
+          return;
+        }
+        const verb = harnessToggleLabel(currentlyEnabled);
+        if (!confirm(`${verb} this harness?`)) return;
+        try {
+          await api(`/harnesses/${id}`, {
+            method: "PATCH",
+            body: JSON.stringify({ enabled: nextEnabled, reason: trimmed }),
+          });
+          flash(`Harness ${verb.toLowerCase()}d.`);
+          await loadHarnesses();
+        } catch (e) {
+          flash(e.message, true);
+        }
+      };
+    });
   } catch (e) {
     tableEl.innerHTML = `<div class="error">${esc(e.message)}</div>`;
   }
