@@ -4,6 +4,7 @@ import {
   createAdminAuthMiddleware,
   createAdminConsoleRoutes,
   createAdminDb,
+  createAdminHarnessRoutes,
   createAdminObservabilityRoutes,
   createAdminSessionRoutes,
   createAdminSettingsRoutes,
@@ -291,6 +292,7 @@ adminApp.route("/", createAdminObservabilityRoutes(adminDb, {
     messagesPerDay: env.ORBITA_QUOTA_MESSAGES_PER_DAY,
   },
 }));
+adminApp.route("/", createAdminHarnessRoutes(adminDb));
 adminApp.route(
   "/",
   createCredentialAdminRoutes(credentialsDb, env.ORBITA_SECRETS_KEY!),
