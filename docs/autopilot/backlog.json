@@ -1145,6 +1145,30 @@
       ]
     },
     {
+      "id": "T-0089",
+      "lane": "platform",
+      "phase": "consultos-b",
+      "title": "lane-tickets: engine amendments (initial status on create, mandate kill switch, ownership, fail-closed limits, soft block semantics)",
+      "description": "Hub review of T-0083/T-0084 on 2026-10-03 found that packages/lane-tickets/src/transitions.ts is clean and tested but does not yet encode the mandate model. Amend the PURE engine (no db, no http) and the contracts. (1) INITIAL STATUS ON CREATE: add pure `initialStatusOnCreate({kind, actor, parent, charter, risk_tier})`. mandate: only human actors may create; status draft. epic: by an agent -> proposed; by a human -> approved; by an agent -> approved ONLY if charter.approval_policy.epics === 'auto_within_tier' and risk_tier <= charter.guardrails.max_auto_risk_tier. task and decision: by an agent under an epic in {approved, active} of its OWN mandate -> approved when charter.approval_policy.tasks === 'auto' (the DEFAULT) and risk_tier <= max_auto_risk_tier; otherwise proposed (needs a human). An action above the allowed tier is never auto-approved: it must be created as kind decision in status proposed. Add `approval_policy` {epics: 'integrator'|'auto_within_tier' (default integrator), tasks: 'auto'|'integrator' (default auto)} and `guardrails.max_auto_risk_tier` to contracts/charter.schema.json and the golden fixture under data/simulators/lane-tickets; fix INTERFACE.md so that 'proposed -> approved by human' applies only to the non-auto cases. (2) MANDATE KILL SWITCH: TransitionInput gains mandate_status; when the mandate is paused, retired or draft, deny every mutating verb by AGENT actors for tickets in that mandate subtree with code MANDATE_NOT_ACTIVE, except ticket_comment, ticket_block and ticket_request_decision; human actors are unaffected. A paused mandate is the founder's emergency stop. (3) OWNERSHIP: Actor gains principal_id and (for agents) mandate_ids; deny with OUTSIDE_MANDATE when an agent's mandate_ids does not include the ticket's mandate (create checks the parent's mandate; claim, progress, complete, block, cancel, extend, comment check the ticket's). (4) PARENT RULES: epic parent must be an ACTIVE mandate; task parent must be an epic in approved|active; decision parent any non-terminal ticket; children inherit mandate_id; else INVALID_PARENT. (5) AUTHORITY: after an epic is approved, cancelling it (approved|active) requires a human actor (executors may only cancel tasks of their own mandate); an agent may complete an epic only when open_children_count is 0 (new input field), else INVALID_TRANSITION. (6) FAIL CLOSED: if the charter has any hard_limit with enforcement 'server' and the caller supplied no counters, deny with HARD_LIMIT_COUNTERS_MISSING (today checkServerHardLimits returns null = silently allows); never skip silently. (7) SOFT BLOCK SEMANTICS: a soft constraint with block_threshold DOES block when observed >= block_threshold (deny SOFT_BLOCK_THRESHOLD_EXCEEDED and still return the soft_breach hint); warn_threshold only records; constraints without block_threshold never block; document in INTERFACE.md and the charter schema; add the new error codes to contracts/errors.schema.json. (8) Tests: extend transitions.test.ts with one test per rule above plus the human/agent matrix; keep every existing test green; keep the engine pure and exported from the package entry. Do NOT add a repository, routes, DDL or MCP tools here.",
+      "acceptance": [
+        "pnpm --filter @orbita/tickets test",
+        "pnpm --filter @orbita/tickets build",
+        "node --test packages/lane-tickets/contracts/validate-contracts.test.mjs",
+        "rg -n \"MANDATE_NOT_ACTIVE|OUTSIDE_MANDATE|INVALID_PARENT|HARD_LIMIT_COUNTERS_MISSING|SOFT_BLOCK_THRESHOLD_EXCEEDED\" packages/lane-tickets/src",
+        "rg -n \"approval_policy\" packages/lane-tickets/contracts",
+        "rg -n \"initialStatusOnCreate\" packages/lane-tickets/src"
+      ],
+      "deps": [
+        "T-0084"
+      ],
+      "flag": "ORBITA_TICKETS_ENABLED",
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "2026-10-03 hub review (claude-hub-session): inserted before T-0085 so the repository is built on the amended engine."
+      ]
+    },
+    {
       "id": "T-0085",
       "lane": "platform",
       "phase": "consultos-b",
@@ -1156,14 +1180,16 @@
         "rg -n \"FakeTicketRepository|fake-repository\" packages/lane-tickets/src"
       ],
       "deps": [
-        "T-0084"
+        "T-0084",
+        "T-0089"
       ],
       "flag": "ORBITA_TICKETS_ENABLED",
       "status": "ready",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-02: E-16 first pass (3/6) — repository + fakes before API surface.",
-        "2026-10-02 hub review (claude-hub-session): amended before implementation - see description."
+        "2026-10-02 hub review (claude-hub-session): amended before implementation - see description.",
+        "2026-10-03 hub: now depends on T-0089 (engine amendments) so the repository uses initialStatusOnCreate, mandate_status, actor principal/mandate ids and fail-closed counters."
       ]
     },
     {
