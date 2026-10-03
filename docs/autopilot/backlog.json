@@ -1185,7 +1185,7 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "ready",
+      "status": "in_progress",
       "retries": 0,
       "feedback": [
         "2026-10-03 hub (claude-hub-session): added after the founder asked not to operate the database directly to pause the ai-transformation harnesses."
