@@ -1162,7 +1162,7 @@
         "T-0084"
       ],
       "flag": "ORBITA_TICKETS_ENABLED",
-      "status": "ready",
+      "status": "in_progress",
       "retries": 0,
       "feedback": [
         "2026-10-03 hub review (claude-hub-session): inserted before T-0085 so the repository is built on the amended engine."
