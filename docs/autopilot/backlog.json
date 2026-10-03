@@ -1162,10 +1162,11 @@
         "T-0084"
       ],
       "flag": "ORBITA_TICKETS_ENABLED",
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
       "feedback": [
-        "2026-10-03 hub review (claude-hub-session): inserted before T-0085 so the repository is built on the amended engine."
+        "2026-10-03 hub review (claude-hub-session): inserted before T-0085 so the repository is built on the amended engine.",
+        "MAKER 2026-10-03: PR https://github.com/jackyckma/orbita/pull/48; @orbita/tickets test+build + contract validate green."
       ]
     },
     {

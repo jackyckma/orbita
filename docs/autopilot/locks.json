@@ -4,8 +4,8 @@
     "T-0089": {
       "by": "maker",
       "since": "2026-10-03T09:26:00.000Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/t-0089-lane-tickets-engine-amendments",
+      "pr": 48
     }
   }
 }
