@@ -25,11 +25,22 @@ embeddings, so results were empty.
 
 1. Redeploy API with the MiniMax-native embed client.
 2. Confirm env on the API service (no secret values in chat):
+
+   **MiniMax (default `EMBEDDING_PROVIDER=minimax`):**
    - `MINIMAX_API_KEY` set
    - `MINIMAX_BASE_URL` (default `https://api.minimax.io/v1`)
    - `EMBEDDING_MODEL=embo-01`
    - `EMBEDDING_DIMENSIONS=1024` (must match `vector(1024)` in migrations)
    - optional `MINIMAX_GROUP_ID` if your MiniMax region requires `?GroupId=`
+
+   **OpenAI-compatible (e.g. OpenRouter `EMBEDDING_PROVIDER=openai_compatible`):**
+   - `EMBEDDING_API_KEY` set (not `MINIMAX_API_KEY`)
+   - `EMBEDDING_BASE_URL` (default `https://openrouter.ai/api/v1`)
+   - `EMBEDDING_MODEL` — model id from the provider’s embedding list
+   - `EMBEDDING_DIMENSIONS=1024` (returned vector length must match `vector(1024)`)
+   - optional `EMBEDDING_SEND_DIMENSIONS=1` to send a `dimensions` field in the request
+   - optional `EMBEDDING_HTTP_REFERER` / `EMBEDDING_APP_TITLE` (sent as `HTTP-Referer` / `X-Title`)
+   - Startup log should show `embedding selftest ok dims=1024` when `ORBITA_EMBED_SELFTEST` is enabled (default).
 3. **Re-index existing notes** — old rows stay `embedding IS NULL` until rewritten:
    - `PUT /v1/notes/{id}` with the same body (or a batch re-put), or
    - SQL check: `SELECT count(*) FILTER (WHERE embedding IS NULL) FROM notes WHERE client_id = …`
