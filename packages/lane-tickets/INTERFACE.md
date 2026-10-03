@@ -27,7 +27,8 @@ Executors may create children only under parents in their mandate subtree (enfor
 
 - **purpose**, **principles**, **guardrails** (allowed/forbidden risk tiers), **cadence**, **reporting**, **success_measures**, **review_date**, **assigned_principals**
 - **`hard_limits`**: never adjustable by the executor. Each entry has **`enforcement`**: `server` (Orbita rejects), `environment` (capability absent), or `instruction` (policy text; checked after the fact). Default for ambiguous limits is **hard**.
-- **`soft_constraints`**: time/effort split, cadence targets, quality targets, budgets with **warn** and **block** thresholds — **never blocking by default**. Crossing records a **`soft_breach`** event (see `soft-breach-event.schema.json`).
+- **`approval_policy`**: `epics` (`integrator` default | `auto_within_tier`) and `tasks` (`auto` default | `integrator`). Works with **`guardrails.max_auto_risk_tier`** for agent auto-approve on create (see `initialStatusOnCreate` in the pure engine).
+- **`soft_constraints`**: **warn_threshold** only records **`soft_breach`**; **block_threshold** denies transitions with **`SOFT_BLOCK_THRESHOLD_EXCEEDED`** when observed ≥ threshold (constraints without `block_threshold` never block).
 
 Charter changes are audited; changing **hard_limits** or loosening hard → soft requires a human-approved principal.
 
@@ -55,10 +56,10 @@ proposed → approved → active → done
 
 | From | Verb | To | Actor |
 |------|------|-----|-------|
-| proposed | ticket_approve | approved | human approver |
+| proposed | ticket_approve | approved | human (non-auto epic create paths) |
 | approved | ticket_progress | active | agent |
 | active | ticket_complete | done | agent |
-| proposed / approved | ticket_cancel | cancelled | human for proposed cancel |
+| proposed / approved / active | ticket_cancel | cancelled | human (agents may not cancel approved/active epics) |
 
 ### Task and decision
 
@@ -70,7 +71,7 @@ Side: waiting_human, blocked (ticket_block), cancelled
 
 | From | Verb | To | Notes |
 |------|------|-----|-------|
-| proposed | ticket_approve | approved | human |
+| proposed | ticket_approve | approved | human (when create did not auto-approve) |
 | approved | ticket_claim | claimed | atomic lease |
 | claimed | ticket_progress | in_progress | lease holder |
 | in_progress | ticket_progress | in_review | |
@@ -118,9 +119,16 @@ Tickets with `source=git` reject **all** transition verbs with HTTP **409** and 
 
 Validate: `node --test packages/lane-tickets/contracts/validate-contracts.test.mjs`
 
+## Pure engine (T-0084 / T-0089)
+
+- **`initialStatusOnCreate`**: mandate create is human-only → `draft`; epic/task/decision initial status from `approval_policy`, actor, parent, and `risk_tier`.
+- **`mandate_status`** on transitions: when ancestor mandate is `draft`, `paused`, or `retired`, **agent** mutating verbs deny with **`MANDATE_NOT_ACTIVE`** (except `ticket_comment`, `ticket_block`, `ticket_request_decision`).
+- **Ownership**: agent actors carry `mandate_ids`; **`OUTSIDE_MANDATE`** when not in the ticket’s mandate.
+- **Fail-closed counters**: server **`hard_limits`** without supplied counters → **`HARD_LIMIT_COUNTERS_MISSING`**.
+
 ## Does not (this slice)
 
-- No `src/` runtime yet (T-0084+)
+- No repository / HTTP / MCP runtime (T-0085+)
 - No notes API / MCP note_* changes
 - No DDL or routes until later tasks
 

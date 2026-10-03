@@ -29,6 +29,81 @@
         }
       ],
       "description": "HTTP 409 when any transition verb is attempted on a git-sourced ticket."
+    },
+    "mandate_not_active": {
+      "allOf": [
+        { "$ref": "common.schema.json#/definitions/error_envelope" },
+        {
+          "properties": {
+            "error": {
+              "properties": {
+                "code": { "const": "MANDATE_NOT_ACTIVE" }
+              }
+            }
+          }
+        }
+      ],
+      "description": "Agent mutation blocked while ancestor mandate is draft, paused, or retired."
+    },
+    "outside_mandate": {
+      "allOf": [
+        { "$ref": "common.schema.json#/definitions/error_envelope" },
+        {
+          "properties": {
+            "error": {
+              "properties": {
+                "code": { "const": "OUTSIDE_MANDATE" }
+              }
+            }
+          }
+        }
+      ],
+      "description": "Agent actor mandate_ids does not include the ticket mandate."
+    },
+    "invalid_parent": {
+      "allOf": [
+        { "$ref": "common.schema.json#/definitions/error_envelope" },
+        {
+          "properties": {
+            "error": {
+              "properties": {
+                "code": { "const": "INVALID_PARENT" }
+              }
+            }
+          }
+        }
+      ],
+      "description": "ticket_create parent kind/status violates hierarchy rules."
+    },
+    "hard_limit_counters_missing": {
+      "allOf": [
+        { "$ref": "common.schema.json#/definitions/error_envelope" },
+        {
+          "properties": {
+            "error": {
+              "properties": {
+                "code": { "const": "HARD_LIMIT_COUNTERS_MISSING" }
+              }
+            }
+          }
+        }
+      ],
+      "description": "Charter has server hard_limits but caller omitted mandate counters."
+    },
+    "soft_block_threshold_exceeded": {
+      "allOf": [
+        { "$ref": "common.schema.json#/definitions/error_envelope" },
+        {
+          "properties": {
+            "error": {
+              "properties": {
+                "code": { "const": "SOFT_BLOCK_THRESHOLD_EXCEEDED" }
+              }
+            }
+          }
+        }
+      ],
+      "description": "Observed metric crossed a soft_constraint block_threshold."
     }
   }
 }

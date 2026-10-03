@@ -22,7 +22,12 @@
         "guardrails": {
           "allowed_action_categories": ["L0", "L1"],
           "forbidden_action_categories": ["money"],
-          "effort_budget_notes": "No paid tools without decision ticket."
+          "effort_budget_notes": "No paid tools without decision ticket.",
+          "max_auto_risk_tier": "L0"
+        },
+        "approval_policy": {
+          "epics": "auto_within_tier",
+          "tasks": "auto"
         },
         "cadence": {
           "description": "Daily signal scan; weekly synthesis note.",
@@ -56,10 +61,7 @@
             "block_threshold": 0.65,
             "target_value": 0.4
           }
-        ],
-        "epic_auto_approve_policy": {
-          "allowed_risk_tiers": ["L0"]
-        }
+        ]
       },
       "created_at": "2026-10-01T07:00:00.000Z",
       "updated_at": "2026-10-02T06:00:00.000Z"
