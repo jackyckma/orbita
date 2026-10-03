@@ -1208,10 +1208,12 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
       "feedback": [
-        "2026-10-03 hub (claude-hub-session): added after the founder confirmed the MiniMax key is a Token Plan subscription key and chose OpenRouter for embeddings."
+        "2026-10-03 hub (claude-hub-session): added after the founder confirmed the MiniMax key is a Token Plan subscription key and chose OpenRouter for embeddings.",
+        "MAKER 2026-10-03: PR https://github.com/jackyckma/orbita/pull/50; @orbita/memory test + pnpm -r typecheck green.",
+        "FOUNDER-ONLY after merge: Zeabur EMBEDDING_PROVIDER=openai_compatible, EMBEDDING_API_KEY=<OpenRouter>, EMBEDDING_MODEL=<embedding model id; e.g. bge-m3 or openai/text-embedding-3-small with EMBEDDING_SEND_DIMENSIONS=1 and EMBEDDING_DIMENSIONS=1024>; confirm log embedding selftest ok dims=1024; then ORBITA_EMBED_BACKFILL=1."
       ]
     },
     {

@@ -4,8 +4,8 @@
     "T-0091": {
       "by": "maker",
       "since": "2026-10-03T23:12:00.000Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/t-0091-embedding-provider-abstraction",
+      "pr": 50
     }
   }
 }
