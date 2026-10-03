@@ -1,4 +1,8 @@
 import type { MemoryEnv } from "./config.js";
+import {
+  EMBEDDING_PROVIDER_OPENAI_COMPATIBLE,
+  effectiveEmbeddingModel,
+} from "./config.js";
 import type { EmbedFailureReason } from "./embed.js";
 
 /** Minimal sink reused by orbita-api pino logger and unit tests. */
@@ -10,7 +14,7 @@ export type EmbedLogger = {
 export type EmbedLogReason =
   | { code: "no_api_key" }
   | { code: "empty_text" }
-  | { code: "http_status"; status: number }
+  | { code: "http_status"; status: number; message?: string }
   | {
       code: "base_resp_error";
       status_code: number;
@@ -37,22 +41,35 @@ export function getEmbedLogger(): EmbedLogger {
 }
 
 export function embeddingBaseUrlHost(env: MemoryEnv): string {
+  const raw =
+    env.EMBEDDING_PROVIDER === EMBEDDING_PROVIDER_OPENAI_COMPATIBLE
+      ? env.EMBEDDING_BASE_URL
+      : env.MINIMAX_BASE_URL;
   try {
-    return new URL(env.MINIMAX_BASE_URL).host;
+    return new URL(raw).host;
   } catch {
     return "invalid-host";
   }
 }
 
 export function embedLogContext(env: MemoryEnv): {
+  provider: string;
   model: string;
   base_url_host: string;
-  group_id_configured: boolean;
+  group_id_configured?: boolean;
 } {
+  const provider = env.EMBEDDING_PROVIDER;
+  const model =
+    provider === EMBEDDING_PROVIDER_OPENAI_COMPATIBLE
+      ? (env.EMBEDDING_MODEL?.trim() ?? "(unset)")
+      : effectiveEmbeddingModel(env);
   return {
-    model: env.EMBEDDING_MODEL,
+    provider,
+    model,
     base_url_host: embeddingBaseUrlHost(env),
-    group_id_configured: Boolean(env.MINIMAX_GROUP_ID),
+    ...(provider === EMBEDDING_PROVIDER_OPENAI_COMPATIBLE
+      ? {}
+      : { group_id_configured: Boolean(env.MINIMAX_GROUP_ID) }),
   };
 }
 
@@ -65,7 +82,11 @@ export function embedFailureToLogReason(
     case "empty_text":
       return { code: "empty_text" };
     case "http_error":
-      return { code: "http_status", status: failure.httpStatus };
+      return {
+        code: "http_status",
+        status: failure.httpStatus,
+        ...(failure.message ? { message: failure.message } : {}),
+      };
     case "minimax_status":
       return {
         code: "base_resp_error",
@@ -123,7 +144,10 @@ export function formatEmbedSelfTestReasonLabel(reason: EmbedLogReason): string {
 function logReasonFields(reason: EmbedLogReason): Record<string, unknown> {
   switch (reason.code) {
     case "http_status":
-      return { http_status: reason.status };
+      return {
+        http_status: reason.status,
+        ...(reason.message ? { provider_message: reason.message } : {}),
+      };
     case "base_resp_error":
       return {
         status_code: reason.status_code,

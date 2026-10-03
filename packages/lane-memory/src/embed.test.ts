@@ -334,6 +334,192 @@ describe("embedText", () => {
     expect(warnCapture.logger.info).not.toHaveBeenCalled();
   });
 
+  describe("openai_compatible provider", () => {
+    it("POSTs OpenAI-style body to EMBEDDING_BASE_URL with optional headers", async () => {
+      const vector = Array.from({ length: 1024 }, () => 0.02);
+      const fetchMock = vi.fn(
+        async (_url: string | URL | Request, _init?: RequestInit) =>
+          Response.json({ data: [{ embedding: vector }] }),
+      );
+      vi.stubGlobal("fetch", fetchMock);
+
+      const env = loadMemoryEnv({
+        EMBEDDING_PROVIDER: "openai_compatible",
+        EMBEDDING_API_KEY: "or-key",
+        EMBEDDING_BASE_URL: "https://openrouter.ai/api/v1",
+        EMBEDDING_MODEL: "baai/bge-m3",
+        EMBEDDING_HTTP_REFERER: "https://get-orbita.com",
+        EMBEDDING_APP_TITLE: "Orbita",
+        EMBEDDING_DIMENSIONS: "1024",
+      });
+
+      const result = await embedText(env, "note body", { purpose: "query" });
+      expect(result).toEqual(vector);
+      expect(fetchMock).toHaveBeenCalledOnce();
+      const [url, init] = fetchMock.mock.calls[0]!;
+      expect(String(url)).toBe("https://openrouter.ai/api/v1/embeddings");
+      expect(init?.headers).toMatchObject({
+        Authorization: "Bearer or-key",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://get-orbita.com",
+        "X-Title": "Orbita",
+      });
+      expect(JSON.parse(String(init?.body))).toEqual({
+        model: "baai/bge-m3",
+        input: "note body",
+      });
+      const w = warnCapture.warnCalls;
+      expect(w).toHaveLength(0);
+      const lastInfo = warnCapture.logger.info;
+      expect(lastInfo).not.toHaveBeenCalled();
+    });
+
+    it("sends dimensions when EMBEDDING_SEND_DIMENSIONS=1", async () => {
+      const vector = Array.from({ length: 1024 }, () => 0.01);
+      const fetchMock = vi.fn(
+        async (_url: string | URL | Request, _init?: RequestInit) =>
+          Response.json({ data: [{ embedding: vector }] }),
+      );
+      vi.stubGlobal("fetch", fetchMock);
+
+      const env = loadMemoryEnv({
+        EMBEDDING_PROVIDER: "openai_compatible",
+        EMBEDDING_API_KEY: "or-key",
+        EMBEDDING_MODEL: "openai/text-embedding-3-small",
+        EMBEDDING_SEND_DIMENSIONS: "1",
+        EMBEDDING_DIMENSIONS: "1024",
+      });
+
+      await embedText(env, "x");
+      const call = fetchMock.mock.calls[0];
+      expect(call).toBeDefined();
+      const init = call![1];
+      const body = JSON.parse(String(init?.body));
+      expect(body.dimensions).toBe(1024);
+    });
+
+    it("returns missing_key without fetch when API key or model is missing", async () => {
+      const fetchMock = vi.fn();
+      vi.stubGlobal("fetch", fetchMock);
+
+      const noKey = loadMemoryEnv({
+        EMBEDDING_PROVIDER: "openai_compatible",
+        EMBEDDING_MODEL: "baai/bge-m3",
+      });
+      expect(await embedText(noKey, "hello")).toBeNull();
+      expectFailure(embedFailureReason, { reason: "missing_key" });
+      expect(fetchMock).not.toHaveBeenCalled();
+
+      const noModel = loadMemoryEnv({
+        EMBEDDING_PROVIDER: "openai_compatible",
+        EMBEDDING_API_KEY: "or-key",
+      });
+      expect(await embedText(noModel, "hello")).toBeNull();
+      expectFailure(embedFailureReason, { reason: "missing_key" });
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it("returns null on dimension mismatch", async () => {
+      const fetchMock = vi.fn(async () =>
+        Response.json({
+          data: [{ embedding: Array.from({ length: 512 }, () => 0.1) }],
+        }),
+      );
+      vi.stubGlobal("fetch", fetchMock);
+
+      const env = loadMemoryEnv({
+        EMBEDDING_PROVIDER: "openai_compatible",
+        EMBEDDING_API_KEY: "or-key",
+        EMBEDDING_MODEL: "baai/bge-m3",
+        EMBEDDING_DIMENSIONS: "1024",
+      });
+      expect(await embedText(env, "x")).toBeNull();
+      expectFailure(embedFailureReason, {
+        reason: "dimension_mismatch",
+        actual: 512,
+        expected: 1024,
+      });
+    });
+
+    it("opens breaker on HTTP 429", async () => {
+      vi.useFakeTimers();
+      const fetchMock = vi.fn(async () =>
+        Response.json({ error: { message: "rate limited" } }, { status: 429 }),
+      );
+      vi.stubGlobal("fetch", fetchMock);
+
+      const env = loadMemoryEnv({
+        EMBEDDING_PROVIDER: "openai_compatible",
+        EMBEDDING_API_KEY: "or-key",
+        EMBEDDING_MODEL: "baai/bge-m3",
+      });
+      expect(await embedText(env, "first")).toBeNull();
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(warnCapture.logger.info).toHaveBeenCalledWith(
+        expect.objectContaining({
+          event: "embedding_rate_limit_breaker_opened",
+          provider: "openai_compatible",
+        }),
+        "embedding rate limit breaker opened",
+      );
+      expect(await embedText(env, "second")).toBeNull();
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      vi.useRealTimers();
+    });
+
+    it("logs provider host and never secrets or input text", async () => {
+      const secretKey = "openrouter-secret-key-abc";
+      const noteText = "private corpus line";
+      const fetchMock = vi.fn(async () =>
+        Response.json({ error: { message: "bad key" } }, { status: 401 }),
+      );
+      vi.stubGlobal("fetch", fetchMock);
+
+      const env = loadMemoryEnv({
+        EMBEDDING_PROVIDER: "openai_compatible",
+        EMBEDDING_API_KEY: secretKey,
+        EMBEDDING_BASE_URL: "https://openrouter.ai/api/v1",
+        EMBEDDING_MODEL: "baai/bge-m3",
+      });
+
+      expect(await embedText(env, noteText)).toBeNull();
+      const blob = warnPayload(warnCapture.warnCalls);
+      expect(blob).not.toContain(secretKey);
+      expect(blob).not.toContain(noteText);
+      const w = lastWarn(warnCapture.warnCalls);
+      expect(w.obj.provider).toBe("openai_compatible");
+      expect(w.obj.base_url_host).toBe("openrouter.ai");
+      expect(w.obj.model).toBe("baai/bge-m3");
+      expect(w.obj.provider_message).toBe("bad key");
+    });
+
+    it("does not use MINIMAX_API_KEY when openai_compatible", async () => {
+      const fetchMock = vi.fn(
+        async (_url: string | URL | Request, _init?: RequestInit) =>
+          Response.json({
+            data: [{ embedding: Array.from({ length: 1024 }, () => 0) }],
+          }),
+      );
+      vi.stubGlobal("fetch", fetchMock);
+
+      const env = loadMemoryEnv({
+        MINIMAX_API_KEY: "minimax-should-not-appear",
+        EMBEDDING_PROVIDER: "openai_compatible",
+        EMBEDDING_API_KEY: "or-key",
+        EMBEDDING_MODEL: "baai/bge-m3",
+        EMBEDDING_DIMENSIONS: "1024",
+      });
+      await embedText(env, "x");
+      const call = fetchMock.mock.calls[0];
+      expect(call).toBeDefined();
+      const init = call![1];
+      expect(init?.headers).toMatchObject({
+        Authorization: "Bearer or-key",
+      });
+      expect(String(init?.headers)).not.toContain("minimax-should-not-appear");
+    });
+  });
+
   it("does not open breaker on dimension mismatch", async () => {
     const fetchMock = vi.fn(async () =>
       Response.json({
