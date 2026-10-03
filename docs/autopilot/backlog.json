@@ -1171,6 +1171,48 @@
       ]
     },
     {
+      "id": "T-0090",
+      "lane": "platform",
+      "phase": "consultos-admin",
+      "title": "Admin API and console: list all harnesses, pause and resume one (no direct database access)",
+      "description": "Today harnesses can only be changed with the owning tenant's API key (PATCH /v1/harnesses/{id}) or by editing the database; the admin API (x-orbita-admin-token or admin session cookie) has NO harness routes and the console has no harness section. Add (1) GET /v1/admin/harnesses (admin auth, read-only, ALL tenants): per harness id, client_id, name, template_id, enabled, cron, timezone, next_run_at, last_run_at, session_policy and the latest harness_runs row (status, started_at, finished_at, a truncated error message of at most 200 chars); NEVER return application config values, credentials or secrets. (2) PATCH /v1/admin/harnesses/{id} with body {enabled: boolean, reason: string (required, 1..200 chars)}: the ONLY mutable field is enabled; unknown id -> 404; missing/empty reason or any other field -> 400; log one structured info line (event harness_admin_toggle, harness id, client_id, enabled, reason, no secrets); return the updated row; it must not touch next_run_at (re-enabling already runs one catch-up run on the next tick, document this). (3) Admin console (packages/lane-admin/public/admin.js and its html/css, vanilla JS, no framework): a new 'Harnesses' section listing the rows with a status badge (Enabled / Paused), cron + timezone, next run, last run status/time, and a Pause/Resume button that asks for a short reason (window.prompt is acceptable) and confirms; show three plain-English help lines at the top of the section (what this is / when to look here / what to do: 'Pausing stops Orbita from starting this scheduled agent run. It does not stop a manual trigger by the tenant and does not change anything outside Orbita'); follow the existing escaping helpers so no HTML injection is possible. Split render logic into pure functions where simple. (4) Tests with fakes: list returns rows from several client_ids; PATCH toggles enabled only and requires a reason; 404/400 cases; 401 without admin auth; no secret-like fields in responses; pure render tests if extractable. Do NOT add create/delete harness routes, do NOT change the caller API /v1/harnesses, do NOT change tick or scheduling code, no DDL. Follow existing admin route patterns in packages/lane-admin (read the credentials and api-keys routes first). Document the two new admin routes in docs/site/technical.md only if admin routes are documented there; they must NOT appear in the public OpenAPI (the /v1/admin prefix is filtered).",
+      "acceptance": [
+        "pnpm --filter @orbita/admin test",
+        "pnpm -r typecheck",
+        "rg -n \"admin/harnesses\" packages/lane-admin/src",
+        "rg -n \"Harnesses\" packages/lane-admin/public/admin.js",
+        "node --check packages/lane-admin/public/admin.js"
+      ],
+      "deps": [],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "2026-10-03 hub (claude-hub-session): added after the founder asked not to operate the database directly to pause the ai-transformation harnesses."
+      ]
+    },
+    {
+      "id": "T-0091",
+      "lane": "platform",
+      "phase": "l1-hardening",
+      "title": "E-04: embedding provider abstraction (OpenAI-compatible /embeddings, OpenRouter) so MiniMax is not required",
+      "description": "VERIFIED 2026-10-03: the MINIMAX_API_KEY is a Token Plan subscription key; embeddings (embo-01) are outside the plan and fail with 1002 on every call; notes table: 140 notes, 0 embeddings (so switching model has no migration cost). Founder wants to use OpenRouter (OpenAI-compatible POST https://openrouter.ai/api/v1/embeddings with {model, input, dimensions?} -> data[0].embedding) instead of a second MiniMax account. In packages/lane-memory add a provider switch WITHOUT changing the default behaviour: EMBEDDING_PROVIDER = 'minimax' (default, current texts/type request) | 'openai_compatible'. For openai_compatible read EMBEDDING_API_KEY (required), EMBEDDING_BASE_URL (default https://openrouter.ai/api/v1), EMBEDDING_MODEL (required, no default), EMBEDDING_DIMENSIONS (default 1024, keep checking that the returned vector length equals it and that it matches the vector(1024) column), optional EMBEDDING_SEND_DIMENSIONS=1 to send the `dimensions` field (default off), optional EMBEDDING_HTTP_REFERER and EMBEDDING_APP_TITLE sent as HTTP-Referer and X-Title headers. Request: JSON {model, input: <text>, dimensions?}; parse data[0].embedding; map HTTP 429 to the existing rate-limit breaker; map other HTTP errors to the existing http_error reason (include status and at most 200 chars of the provider error message, never the key or the input text); keep every existing failure reason and the 60 s circuit breaker; the `purpose` (db|query) is ignored for this provider (no prefixes). For provider 'minimax' keep using MINIMAX_API_KEY/MINIMAX_BASE_URL exactly as today; for 'openai_compatible' MINIMAX_* are NOT used. Update the startup self-test and the structured failure logs to include provider and model name and the base URL HOST only (never the key). The backfill job and the circuit breaker must work unchanged for both providers. Tests with a mocked fetch: provider switch selects the right URL/headers/body; missing EMBEDDING_API_KEY or EMBEDDING_MODEL -> missing_key reason without a network call; dimension mismatch; 429 opens the breaker; no secret/text in logs; default provider unchanged (existing tests stay green). Document the env vars in .env.example and docs/note-search-troubleshooting.md. Do NOT change the vector column, note_search semantics, or add DDL. FOUNDER-ONLY steps after merge (record them in the task feedback, the Maker must not do them): set in Zeabur EMBEDDING_PROVIDER=openai_compatible, EMBEDDING_API_KEY=<OpenRouter key>, EMBEDDING_MODEL=<model id from OpenRouter's embedding list; candidates: bge-m3 (1024 native) or openai/text-embedding-3-small with EMBEDDING_SEND_DIMENSIONS=1 and EMBEDDING_DIMENSIONS=1024>, then watch the startup log line 'embedding selftest ok dims=1024', then set ORBITA_EMBED_BACKFILL=1.",
+      "acceptance": [
+        "pnpm --filter @orbita/memory test",
+        "pnpm -r typecheck",
+        "rg -n \"EMBEDDING_PROVIDER\" packages/lane-memory/src .env.example",
+        "rg -n \"openai_compatible\" packages/lane-memory/src",
+        "! rg -n \"EMBEDDING_API_KEY\" packages/lane-memory/src | rg -i \"log|warn|info\""
+      ],
+      "deps": [],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "2026-10-03 hub (claude-hub-session): added after the founder confirmed the MiniMax key is a Token Plan subscription key and chose OpenRouter for embeddings."
+      ]
+    },
+    {
       "id": "T-0085",
       "lane": "platform",
       "phase": "consultos-b",

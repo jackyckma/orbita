@@ -49,7 +49,7 @@
       "goal": "Document why prod note_search can return empty while GET-by-id works; fix if a clear env/code bug.",
       "status": "approved",
       "phase": "l1-hardening",
-      "decomposes_into": ["T-0030", "T-0060", "T-0062", "T-0063", "T-0076", "T-0082"],
+      "decomposes_into": ["T-0030", "T-0060", "T-0062", "T-0063", "T-0076", "T-0082", "T-0091"],
       "decisions": [],
       "notes": "REOPENED 2026-08-16 after the PR #8 fix failed to resolve the symptom. DIAGNOSIS UPDATED 2026-08-25 (claude-hub-session) — READ THIS BEFORE INVESTIGATING, the previous next-step in this field was wrong. (1) RULED OUT: 'check whether MINIMAX_API_KEY is set in prod' — it IS set. Verified directly against Zeabur orbita-api production env. Also present: MINIMAX_BASE_URL=https://api.minimax.io/v1, MINIMAX_MODEL=MiniMax-M3. Do not spend another cycle on this hypothesis. (2) NOT SET in prod but harmless: EMBEDDING_MODEL and EMBEDDING_DIMENSIONS both have defaults in packages/lane-memory/src/config.ts ('embo-01' and 1024). MINIMAX_GROUP_ID is absent and has NO default. (3) THE REAL BLOCKER: packages/lane-memory/src/embed.ts has SIX separate `return null` paths — missing key/empty text, !response.ok, base_resp.status_code !== 0, no vector, vector.length !== EMBEDDING_DIMENSIONS, and a bare catch — with ZERO logging. All six produce an identical silent null, the note is then stored with embedding=NULL, and the write reports success. So one symptom maps to five distinct root causes and the code emits no evidence of which. This is the same failure CLASS the PR #8 fix was meant to remove: that fix corrected the request protocol but kept the silence, which is why re-PUTting all 14 notes and confirming deploy freshness narrowed nothing. (4) DO THIS FIRST — instrument before fixing: make embedText emit a discriminated reason per path (HTTP status, base_resp.status_code + status_msg, actual vs expected vector length). Never log the API key or the text body. One live call then answers it outright. Fixing before instrumenting risks a third round of 'merged, still broken'. Leading candidates once instrumented: MINIMAX_GROUP_ID required and absent (the code's own comment says some MiniMax regions require it), 'embo-01' retired or wrong, or a dimension mismatch against the hardcoded 1024 default. Consider a startup assertion that an embedding round-trip works, so this fails loudly at deploy rather than silently at write time. Full write-up: personal-jacky note a21b8bf5-c253-4bb6-bee3-7f4c33c50238. BLOCKS THE HUB: until search is trustworthy, sessions resume via flat memory keys, not semantic search."
     },
@@ -232,6 +232,16 @@
       "decomposes_into": ["T-0078", "T-0079"],
       "decisions": ["D-007"],
       "notes": "E-22 is a small cleanup OUTSIDE the E-14..E-21 sequence: its two tasks are written and ready, so REPLAN does not need to decompose it. Apply the PRODUCTION SAFETY RULES block at the start of the notes of E-14 (database changes additive only: do NOT drop or alter the waitlist_entries table or any api_keys rows; never log secrets; do not touch framework-owned files, project-hooks.json, pause-state.json). Removing the public POST /v1/waitlist and the page get-orbita.com/waitlist is a deliberate public-behaviour change decided by the founder in D-007. The live website only changes when the founder redeploys apps/orbita-web; the Maker must NOT deploy - find out how orbita-web is deployed and write the exact founder-only redeploy steps into the task feedback. The production table stays; the founder drops it later, only after the removal is deployed. Allowed exception for this epic: remove waitlist mentions from AGENTS.md."
+    },
+    {
+      "id": "E-23",
+      "title": "Admin: pause and resume harnesses without direct database access",
+      "goal": "Let the founder list every harness across tenants and pause/resume one from the admin console and admin API, instead of editing the database.",
+      "status": "approved",
+      "phase": "consultos-admin",
+      "decomposes_into": ["T-0090"],
+      "decisions": [],
+      "notes": "Small epic OUTSIDE the E-14..E-21 sequence; its task is written and ready. Apply the PRODUCTION SAFETY RULES block at the start of the notes of E-14. Founder decision 2026-10-03: operating the database directly to stop two ai-transformation harnesses was not acceptable; the admin API had no harness routes (the caller API PATCH /v1/harnesses/{id} needs that tenant's own API key). Admin = read plus one action (pause/resume)."
     }
   ]
 }
