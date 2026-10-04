@@ -8,6 +8,25 @@ export {
   statusesForKind,
   validateParentForCreate,
 } from "./transitions.js";
+export { FakeTicketRepository } from "./fake-repository.js";
+export type {
+  CreateTicketParams,
+  GetTicketParams,
+  ListTicketsQuery,
+  MandateSubtreeHealth,
+  RepositoryError,
+  RepositoryResult,
+  TicketEventRecord,
+  TicketRecord,
+  TicketRepository,
+  TransitionParams,
+  TransitionSuccess,
+} from "./repository.js";
+export {
+  sqlAppendEvent,
+  sqlGetTicket,
+  sqlListTickets,
+} from "./repository/pg.js";
 export type {
   Actor,
   ActorType,

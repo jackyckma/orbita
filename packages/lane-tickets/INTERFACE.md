@@ -122,13 +122,26 @@ Validate: `node --test packages/lane-tickets/contracts/validate-contracts.test.m
 ## Pure engine (T-0084 / T-0089)
 
 - **`initialStatusOnCreate`**: mandate create is human-only → `draft`; epic/task/decision initial status from `approval_policy`, actor, parent, and `risk_tier`.
-- **`mandate_status`** on transitions: when ancestor mandate is `draft`, `paused`, or `retired`, **agent** mutating verbs deny with **`MANDATE_NOT_ACTIVE`** (except `ticket_comment`, `ticket_block`, `ticket_request_decision`).
+- **`mandate_status`** on transitions: when ancestor mandate is `draft`, `paused`, or `retired`, **agent** mutating verbs deny with **`MANDATE_NOT_ACTIVE`** (except `ticket_comment`, `ticket_block`, `ticket_request_decision`). Missing `mandate_status` on agent writes is also denied (fail-closed).
 - **Ownership**: agent actors carry `mandate_ids`; **`OUTSIDE_MANDATE`** when not in the ticket’s mandate.
 - **Fail-closed counters**: server **`hard_limits`** without supplied counters → **`HARD_LIMIT_COUNTERS_MISSING`**.
 
+## Pause gate — what pausing or retiring a mandate does and does not do
+
+Pausing or retiring a mandate makes the ticket API **reject that mandate’s agent writes** (`ticket_create`, `ticket_claim`, `ticket_progress`, `ticket_complete`, `ticket_cancel`, `ticket_extend`, `ticket_approve`) with **`MANDATE_NOT_ACTIVE`**, and agents that read the mandate see `status=paused` or `retired`. It does **not** stop an external agent’s own activity outside Orbita (Grok, Cursor Cloud, etc.) — those agents are governed by their own prompts and platforms.
+
+Effective stops are: (1) the agent’s instructions to check mandate status before acting, (2) revoking or suspending the principal’s API key (E-17/E-19), (3) switching the agent off in its host platform. Only **Orbita-internal** agents (harness runs) can be halted by Orbita itself (`harnesses.enabled=false`).
+
+## Repository (T-0085)
+
+- `TicketRepository` + `FakeTicketRepository` for tests; Postgres SQL builders in `repository.pg.ts`.
+- Tenant isolation: every query scoped by `client_id`.
+- Append-only `ticket_events` with monotonic `seq`; `soft_breach` payloads recorded as events.
+- `getMandateSubtreeHealth` — per-mandate status counts and last activity timestamp.
+
 ## Does not (this slice)
 
-- No repository / HTTP / MCP runtime (T-0085+)
+- No HTTP / MCP runtime (T-0086+)
 - No notes API / MCP note_* changes
 - No DDL or routes until later tasks
 

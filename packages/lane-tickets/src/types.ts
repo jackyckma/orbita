@@ -180,9 +180,9 @@ export interface TransitionInput {
    * and mandate retire (progress_target=retired).
    */
   progress_target?: TicketStatus;
-  /** Ancestor mandate lifecycle status (for kill switch on subtree tickets). */
+  /** Ancestor mandate lifecycle status (pause gate on subtree tickets). */
   mandate_status?: MandateStatus;
-  /** Mandate uuid for this ticket (ownership + kill switch scope). */
+  /** Mandate uuid for this ticket (ownership + pause gate scope). */
   mandate_id?: string;
   /** Parent ticket for ticket_create parent/ownership rules. */
   parent?: ParentTicketRef | null;
