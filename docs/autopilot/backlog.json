@@ -1234,7 +1234,7 @@
         "T-0089"
       ],
       "flag": "ORBITA_TICKETS_ENABLED",
-      "status": "ready",
+      "status": "in_progress",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-02: E-16 first pass (3/6) — repository + fakes before API surface.",
