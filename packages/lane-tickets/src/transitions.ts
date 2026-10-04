@@ -42,10 +42,20 @@ const MUTATING_VERBS: ReadonlySet<TicketVerb> = new Set([
   "ticket_create",
 ]);
 
-const KILL_SWITCH_EXEMPT: ReadonlySet<TicketVerb> = new Set([
+const PAUSE_GATE_EXEMPT: ReadonlySet<TicketVerb> = new Set([
   "ticket_comment",
   "ticket_block",
   "ticket_request_decision",
+]);
+
+const PAUSE_GATED_AGENT_MUTATIONS: ReadonlySet<TicketVerb> = new Set([
+  "ticket_create",
+  "ticket_claim",
+  "ticket_progress",
+  "ticket_complete",
+  "ticket_cancel",
+  "ticket_extend",
+  "ticket_approve",
 ]);
 
 const OWNERSHIP_VERBS: ReadonlySet<TicketVerb> = new Set([
@@ -196,7 +206,11 @@ function checkAgentMandateOwnership(
     return null;
   }
   if (mandateId === undefined) {
-    return null;
+    return deny(
+      "OUTSIDE_MANDATE",
+      "Agent actor requires mandate_id for ownership check.",
+      { reason: "mandate_id_missing" },
+    );
   }
   if (!mandateId) {
     return deny(
@@ -215,30 +229,35 @@ function checkAgentMandateOwnership(
   return null;
 }
 
-function checkMandateKillSwitch(
+/** Agent pause gate: inactive or missing ancestor mandate status blocks gated writes. */
+function checkMandatePauseGate(
   input: TransitionInput,
 ): TransitionResult | null {
   const { mandate_status, verb, actor, kind } = input;
   if (!isAgent(actor) || kind === "mandate") {
     return null;
   }
-  if (!mandate_status || mandate_status === "active") {
+  if (READ_VERBS.has(verb) || PAUSE_GATE_EXEMPT.has(verb)) {
     return null;
   }
-  if (READ_VERBS.has(verb) || KILL_SWITCH_EXEMPT.has(verb)) {
+  if (!PAUSE_GATED_AGENT_MUTATIONS.has(verb)) {
     return null;
   }
-  if (MUTATING_VERBS.has(verb) || APPEND_VERBS.has(verb)) {
-    if (KILL_SWITCH_EXEMPT.has(verb)) {
-      return null;
-    }
+  if (mandate_status === undefined) {
     return deny(
       "MANDATE_NOT_ACTIVE",
-      `Mutations are blocked while mandate is ${mandate_status}.`,
-      { mandate_status },
+      "Agent mutations require mandate_status from persistence.",
+      { reason: "mandate_status_missing", mandate_status },
     );
   }
-  return null;
+  if (mandate_status === "active") {
+    return null;
+  }
+  return deny(
+    "MANDATE_NOT_ACTIVE",
+    `Mutations are blocked while mandate is ${mandate_status}.`,
+    { mandate_status },
+  );
 }
 
 function charterRequiresServerCounters(charter: MandateCharter): boolean {
@@ -633,6 +652,9 @@ export function initialStatusOnCreate(
 
   if (kind === "task" || kind === "decision") {
     if (!riskWithinAutoTier(risk_tier, maxAuto)) {
+      if (kind === "task" && isHuman(actor)) {
+        return { ok: true, status: "approved", mandate_id: mandateId };
+      }
       if (kind !== "decision") {
         return {
           ok: false,
@@ -683,9 +705,9 @@ export function evaluateTransition(input: TransitionInput): TransitionResult {
     }
   }
 
-  const kill = checkMandateKillSwitch(input);
-  if (kill) {
-    return kill;
+  const pauseGate = checkMandatePauseGate(input);
+  if (pauseGate) {
+    return pauseGate;
   }
 
   if (verb === "ticket_create") {
@@ -709,19 +731,11 @@ export function evaluateTransition(input: TransitionInput): TransitionResult {
   }
 
   if (READ_VERBS.has(verb)) {
-    const softBlock = checkSoftBlock(charter, input.soft_observations);
-    if (softBlock) {
-      return softBlock;
-    }
     const soft = collectSoftBreaches(charter, input.soft_observations);
     return allow(undefined, soft);
   }
 
   if (verb === "ticket_comment") {
-    const softBlock = checkSoftBlock(charter, input.soft_observations);
-    if (softBlock) {
-      return softBlock;
-    }
     const soft = collectSoftBreaches(charter, input.soft_observations);
     return allow(undefined, soft);
   }
@@ -732,10 +746,6 @@ export function evaluateTransition(input: TransitionInput): TransitionResult {
     }
     if (kind === "epic" && (status === "done" || status === "cancelled")) {
       return deny("INVALID_TRANSITION", "Cannot request decision on terminal epic.");
-    }
-    const softBlock = checkSoftBlock(charter, input.soft_observations);
-    if (softBlock) {
-      return softBlock;
     }
     const soft = collectSoftBreaches(charter, input.soft_observations);
     return allow(undefined, soft);
