@@ -4,8 +4,8 @@
     "T-0085": {
       "by": "maker",
       "since": "2026-10-04T23:05:00.000Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/t-0085-lane-tickets-repository",
+      "pr": 51
     }
   }
 }
