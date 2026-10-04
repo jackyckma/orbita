@@ -1234,7 +1234,7 @@
         "T-0089"
       ],
       "flag": "ORBITA_TICKETS_ENABLED",
-      "status": "in_review",
+      "status": "done",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-02: E-16 first pass (3/6) — repository + fakes before API surface.",
@@ -1242,7 +1242,8 @@
         "2026-10-03 hub: now depends on T-0089 (engine amendments) so the repository uses initialStatusOnCreate, mandate_status, actor principal/mandate ids and fail-closed counters.",
         "2026-10-03 hub (claude-hub-session): founder pointed out that Orbita cannot control external agents; wording corrected to 'pause gate' (see description).",
         "2026-10-03 hub review of merged T-0089: engine matches the spec; three fail-open defaults and one human-actor case folded into this task.",
-        "MAKER 2026-10-04: PR https://github.com/jackyckma/orbita/pull/51; @orbita/tickets test + acceptance green."
+        "MAKER 2026-10-04: PR https://github.com/jackyckma/orbita/pull/51; @orbita/tickets test + acceptance green.",
+        "2026-10-04 Checker: merged PR #51; verify-all + task acceptance green; scope matches T-0085 (repository/fake only, no API mount)."
       ]
     },
     {
