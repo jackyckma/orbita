@@ -1264,14 +1264,19 @@
         "T-0085"
       ],
       "flag": "ORBITA_TICKETS_ENABLED",
-      "status": "in_review",
-      "retries": 0,
+      "status": "ready",
+      "retries": 1,
       "feedback": [
         "REPLAN 2026-10-02: E-16 first pass (6/6) — DDL gated + docs; production enable stays on D-005 (founder-only).",
         "2026-10-02 hub review (claude-hub-session): amended before implementation - see description.",
         "2026-10-05 hub review: T-0085 repository is builders-only; fixes folded here and this task now runs before T-0086.",
         "MAKER 2026-10-05: PR https://github.com/jackyckma/orbita/pull/52 — optional DDL via runMigrations({ ticketsEnabled }) when ORBITA_TICKETS_ENABLED=1 at API boot; sql-sync allowlist; tier-A e2e (migration golden + PgTicketRepository).",
-        "needs_human follow-up (D-005): founder sets ORBITA_TICKETS_ENABLED=1 on Zeabur API only after Checker merges and e2e-tier-a is green in CI — Maker must not flip prod env."
+        "needs_human follow-up (D-005): founder sets ORBITA_TICKETS_ENABLED=1 on Zeabur API only after Checker merges and e2e-tier-a is green in CI — Maker must not flip prod env.",
+        {
+          "at": "2026-10-05T23:25:00.000Z",
+          "by": "checker",
+          "note": "REVIEW PR #52: verify-all green. Blocked merge — zero-row tenant has no FOR UPDATE lock in loadClientTicketData (pg-persistence.ts); parallel same idempotency_key on first ticket can double-create. Fix: pg_advisory_xact_lock per client_id + concurrent idempotency e2e. Minor: acceptance rg optional-tickets fails (allowlist path only lists drizzle file). Bounced to ready (retries=1). PR #52 left open (draft). gh pr comment blocked (403)."
+        }
       ]
     },
     {
