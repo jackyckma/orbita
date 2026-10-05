@@ -1247,6 +1247,32 @@
       ]
     },
     {
+      "id": "T-0088",
+      "lane": "platform",
+      "phase": "consultos-b",
+      "title": "lane-tickets: optional DDL + sql-sync allowlist + docs + tier-A flag-on test",
+      "description": "Epic E-16 task 6. Add additive SQL for tickets + ticket_events in packages/lane-tickets/drizzle/ (IF NOT EXISTS only) AND mirror into apps/orbita-api/migrations/optional-tickets.sql applied from runMigrations only when ORBITA_TICKETS_ENABLED=1 at migration time (document pattern in task feedback). Register optional file in docs/autopilot/sql-sync-allowlist.json. SQL text lint test (no DROP, no ALTER of existing tables). Extend scripts/e2e-tier-a.sh (or dedicated step) to run once with ORBITA_TICKETS_ENABLED=1 and apply DDL twice idempotently. Docs: short section in docs/site/ (rebuild not required in this task — edit source under docs/site/). scripts/tickets-verify-flag-off.sh exits non-zero with clear message when tickets not enabled (model portfolio-git-collect-verify-output.sh). Record decision D-005 founder flip steps in task feedback as needs_human follow-up — Maker must NOT set Zeabur env. Golden: flag OFF => no new tables created on migrate path used in tier-A default run. REAL-POSTGRES TEST (hub review, required): extend the tier-A job (runs only in GitHub CI with Docker Postgres, flag ORBITA_TICKETS_ENABLED=1) with an integration test that exercises the Postgres repository SQL for real: create mandate->epic->task; list with cursor pagination and filters; ticket_claim atomicity with two concurrent claimers on one task (exactly one wins, the other gets a clear conflict); lease extend and expiry; expected_version conflict; idempotency_key replay returns the first result; tenant isolation (client A cannot read or claim client B's ticket); ticket_events seq monotonic. This test must not run when the flag is off. The Maker loop has no Docker: write the test so that it is skipped unless TICKETS_E2E_DATABASE_URL (or the project's existing tier-A variable) is set, and say in the PR body that CI e2e-tier-a is the proof. SCOPE EXTENSION (hub review of T-0085, 2026-10-05): the merged T-0085 Postgres repository (packages/lane-tickets/src/pg.ts) is NOT executable yet; fix it in THIS task together with the DDL, and prove it with real-Postgres tests in tier-A (GitHub CI, flag ORBITA_TICKETS_ENABLED=1; skip locally unless the database URL variable is set): (a) ticket_claim must be ONE atomic statement or a transaction with SELECT ... FOR UPDATE then UPDATE ... WHERE client_id AND id AND version AND (lease free OR lease_expires_at < now()) RETURNING - today sqlClaimTicketComment() only returns a comment string; (b) idempotency: INSERT ... ON CONFLICT DO NOTHING RETURNING cannot replay the first result - after a conflict SELECT the stored result by (client_id, verb, idempotency_key); the current template has `values: []`; (c) quote the column named `function` (reserved word; pg.ts:32); (d) ticket_events.seq: `MAX(seq)+1` without a lock races under concurrent appends - allocate seq under the ticket row lock (e.g. UPDATE tickets SET last_seq = last_seq + 1 ... RETURNING, or a UNIQUE (ticket_id, seq) constraint with retry); (e) the FAKE repository must honour lease expiry (fake-repository.ts ~542: it ignores lease_expires_at, so an expired lease never frees) - add tests; (f) a real PgTicketRepository class implementing the same interface as the fake, using a postgres.js client; all statements parameterised and carrying client_id. The real-Postgres test must cover: create mandate->epic->task chain, cursor pagination and filters, two concurrent claimers (exactly one wins, the other gets LEASE_CONFLICT), expired lease can be re-claimed, expected_version conflict, idempotency replay returns the first result, tenant isolation (client A cannot read/claim client B's ticket), events seq monotonic and unique under concurrent appends. Everything stays behind ORBITA_TICKETS_ENABLED (default OFF) and nothing is wired into runtime routes in this task.",
+      "acceptance": [
+        "node scripts/check-sql-sync.mjs",
+        "pnpm -r typecheck",
+        "test -f scripts/tickets-verify-flag-off.sh",
+        "bash -n scripts/tickets-verify-flag-off.sh",
+        "rg -n \"optional-tickets\" apps/orbita-api/migrations docs/autopilot/sql-sync-allowlist.json",
+        "rg -n \"claim.*concurr|concurrent\" packages/lane-tickets/src apps/orbita-api"
+      ],
+      "deps": [
+        "T-0085"
+      ],
+      "flag": "ORBITA_TICKETS_ENABLED",
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "REPLAN 2026-10-02: E-16 first pass (6/6) — DDL gated + docs; production enable stays on D-005 (founder-only).",
+        "2026-10-02 hub review (claude-hub-session): amended before implementation - see description.",
+        "2026-10-05 hub review: T-0085 repository is builders-only; fixes folded here and this task now runs before T-0086."
+      ]
+    },
+    {
       "id": "T-0086",
       "lane": "platform",
       "phase": "consultos-b",
@@ -1260,14 +1286,16 @@
         "rg -n \"approver\" packages/lane-tickets/src/routes"
       ],
       "deps": [
-        "T-0085"
+        "T-0085",
+        "T-0088"
       ],
       "flag": "ORBITA_TICKETS_ENABLED",
       "status": "ready",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-02: E-16 first pass (4/6) — REST surface behind flag.",
-        "2026-10-02 hub review (claude-hub-session): amended before implementation - see description."
+        "2026-10-02 hub review (claude-hub-session): amended before implementation - see description.",
+        "2026-10-05 hub: now depends on T-0088 so REST is built on the executable, tested Postgres repository."
       ]
     },
     {
@@ -1290,32 +1318,8 @@
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-02: E-16 first pass (5/6) — MCP verbs behind same flag.",
-        "2026-10-02 hub review (claude-hub-session): amended before implementation - see description."
-      ]
-    },
-    {
-      "id": "T-0088",
-      "lane": "platform",
-      "phase": "consultos-b",
-      "title": "lane-tickets: optional DDL + sql-sync allowlist + docs + tier-A flag-on test",
-      "description": "Epic E-16 task 6. Add additive SQL for tickets + ticket_events in packages/lane-tickets/drizzle/ (IF NOT EXISTS only) AND mirror into apps/orbita-api/migrations/optional-tickets.sql applied from runMigrations only when ORBITA_TICKETS_ENABLED=1 at migration time (document pattern in task feedback). Register optional file in docs/autopilot/sql-sync-allowlist.json. SQL text lint test (no DROP, no ALTER of existing tables). Extend scripts/e2e-tier-a.sh (or dedicated step) to run once with ORBITA_TICKETS_ENABLED=1 and apply DDL twice idempotently. Docs: short section in docs/site/ (rebuild not required in this task — edit source under docs/site/). scripts/tickets-verify-flag-off.sh exits non-zero with clear message when tickets not enabled (model portfolio-git-collect-verify-output.sh). Record decision D-005 founder flip steps in task feedback as needs_human follow-up — Maker must NOT set Zeabur env. Golden: flag OFF => no new tables created on migrate path used in tier-A default run. REAL-POSTGRES TEST (hub review, required): extend the tier-A job (runs only in GitHub CI with Docker Postgres, flag ORBITA_TICKETS_ENABLED=1) with an integration test that exercises the Postgres repository SQL for real: create mandate->epic->task; list with cursor pagination and filters; ticket_claim atomicity with two concurrent claimers on one task (exactly one wins, the other gets a clear conflict); lease extend and expiry; expected_version conflict; idempotency_key replay returns the first result; tenant isolation (client A cannot read or claim client B's ticket); ticket_events seq monotonic. This test must not run when the flag is off. The Maker loop has no Docker: write the test so that it is skipped unless TICKETS_E2E_DATABASE_URL (or the project's existing tier-A variable) is set, and say in the PR body that CI e2e-tier-a is the proof.",
-      "acceptance": [
-        "node scripts/check-sql-sync.mjs",
-        "pnpm -r typecheck",
-        "test -f scripts/tickets-verify-flag-off.sh",
-        "bash -n scripts/tickets-verify-flag-off.sh",
-        "rg -n \"optional-tickets\" apps/orbita-api/migrations docs/autopilot/sql-sync-allowlist.json",
-        "rg -n \"claim.*concurr|concurrent\" packages/lane-tickets/src apps/orbita-api"
-      ],
-      "deps": [
-        "T-0087"
-      ],
-      "flag": "ORBITA_TICKETS_ENABLED",
-      "status": "ready",
-      "retries": 0,
-      "feedback": [
-        "REPLAN 2026-10-02: E-16 first pass (6/6) — DDL gated + docs; production enable stays on D-005 (founder-only).",
-        "2026-10-02 hub review (claude-hub-session): amended before implementation - see description."
+        "2026-10-02 hub review (claude-hub-session): amended before implementation - see description.",
+        "2026-10-05 hub: runs after T-0086, which now follows T-0088."
       ]
     },
     {
