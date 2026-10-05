@@ -1264,7 +1264,7 @@
         "T-0085"
       ],
       "flag": "ORBITA_TICKETS_ENABLED",
-      "status": "ready",
+      "status": "in_progress",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-02: E-16 first pass (6/6) — DDL gated + docs; production enable stays on D-005 (founder-only).",
