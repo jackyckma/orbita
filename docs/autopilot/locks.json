@@ -4,8 +4,8 @@
     "T-0088": {
       "by": "maker",
       "since": "2026-10-05T23:12:00.000Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/t-0088-tickets-ddl-pg-repo",
+      "pr": 52
     }
   }
 }
