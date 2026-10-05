@@ -1,6 +1,6 @@
 /**
- * Postgres-oriented SQL builders for lane-tickets (not executed in unit tests).
- * Every query includes `client_id = $client_id` for tenant isolation.
+ * Postgres-oriented SQL builders for lane-tickets.
+ * Every query includes `client_id` for tenant isolation.
  */
 
 export interface SqlParam {
@@ -29,7 +29,7 @@ export function sqlListTickets(params: {
     values.push(params.project);
   }
   if (params.function) {
-    clauses.push(`function = $${n++}`);
+    clauses.push(`"function" = $${n++}`);
     values.push(params.function);
   }
   if (params.status) {
@@ -73,44 +73,125 @@ export function sqlGetTicket(client_id: string, ticket_id: string): SqlParam {
   };
 }
 
-/**
- * Atomic ticket_claim pattern (single transaction):
- * 1. SELECT ... FROM tickets WHERE client_id = $1 AND id = $2 FOR UPDATE;
- * 2. Verify version = expected_version and status = 'approved' and lease free/expired;
- * 3. UPDATE tickets SET status = 'claimed', version = version + 1,
- *    lease_holder = $holder, lease_expires_at = now() + ($lease_seconds || ' seconds')::interval,
- *    updated_at = now()
- *    WHERE client_id = $1 AND id = $2 AND version = $expected_version;
- * 4. INSERT INTO ticket_events (...) SELECT next seq for ticket_id;
- * If UPDATE returns 0 rows → VERSION_CONFLICT or LEASE_CONFLICT.
- */
-export function sqlClaimTicketComment(): string {
-  return "see sqlClaimTicket pattern above — FOR UPDATE + conditional UPDATE";
-}
-
-export function sqlInsertIdempotency(): SqlParam {
+/** Atomic ticket_claim: FOR UPDATE row lock + conditional UPDATE (see pg-repository concurrent tests). */
+export function sqlClaimTicketUpdate(params: {
+  client_id: string;
+  ticket_id: string;
+  expected_version: number;
+  lease_holder: string;
+  lease_seconds: number;
+}): SqlParam {
   return {
     text: `
-      INSERT INTO ticket_idempotency (client_id, verb, idempotency_key, response_json)
-      VALUES ($1, $2, $3, $4)
-      ON CONFLICT (client_id, verb, idempotency_key) DO NOTHING
-      RETURNING response_json
+      UPDATE tickets
+      SET
+        status = 'claimed',
+        version = version + 1,
+        lease_holder = $4,
+        lease_expires_at = now() + ($5 || ' seconds')::interval,
+        updated_at = now()
+      WHERE client_id = $1
+        AND id = $2
+        AND version = $3
+        AND status = 'approved'
+        AND (
+          lease_holder IS NULL
+          OR lease_expires_at < now()
+        )
+      RETURNING *
     `,
-    values: [],
+    values: [
+      params.client_id,
+      params.ticket_id,
+      params.expected_version,
+      params.lease_holder,
+      String(params.lease_seconds),
+    ],
   };
 }
 
-export function sqlAppendEvent(): SqlParam {
+export function sqlSelectIdempotency(
+  client_id: string,
+  verb: string,
+  idempotency_key: string,
+): SqlParam {
+  return {
+    text: `
+      SELECT response_json
+      FROM ticket_idempotency
+      WHERE client_id = $1 AND verb = $2 AND idempotency_key = $3
+    `,
+    values: [client_id, verb, idempotency_key],
+  };
+}
+
+export function sqlInsertIdempotency(params: {
+  client_id: string;
+  verb: string;
+  idempotency_key: string;
+  response_json: unknown;
+}): SqlParam {
+  return {
+    text: `
+      INSERT INTO ticket_idempotency (client_id, verb, idempotency_key, response_json)
+      VALUES ($1, $2, $3, $4::jsonb)
+      ON CONFLICT (client_id, verb, idempotency_key) DO NOTHING
+      RETURNING response_json
+    `,
+    values: [
+      params.client_id,
+      params.verb,
+      params.idempotency_key,
+      JSON.stringify(params.response_json),
+    ],
+  };
+}
+
+/** Allocate next event seq under ticket row lock (last_event_seq). */
+export function sqlAppendEventSeq(
+  client_id: string,
+  ticket_id: string,
+): SqlParam {
+  return {
+    text: `
+      UPDATE tickets
+      SET last_event_seq = last_event_seq + 1, updated_at = now()
+      WHERE client_id = $1 AND id = $2
+      RETURNING last_event_seq
+    `,
+    values: [client_id, ticket_id],
+  };
+}
+
+export function sqlAppendEventInsert(params: {
+  id: string;
+  ticket_id: string;
+  client_id: string;
+  seq: number;
+  actor: unknown;
+  verb: string;
+  from_status: string | null;
+  to_status: string | null;
+  payload: unknown;
+  at: string;
+}): SqlParam {
   return {
     text: `
       INSERT INTO ticket_events (
         id, ticket_id, client_id, seq, actor, verb, from_status, to_status, payload, at
-      )
-      SELECT
-        $1, $2, $3,
-        COALESCE((SELECT MAX(seq) FROM ticket_events WHERE client_id = $3 AND ticket_id = $2), 0) + 1,
-        $4, $5, $6, $7, $8, $9
+      ) VALUES ($1, $2, $3, $4, $5::jsonb, $6, $7, $8, $9::jsonb, $10::timestamptz)
     `,
-    values: [],
+    values: [
+      params.id,
+      params.ticket_id,
+      params.client_id,
+      params.seq,
+      JSON.stringify(params.actor),
+      params.verb,
+      params.from_status,
+      params.to_status,
+      params.payload ? JSON.stringify(params.payload) : null,
+      params.at,
+    ],
   };
 }

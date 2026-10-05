@@ -9,6 +9,7 @@ export DATABASE_URL="${DATABASE_URL:-postgresql://orbita:orbita@localhost:5432/o
 export ORBITA_ADMIN_TOKEN="${ORBITA_ADMIN_TOKEN:-e2e-admin-token}"
 export ORBITA_SECRETS_KEY="${ORBITA_SECRETS_KEY:-e2e0123456789012345678901234567}"
 export ORBITA_E2E_MOCK=1
+unset ORBITA_TICKETS_ENABLED
 export HOST=127.0.0.1
 export PORT="${PORT:-3099}"
 export E2E_API_URL="http://${HOST}:${PORT}"
@@ -65,5 +66,11 @@ fi
 
 echo "==> running tier A HTTP tests"
 pnpm exec vitest run --config tests/e2e/vitest.config.ts tests/e2e/tier-a-api.test.ts
+
+echo "==> tickets migration golden + optional DDL (ORBITA_TICKETS_ENABLED=1, apply twice)"
+export ORBITA_TICKETS_ENABLED=1
+pnpm exec vitest run --config tests/e2e/vitest.config.ts tests/e2e/tickets-migration.test.ts
+pnpm exec vitest run --config tests/e2e/vitest.config.ts tests/e2e/tickets-pg-repository.test.ts
+unset ORBITA_TICKETS_ENABLED
 
 echo "==> tier A E2E OK"

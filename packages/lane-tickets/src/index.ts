@@ -9,6 +9,7 @@ export {
   validateParentForCreate,
 } from "./transitions.js";
 export { FakeTicketRepository } from "./fake-repository.js";
+export { PgTicketRepository } from "./pg-repository.js";
 export type {
   CreateTicketParams,
   GetTicketParams,
@@ -23,9 +24,13 @@ export type {
   TransitionSuccess,
 } from "./repository.js";
 export {
-  sqlAppendEvent,
+  sqlAppendEventInsert,
+  sqlAppendEventSeq,
+  sqlClaimTicketUpdate,
   sqlGetTicket,
+  sqlInsertIdempotency,
   sqlListTickets,
+  sqlSelectIdempotency,
 } from "./repository/pg.js";
 export type {
   Actor,

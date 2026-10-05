@@ -1,1 +1,3 @@
-[]
+[
+  "packages/lane-tickets/drizzle/0001_tickets.sql"
+]

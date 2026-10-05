@@ -82,6 +82,12 @@ Machine-readable spec: `GET /v1/openapi.json` (public, no auth). The document co
 
 Compare with live health version: `GET /v1/health`
 
+## Tickets lane (optional, `ORBITA_TICKETS_ENABLED`)
+
+The ticket system (mandate → epic → task hierarchy, leases, idempotency) ships **off by default**. When `ORBITA_TICKETS_ENABLED` is unset or not `1`, the API applies only `init.sql` — no `tickets` tables and no `/v1/tickets` routes (later waves).
+
+When the flag is `1` at **migration time**, startup also runs `apps/orbita-api/migrations/optional-tickets.sql` (mirrored from `packages/lane-tickets/drizzle/`). DDL is additive (`IF NOT EXISTS` only). Production enable is a founder decision ([D-005](https://github.com/jackyckma/orbita/blob/main/docs/autopilot/decisions.json)); verify with `bash scripts/e2e-tier-a.sh` (GitHub CI) before flipping Zeabur env.
+
 ## Further reading
 
 - [product-architecture.md](https://github.com/jackyckma/orbita/blob/main/docs/product-architecture.md)

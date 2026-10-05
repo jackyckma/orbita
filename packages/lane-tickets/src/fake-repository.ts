@@ -32,6 +32,7 @@ import type {
   SoftBreachHint,
   TicketStatus,
 } from "./types.js";
+import { MemoryTicketDataAccess } from "./repository/memory-data-access.js";
 
 function nowIso(): string {
   return new Date().toISOString();
@@ -93,23 +94,35 @@ function softBreachPayload(hint: SoftBreachHint): Record<string, unknown> {
 }
 
 export class FakeTicketRepository implements TicketRepository {
-  private readonly tickets = new Map<string, StoredTicket>();
-  private readonly events = new Map<string, TicketEventRecord[]>();
-  private readonly idempotency = new Map<string, TransitionSuccess>();
+  protected readonly data: MemoryTicketDataAccess;
 
-  private rowKey(client_id: string, id: string): string {
-    return `${client_id}:${id}`;
+  constructor(data?: MemoryTicketDataAccess) {
+    this.data = data ?? new MemoryTicketDataAccess();
   }
 
   private allForClient(client_id: string): StoredTicket[] {
-    return [...this.tickets.values()].filter((t) => t.client_id === client_id);
+    return this.data.allForClient(client_id);
   }
 
-  private getStored(
+  protected getStored(
     client_id: string,
     ticket_id: string,
   ): StoredTicket | undefined {
-    return this.tickets.get(this.rowKey(client_id, ticket_id));
+    return this.data.getStored(client_id, ticket_id);
+  }
+
+  private clearExpiredLease(row: StoredTicket): void {
+    if (
+      row.lease_holder &&
+      row.lease_expires_at &&
+      Date.parse(row.lease_expires_at) < Date.now()
+    ) {
+      row.lease_holder = null;
+      row.lease_expires_at = null;
+      if (row.status === "claimed") {
+        row.status = "approved";
+      }
+    }
   }
 
   private mandateRow(
@@ -157,7 +170,7 @@ export class FakeTicketRepository implements TicketRepository {
       writes_today: mandate.mandate_counters.writes_today + 1,
     };
     mandate.updated_at = nowIso();
-    this.tickets.set(this.rowKey(client_id, mandate.id), mandate);
+    this.data.setStored(mandate);
   }
 
   private bumpCreationCounter(
@@ -182,7 +195,7 @@ export class FakeTicketRepository implements TicketRepository {
     }
     mandate.mandate_counters = counters;
     mandate.updated_at = nowIso();
-    this.tickets.set(this.rowKey(client_id, mandate.id), mandate);
+    this.data.setStored(mandate);
   }
 
   private syncSubtreeMandateStatus(
@@ -194,7 +207,7 @@ export class FakeTicketRepository implements TicketRepository {
       if (row.mandate_id === mandate_id) {
         row.mandate_status = status;
         row.updated_at = nowIso();
-        this.tickets.set(this.rowKey(client_id, row.id), row);
+        this.data.setStored(row);
       }
     }
   }
@@ -203,7 +216,7 @@ export class FakeTicketRepository implements TicketRepository {
     row: StoredTicket,
     event: Omit<TicketEventRecord, "id" | "seq" | "client_id">,
   ): TicketEventRecord {
-    const list = this.events.get(row.id) ?? [];
+    const list = [...this.data.getEvents(row.id)];
     const full: TicketEventRecord = {
       id: randomUUID(),
       client_id: row.client_id,
@@ -211,7 +224,7 @@ export class FakeTicketRepository implements TicketRepository {
       ...event,
     };
     list.push(full);
-    this.events.set(row.id, list);
+    this.data.setEvents(row.id, list);
     return full;
   }
 
@@ -245,7 +258,7 @@ export class FakeTicketRepository implements TicketRepository {
       params;
     const verb = "ticket_create";
     if (idempotency_key) {
-      const cached = this.idempotency.get(
+      const cached = this.data.idempotencyGet(
         idempotencyKey(client_id, verb, idempotency_key),
       );
       if (cached) {
@@ -355,8 +368,8 @@ export class FakeTicketRepository implements TicketRepository {
       updated_at: ts,
     };
 
-    this.tickets.set(this.rowKey(client_id, id), row);
-    this.events.set(id, []);
+    this.data.setStored(row);
+    this.data.setEvents(id, []);
 
     const event = this.appendEvent(row, {
       ticket_id: id,
@@ -378,7 +391,7 @@ export class FakeTicketRepository implements TicketRepository {
 
     const success: TransitionSuccess = { ticket: publicTicket(row), event };
     if (idempotency_key) {
-      this.idempotency.set(
+      this.data.idempotencySet(
         idempotencyKey(client_id, verb, idempotency_key),
         success,
       );
@@ -395,7 +408,7 @@ export class FakeTicketRepository implements TicketRepository {
     }
     const result: GetTicketResult = { ticket: publicTicket(row) };
     if (params.include_events) {
-      result.events = [...(this.events.get(row.id) ?? [])];
+      result.events = [...this.data.getEvents(row.id)];
     }
     return { ok: true, value: result };
   }
@@ -474,7 +487,7 @@ export class FakeTicketRepository implements TicketRepository {
     } = params;
 
     if (idempotency_key) {
-      const cached = this.idempotency.get(
+      const cached = this.data.idempotencyGet(
         idempotencyKey(client_id, verb, idempotency_key),
       );
       if (cached) {
@@ -485,6 +498,10 @@ export class FakeTicketRepository implements TicketRepository {
     const row = this.getStored(client_id, ticket_id);
     if (!row) {
       return err("NOT_FOUND", "Ticket not found.");
+    }
+
+    if (verb === "ticket_claim" || verb === "ticket_extend") {
+      this.clearExpiredLease(row);
     }
 
     if (
@@ -581,7 +598,7 @@ export class FakeTicketRepository implements TicketRepository {
       );
     }
 
-    this.tickets.set(this.rowKey(client_id, ticket_id), row);
+    this.data.setStored(row);
 
     const payload =
       comment !== undefined
@@ -603,7 +620,7 @@ export class FakeTicketRepository implements TicketRepository {
 
     const success: TransitionSuccess = { ticket: publicTicket(row), event };
     if (idempotency_key) {
-      this.idempotency.set(
+      this.data.idempotencySet(
         idempotencyKey(client_id, verb, idempotency_key),
         success,
       );
@@ -632,7 +649,7 @@ export class FakeTicketRepository implements TicketRepository {
       if (!last_activity_at || t.updated_at > last_activity_at) {
         last_activity_at = t.updated_at;
       }
-      for (const ev of this.events.get(t.id) ?? []) {
+      for (const ev of this.data.getEvents(t.id)) {
         if (!last_activity_at || ev.at > last_activity_at) {
           last_activity_at = ev.at;
         }
