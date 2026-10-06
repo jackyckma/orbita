@@ -1340,11 +1340,16 @@
         "T-0086"
       ],
       "flag": "ORBITA_TICKETS_ENABLED",
-      "status": "in_review",
+      "status": "done",
       "retries": 0,
       "feedback": [
         "2026-10-06 hub review of T-0086: actor trusted from the request body; fixed here before MCP (T-0087).",
-        "MAKER 2026-10-06: PR https://github.com/jackyckma/orbita/pull/54 — tickets test + typecheck green on branch."
+        "MAKER 2026-10-06: PR https://github.com/jackyckma/orbita/pull/54 — tickets test + typecheck green on branch.",
+        {
+          "at": "2026-10-06T14:40:00.000Z",
+          "by": "checker",
+          "note": "REVIEW PR #54: verify-all PASS; task acceptance PASS; CI verify + e2e-tier-a SUCCESS. Scope matches T-0094 (deriveTicketActor, ORBITA_TICKETS_KEY_MANDATES, body actor removed/ignored, spoof tests). Merged PR #54 to main (f3b5fe2). Flag flip remains founder-only."
+        }
       ]
     },
     {
