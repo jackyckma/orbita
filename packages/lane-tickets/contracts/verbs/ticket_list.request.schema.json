@@ -34,6 +34,17 @@
     },
     "cursor": {
       "$ref": "../common.schema.json#/definitions/pagination_cursor"
+    },
+    "task_class": {
+      "$ref": "../common.schema.json#/definitions/task_class"
+    },
+    "requires_review": {
+      "type": "boolean",
+      "description": "When true, only tickets flagged for integrator review."
+    },
+    "reviewed": {
+      "type": "boolean",
+      "description": "When false, unreviewed queue (requires_review tickets with no reviewed_at)."
     }
   }
 }

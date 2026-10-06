@@ -18,10 +18,14 @@ Tickets are **not** notes: atomic claim, versioning, append-only events, determi
 |------|-----------|--------|
 | `mandate` | `null` | Standing responsibility; carries `charter` |
 | `epic` | mandate uuid | Bounded goal; integrator approves (or charter auto-approve policy) |
-| `task` | epic uuid | Executor-created work within guardrails |
+| `task` | epic uuid (planned) or mandate uuid (exception) | Planned work under an epic; **exception** tasks skip the epic when the charter defines `exception_types` |
 | `decision` | mandate, epic, or task uuid | Human decision requests |
 
 Executors may create children only under parents in their mandate subtree (enforced at runtime).
+
+### Exception tasks (`task_class=exception`)
+
+Charter field **`exception_types`**: `{ type, description, auto_approve?, risk_tier_max?, max_open? }[]`. Exception tasks set `parent_id` to the **active mandate**, `exception_type` to a defined slug, and always `requires_review=true`. Server `hard_limits.max_open_exceptions` caps open exception tasks per mandate; per-type `max_open` is enforced separately. Initial status is `approved` when `auto_approve` (default true) and risk tier allows, else `proposed`.
 
 ## Mandate charter (`charter.schema.json`)
 
@@ -29,6 +33,7 @@ Executors may create children only under parents in their mandate subtree (enfor
 - **`hard_limits`**: never adjustable by the executor. Each entry has **`enforcement`**: `server` (Orbita rejects), `environment` (capability absent), or `instruction` (policy text; checked after the fact). Default for ambiguous limits is **hard**.
 - **`approval_policy`**: `epics` (`integrator` default | `auto_within_tier`) and `tasks` (`auto` default | `integrator`). Works with **`guardrails.max_auto_risk_tier`** for agent auto-approve on create (see `initialStatusOnCreate` in the pure engine).
 - **`soft_constraints`**: **warn_threshold** only records **`soft_breach`**; **block_threshold** denies transitions with **`SOFT_BLOCK_THRESHOLD_EXCEEDED`** when observed ≥ threshold (constraints without `block_threshold` never block).
+- **`exception_types`**: typed exception tasks (see above).
 
 Charter changes are audited; changing **hard_limits** or loosening hard → soft requires a human-approved principal.
 
@@ -105,6 +110,9 @@ All verbs share JSON bodies between **REST** (`/v1/tickets…`, separate from no
 | `ticket_request_decision` | Spawn decision ticket |
 | `ticket_comment` | Append-only comment event |
 | `ticket_cancel` | Cancel (human rules on proposed) |
+| `ticket_review` | Integrator/founder review queue (`review_outcome`: accepted \| needs_changes \| cancel); appends `reviewed` event |
+
+**Integrator review queue:** `ticket_list` filters `requires_review`, `reviewed`, and `task_class`. Queue = `requires_review=true` and unreviewed (`reviewed=false`). Executor auto-approved epics/tasks also land in this queue.
 
 **Optimistic concurrency:** `expected_version` on mutating verbs. **Idempotency:** `(client_id, verb, idempotency_key)` unique at runtime.
 
@@ -144,7 +152,7 @@ Effective stops are: (1) the agent’s instructions to check mandate status befo
 - `TicketRepository` + `FakeTicketRepository` for tests; Postgres SQL builders in `repository.pg.ts`.
 - Tenant isolation: every query scoped by `client_id`.
 - Append-only `ticket_events` with monotonic `seq`; `soft_breach` payloads recorded as events.
-- `getMandateSubtreeHealth` — per-mandate status counts and last activity timestamp.
+- `getMandateSubtreeHealth` — per-mandate status counts, **`open_exception_tasks`**, and last activity timestamp.
 
 ## Does not (this slice)
 

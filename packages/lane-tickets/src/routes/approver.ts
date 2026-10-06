@@ -30,5 +30,8 @@ export function requiresApproverGate(
   if (verb === "ticket_update_charter") {
     return true;
   }
+  if (verb === "ticket_review") {
+    return true;
+  }
   return false;
 }

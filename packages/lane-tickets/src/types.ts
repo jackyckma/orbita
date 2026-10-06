@@ -46,7 +46,12 @@ export type TicketVerb =
   | "ticket_request_decision"
   | "ticket_comment"
   | "ticket_cancel"
-  | "ticket_update_charter";
+  | "ticket_update_charter"
+  | "ticket_review";
+
+export type TaskClass = "planned" | "exception";
+
+export type ReviewOutcome = "accepted" | "needs_changes" | "cancel";
 
 export type TicketRole = "founder" | "integrator" | "executor" | "system";
 
@@ -84,6 +89,7 @@ export interface HardLimit {
   enforcement: HardLimitEnforcement;
   max_open_epics?: number;
   max_open_tasks?: number;
+  max_open_exceptions?: number;
   max_creations_per_day?: number;
   max_writes_per_day?: number;
   authority_boundary?: string;
@@ -132,6 +138,8 @@ export interface MandateCharter {
 export interface MandateCounters {
   open_epics: number;
   open_tasks: number;
+  open_exception_tasks: number;
+  open_exception_tasks_by_type: Record<string, number>;
   creations_today: number;
   writes_today: number;
 }
@@ -219,6 +227,13 @@ export interface TransitionInput {
   epic_precheck?: { ok: boolean; violations: { code: string; message: string }[] };
   /** Mandate charter patch for ticket_update_charter. */
   charter_patch?: Partial<MandateCharter>;
+  task_class?: TaskClass;
+  exception_type?: string;
+  requires_review?: boolean;
+  reviewed_at?: string | null;
+  review_outcome?: ReviewOutcome;
+  /** Create-event actor api_key_id — self-review guard for ticket_review. */
+  creator_api_key_id?: string;
 }
 
 export interface InitialStatusInput {
@@ -227,10 +242,20 @@ export interface InitialStatusInput {
   parent?: ParentTicketRef | null;
   charter: MandateCharter;
   risk_tier?: RiskTier;
+  task_class?: TaskClass;
+  exception_type?: string;
+  counters?: MandateCounters;
 }
 
 export type InitialStatusResult =
-  | { ok: true; status: TicketStatus; mandate_id: string | null }
+  | {
+      ok: true;
+      status: TicketStatus;
+      mandate_id: string | null;
+      task_class?: TaskClass;
+      exception_type?: string;
+      requires_review?: boolean;
+    }
   | {
       ok: false;
       error: {

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { EMPTY_COUNTERS } from "./repository-internal.js";
 import { precheckEpic } from "./precheck-epic.js";
 import type { MandateCharter } from "./types.js";
 
@@ -28,12 +29,7 @@ describe("precheckEpic", () => {
       function: "dev",
       risk_tier: "L0",
       charter: charter(),
-      counters: {
-        open_epics: 0,
-        open_tasks: 0,
-        creations_today: 0,
-        writes_today: 0,
-      },
+      counters: { ...EMPTY_COUNTERS },
       mandate_status: "active",
     });
     expect(r.ok).toBe(true);
@@ -44,12 +40,7 @@ describe("precheckEpic", () => {
     const r = precheckEpic({
       function: "marketing",
       charter: charter(),
-      counters: {
-        open_epics: 0,
-        open_tasks: 0,
-        creations_today: 0,
-        writes_today: 0,
-      },
+      counters: { ...EMPTY_COUNTERS },
       mandate_status: "active",
     });
     expect(r.ok).toBe(false);

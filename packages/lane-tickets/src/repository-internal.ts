@@ -1,3 +1,4 @@
+import { countOpenExceptionsInSubtree } from "./exception-tasks.js";
 import {
   evaluateTransition,
   initialStatusOnCreate,
@@ -18,6 +19,8 @@ import type {
 export const EMPTY_COUNTERS: MandateCounters = {
   open_epics: 0,
   open_tasks: 0,
+  open_exception_tasks: 0,
+  open_exception_tasks_by_type: {},
   creations_today: 0,
   writes_today: 0,
 };
@@ -103,9 +106,16 @@ export function computeLiveMandateCounters(
     }
   }
 
+  const { total, by_type } = countOpenExceptionsInSubtree(
+    mandate_id,
+    subtree,
+  );
+
   return {
     open_epics,
     open_tasks,
+    open_exception_tasks: total,
+    open_exception_tasks_by_type: by_type,
     creations_today,
     writes_today,
   };
@@ -157,6 +167,10 @@ export function buildTransitionInput(
     mandate_status,
     open_children_count:
       row.kind === "epic" ? extras?.open_children_count : undefined,
+    task_class: row.task_class,
+    exception_type: row.exception_type,
+    requires_review: row.requires_review,
+    reviewed_at: row.reviewed_at,
     ...extras,
   };
 }

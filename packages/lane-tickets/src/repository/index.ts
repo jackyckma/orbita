@@ -3,8 +3,10 @@ import type {
   MandateCharter,
   MandateCounters,
   MandateStatus,
+  ReviewOutcome,
   RiskTier,
   SoftBreachHint,
+  TaskClass,
   TicketKind,
   TicketSource,
   TicketStatus,
@@ -44,6 +46,12 @@ export interface TicketRecord {
   charter?: MandateCharter;
   acceptance_criteria?: string[];
   data?: Record<string, unknown>;
+  task_class?: TaskClass;
+  exception_type?: string;
+  requires_review?: boolean;
+  reviewed_at?: string | null;
+  reviewed_by?: Actor | null;
+  review_outcome?: ReviewOutcome | null;
   created_at: string;
   updated_at: string;
 }
@@ -89,6 +97,10 @@ export interface ListTicketsFilter {
   status?: TicketStatus;
   owner?: string;
   updated_since?: string;
+  task_class?: TaskClass;
+  requires_review?: boolean;
+  /** When true, only tickets with reviewed_at set; when false, only unreviewed. */
+  reviewed?: boolean;
 }
 
 export interface ListTicketsQuery extends ListTicketsFilter {
@@ -118,6 +130,8 @@ export interface CreateTicketBody {
   data?: Record<string, unknown>;
   source?: TicketSource;
   git_ref?: string;
+  task_class?: TaskClass;
+  exception_type?: string;
 }
 
 export interface CreateTicketParams {
@@ -155,6 +169,7 @@ export interface TransitionParams {
   payload?: Record<string, unknown>;
   charter_patch?: Partial<MandateCharter>;
   override_precheck?: boolean;
+  review_outcome?: ReviewOutcome;
 }
 
 export interface TransitionSuccess {
@@ -167,6 +182,7 @@ export interface TransitionSuccess {
 export interface MandateSubtreeHealth {
   mandate_id: string;
   counts_by_status: Record<string, number>;
+  open_exception_tasks: number;
   last_activity_at: string | null;
 }
 

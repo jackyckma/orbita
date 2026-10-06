@@ -26,6 +26,12 @@ CREATE TABLE IF NOT EXISTS "tickets" (
   "charter" jsonb,
   "acceptance_criteria" jsonb,
   "data" jsonb,
+  "task_class" text DEFAULT 'planned',
+  "exception_type" text,
+  "requires_review" boolean NOT NULL DEFAULT false,
+  "reviewed_at" timestamp with time zone,
+  "reviewed_by" jsonb,
+  "review_outcome" text,
   "mandate_id" uuid,
   "mandate_status" text,
   "mandate_counters" jsonb NOT NULL DEFAULT '{}'::jsonb,
@@ -62,3 +68,13 @@ CREATE TABLE IF NOT EXISTS "ticket_idempotency" (
   "created_at" timestamp with time zone DEFAULT now() NOT NULL,
   PRIMARY KEY ("client_id", "verb", "idempotency_key")
 );
+
+ALTER TABLE "tickets" ADD COLUMN IF NOT EXISTS "task_class" text DEFAULT 'planned';
+ALTER TABLE "tickets" ADD COLUMN IF NOT EXISTS "exception_type" text;
+ALTER TABLE "tickets" ADD COLUMN IF NOT EXISTS "requires_review" boolean NOT NULL DEFAULT false;
+ALTER TABLE "tickets" ADD COLUMN IF NOT EXISTS "reviewed_at" timestamp with time zone;
+ALTER TABLE "tickets" ADD COLUMN IF NOT EXISTS "reviewed_by" jsonb;
+ALTER TABLE "tickets" ADD COLUMN IF NOT EXISTS "review_outcome" text;
+
+CREATE INDEX IF NOT EXISTS "tickets_client_review_queue_idx"
+  ON "tickets" ("client_id", "requires_review", "reviewed_at");

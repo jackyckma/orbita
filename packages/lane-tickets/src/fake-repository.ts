@@ -37,6 +37,7 @@ import type {
   SoftBreachHint,
   TicketStatus,
 } from "./types.js";
+import { countOpenExceptionsInSubtree } from "./exception-tasks.js";
 import { MemoryTicketDataAccess } from "./repository/memory-data-access.js";
 
 function nowIso(): string {
@@ -290,18 +291,45 @@ export class FakeTicketRepository implements TicketRepository {
       return err("INVALID_PARENT", "Mandate charter required for create.");
     }
 
+    const countersForCreate = (() => {
+      const needsCounters = charter.hard_limits.some(
+        (l) => l.enforcement === "server",
+      );
+      if (!needsCounters) {
+        return undefined;
+      }
+      if (ticket.kind === "mandate") {
+        return { ...EMPTY_COUNTERS };
+      }
+      const mid =
+        parent?.kind === "mandate"
+          ? parent.id
+          : (parent?.mandate_id ?? undefined);
+      if (mid) {
+        const mRow = this.mandateRow(client_id, mid);
+        if (mRow) {
+          return this.countersFor(mRow);
+        }
+      }
+      return { ...EMPTY_COUNTERS };
+    })();
+
     const initial = initialStatusOnCreate({
       kind: ticket.kind,
       actor,
       parent: parent ? parentRef(parent) : null,
       charter,
       risk_tier: ticket.risk_tier,
+      task_class: ticket.task_class,
+      exception_type: ticket.exception_type,
+      counters: countersForCreate,
     });
     if (!initial.ok) {
       return err(initial.error.code, initial.error.message, initial.error.details);
     }
 
     let createStatus = initial.status;
+    let requiresReview = initial.requires_review ?? false;
     if (
       ticket.kind === "epic" &&
       createStatus === "approved" &&
@@ -319,6 +347,7 @@ export class FakeTicketRepository implements TicketRepository {
       });
       if (!pre.ok) {
         createStatus = "proposed";
+        requiresReview = false;
       }
     }
 
@@ -341,20 +370,9 @@ export class FakeTicketRepository implements TicketRepository {
       mandate_id: initial.mandate_id ?? undefined,
       mandate_status: subtreeMandateStatus,
       soft_observations,
-      counters: (() => {
-        const needsCounters = charter.hard_limits.some(
-          (l) => l.enforcement === "server",
-        );
-        if (!needsCounters) {
-          return undefined;
-        }
-        if (initial.mandate_id) {
-          return this.countersFor(
-            this.mandateRow(client_id, initial.mandate_id)!,
-          );
-        }
-        return { ...EMPTY_COUNTERS };
-      })(),
+      task_class: initial.task_class ?? ticket.task_class,
+      exception_type: initial.exception_type ?? ticket.exception_type,
+      counters: countersForCreate,
     });
     if (!createCheck.allowed) {
       return err(
@@ -397,6 +415,16 @@ export class FakeTicketRepository implements TicketRepository {
       charter: ticket.kind === "mandate" ? ticket.charter : undefined,
       acceptance_criteria: ticket.acceptance_criteria,
       data: ticket.data,
+      task_class:
+        ticket.kind === "task"
+          ? (initial.task_class ?? ticket.task_class ?? "planned")
+          : undefined,
+      exception_type:
+        ticket.kind === "task" ? initial.exception_type ?? ticket.exception_type : undefined,
+      requires_review: requiresReview,
+      reviewed_at: null,
+      reviewed_by: null,
+      review_outcome: null,
       mandate_id,
       mandate_status,
       mandate_counters:
@@ -472,6 +500,17 @@ export class FakeTicketRepository implements TicketRepository {
       const since = query.updated_since;
       rows = rows.filter((r) => r.updated_at >= since);
     }
+    if (query.task_class) {
+      rows = rows.filter((r) => r.task_class === query.task_class);
+    }
+    if (query.requires_review !== undefined) {
+      rows = rows.filter((r) => r.requires_review === query.requires_review);
+    }
+    if (query.reviewed === true) {
+      rows = rows.filter((r) => r.reviewed_at != null);
+    } else if (query.reviewed === false) {
+      rows = rows.filter((r) => !r.reviewed_at);
+    }
 
     rows.sort((a, b) => {
       if (a.updated_at !== b.updated_at) {
@@ -523,6 +562,7 @@ export class FakeTicketRepository implements TicketRepository {
       comment,
       charter_patch,
       override_precheck,
+      review_outcome,
     } = params;
 
     if (idempotency_key) {
@@ -611,6 +651,10 @@ export class FakeTicketRepository implements TicketRepository {
       }
     }
 
+    const createEvent = this.data
+      .getEvents(row.id)
+      .find((e) => e.verb === "ticket_create");
+
     const input = buildTransitionInput(row, charter, verb, actor, {
       progress_target,
       soft_observations,
@@ -623,6 +667,8 @@ export class FakeTicketRepository implements TicketRepository {
       ticket_function: row.function,
       risk_tier: row.risk_tier,
       override_precheck,
+      review_outcome,
+      creator_api_key_id: createEvent?.actor.api_key_id,
     });
 
     const decision = evaluateTransition(input);
@@ -712,6 +758,12 @@ export class FakeTicketRepository implements TicketRepository {
     const ts = nowIso();
     row.updated_at = ts;
 
+    if (verb === "ticket_review" && review_outcome) {
+      row.reviewed_at = ts;
+      row.reviewed_by = actor;
+      row.review_outcome = review_outcome;
+    }
+
     if (row.kind === "mandate" && decision.to_status) {
       row.mandate_status = decision.to_status as MandateStatus;
       this.syncSubtreeMandateStatus(
@@ -737,7 +789,13 @@ export class FakeTicketRepository implements TicketRepository {
               ? { override_precheck: true }
               : {}),
           }
-        : payloadBase;
+        : verb === "ticket_review" && review_outcome
+          ? {
+              ...payloadBase,
+              event_kind: "reviewed",
+              review_outcome,
+            }
+          : payloadBase;
 
     const event = this.appendEvent(row, {
       ticket_id: row.id,
@@ -794,11 +852,17 @@ export class FakeTicketRepository implements TicketRepository {
       }
     }
 
+    const { total: open_exception_tasks } = countOpenExceptionsInSubtree(
+      mandate_id,
+      subtree,
+    );
+
     return {
       ok: true,
       value: {
         mandate_id,
         counts_by_status: counts,
+        open_exception_tasks,
         last_activity_at,
       },
     };
