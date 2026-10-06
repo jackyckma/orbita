@@ -1,11 +1,9 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://orbita.dev/schemas/lane-tickets/verbs/ticket_approve.request.schema.json",
-  "title": "ticket_approve request",
+  "$id": "https://orbita.dev/schemas/lane-tickets/verbs/ticket_update_charter.request.schema.json",
+  "title": "ticket_update_charter request",
   "type": "object",
-  "required": [
-    "ticket_id"
-  ],
+  "required": ["ticket_id", "charter_patch"],
   "additionalProperties": false,
   "properties": {
     "ticket_id": {
@@ -18,12 +16,9 @@
     "idempotency_key": {
       "$ref": "../common.schema.json#/definitions/idempotency_key"
     },
-    "comment": {
-      "type": "string"
-    },
-    "override_precheck": {
-      "type": "boolean",
-      "description": "Founder only: approve epic when structural pre-check failed; recorded on the event."
+    "charter_patch": {
+      "type": "object",
+      "description": "Partial mandate charter update; hard_limits and assigned_principals require founder."
     }
   }
 }

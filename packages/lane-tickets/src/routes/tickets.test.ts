@@ -24,7 +24,7 @@ function charter(
     purpose: "test",
     principles: ["p"],
     guardrails: {
-      allowed_action_categories: ["L0"],
+      allowed_action_categories: ["dev", "L0"],
       forbidden_action_categories: [],
       max_auto_risk_tier: "L1",
     },
@@ -55,7 +55,7 @@ function mockApiKey(id: string) {
 async function activeMandate(repo: FakeTicketRepository) {
   const mandate = await repo.create({
     client_id: "tenant-a",
-    actor: { type: "human" },
+    actor: { role: "founder" },
     ticket: {
       project: "p",
       function: "dev",
@@ -71,7 +71,7 @@ async function activeMandate(repo: FakeTicketRepository) {
     client_id: "tenant-a",
     ticket_id: mandate.value.ticket.id,
     verb: "ticket_approve",
-    actor: { type: "human" },
+    actor: { role: "founder" },
   });
   return mandate.value.ticket;
 }
@@ -117,7 +117,7 @@ describe("ticket REST routes", () => {
     const mandate = await activeMandate(repo);
     const epic = await repo.create({
       client_id: "tenant-a",
-      actor: { type: "agent", mandate_ids: [mandate.id] },
+      actor: { role: "executor", mandate_ids: [mandate.id] },
       ticket: {
         project: "p",
         function: "dev",
@@ -151,7 +151,7 @@ describe("ticket REST routes", () => {
     const mandate = await activeMandate(repo);
     const epic = await repo.create({
       client_id: "tenant-a",
-      actor: { type: "agent", mandate_ids: [mandate.id] },
+      actor: { role: "executor", mandate_ids: [mandate.id] },
       ticket: {
         project: "p",
         function: "dev",
@@ -190,7 +190,7 @@ describe("ticket REST routes", () => {
     const mandate = await activeMandate(repo);
     const epic = await repo.create({
       client_id: "tenant-a",
-      actor: { type: "agent", mandate_ids: [mandate.id] },
+      actor: { role: "executor", mandate_ids: [mandate.id] },
       ticket: {
         project: "p",
         function: "dev",
@@ -212,7 +212,7 @@ describe("ticket REST routes", () => {
       },
       body: JSON.stringify({
         ticket_id: epic.value.ticket.id,
-        actor: { type: "human", api_key_id: "key-approver" },
+        actor: { role: "founder", api_key_id: "key-approver" },
       }),
     });
     expect(res.status).toBe(403);
@@ -222,7 +222,7 @@ describe("ticket REST routes", () => {
     const repo = new FakeTicketRepository();
     const mandateRow = await repo.create({
       client_id: "tenant-a",
-      actor: { type: "human" },
+      actor: { role: "founder" },
       ticket: {
         project: "p",
         function: "dev",
@@ -245,11 +245,11 @@ describe("ticket REST routes", () => {
       client_id: "tenant-a",
       ticket_id: mandateRow.value.ticket.id,
       verb: "ticket_approve",
-      actor: { type: "human" },
+      actor: { role: "founder" },
     });
     const epic = await repo.create({
       client_id: "tenant-a",
-      actor: { type: "human" },
+      actor: { role: "founder" },
       ticket: {
         project: "p",
         function: "dev",
@@ -266,7 +266,7 @@ describe("ticket REST routes", () => {
       client_id: "tenant-a",
       ticket_id: epic.value.ticket.id,
       verb: "ticket_approve",
-      actor: { type: "human" },
+      actor: { role: "founder" },
     });
 
     const app = testTicketsApp(
@@ -297,7 +297,7 @@ describe("ticket REST routes", () => {
     const repo = new FakeTicketRepository();
     const mandateRow = await repo.create({
       client_id: "tenant-a",
-      actor: { type: "human" },
+      actor: { role: "founder" },
       ticket: {
         project: "p",
         function: "dev",
@@ -345,7 +345,7 @@ describe("ticket REST routes", () => {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        actor: { type: "human" },
+        actor: { role: "founder" },
         ticket: {
           project: "p",
           function: "dev",
@@ -357,7 +357,7 @@ describe("ticket REST routes", () => {
     });
     expect(res.status).toBe(409);
     const body = (await res.json()) as { error: { details?: { ticket_error?: string } } };
-    expect(body.error.details?.ticket_error).toBe("HUMAN_ACTOR_REQUIRED");
+    expect(body.error.details?.ticket_error).toBe("PRIVILEGED_ROLE_REQUIRED");
   });
 
   it("ignores body actor.type system and still treats key as agent", async () => {
@@ -383,7 +383,7 @@ describe("ticket REST routes", () => {
     });
     expect(res.status).toBe(409);
     const body = (await res.json()) as { error: { details?: { ticket_error?: string } } };
-    expect(body.error.details?.ticket_error).toBe("HUMAN_ACTOR_REQUIRED");
+    expect(body.error.details?.ticket_error).toBe("PRIVILEGED_ROLE_REQUIRED");
   });
 
   it("allowlisted key creates mandate via REST without body actor", async () => {
@@ -414,7 +414,7 @@ describe("ticket REST routes", () => {
     const mandate = await activeMandate(repo);
     const epic = await repo.create({
       client_id: "tenant-a",
-      actor: { type: "agent", mandate_ids: [mandate.id] },
+      actor: { role: "executor", mandate_ids: [mandate.id] },
       ticket: {
         project: "p",
         function: "dev",
@@ -431,7 +431,7 @@ describe("ticket REST routes", () => {
       client_id: "tenant-a",
       ticket_id: epic.value.ticket.id,
       verb: "ticket_approve",
-      actor: { type: "human" },
+      actor: { role: "founder" },
     });
 
     const app = testTicketsApp(
@@ -447,12 +447,12 @@ describe("ticket REST routes", () => {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         ticket_id: epic.value.ticket.id,
-        actor: { type: "human" },
+        actor: { role: "founder" },
       }),
     });
     expect(res.status).toBe(409);
     const body = (await res.json()) as { error: { details?: { ticket_error?: string } } };
-    expect(body.error.details?.ticket_error).toBe("HUMAN_ACTOR_REQUIRED");
+    expect(body.error.details?.ticket_error).toBe("PRIVILEGED_ROLE_REQUIRED");
   });
 
   it("denies agent key without mandate binding on create under mandate", async () => {

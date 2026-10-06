@@ -90,17 +90,18 @@
         "ticket_block",
         "ticket_request_decision",
         "ticket_comment",
-        "ticket_cancel"
+        "ticket_cancel",
+        "ticket_update_charter"
       ]
     },
     "actor": {
       "type": "object",
-      "required": ["type"],
+      "required": ["role"],
       "additionalProperties": false,
       "properties": {
-        "type": {
+        "role": {
           "type": "string",
-          "enum": ["human", "agent", "system"]
+          "enum": ["founder", "integrator", "executor", "system"]
         },
         "principal_id": {
           "$ref": "#/definitions/principal_id"

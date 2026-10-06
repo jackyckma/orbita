@@ -10,7 +10,7 @@ function charter(): MandateCharter {
     purpose: "test",
     principles: ["p"],
     guardrails: {
-      allowed_action_categories: ["L0"],
+      allowed_action_categories: ["dev", "L0"],
       forbidden_action_categories: [],
       max_auto_risk_tier: "L1",
     },
@@ -37,7 +37,7 @@ describe("FakeTicketRepository tenant isolation", () => {
     const repo = new FakeTicketRepository();
     const created = await repo.create({
       client_id: CLIENT_A,
-      actor: { type: "human" },
+      actor: { role: "founder" },
       ticket: {
         project: "orbita",
         function: "dev",
@@ -66,7 +66,7 @@ describe("FakeTicketRepository claim and idempotency", () => {
     const repo = new FakeTicketRepository();
     const mandate = await repo.create({
       client_id: CLIENT_A,
-      actor: { type: "human" },
+      actor: { role: "founder" },
       ticket: {
         project: "p",
         function: "dev",
@@ -82,12 +82,12 @@ describe("FakeTicketRepository claim and idempotency", () => {
       client_id: CLIENT_A,
       ticket_id: mandate.value.ticket.id,
       verb: "ticket_approve",
-      actor: { type: "human" },
+      actor: { role: "founder" },
     });
 
     const epic = await repo.create({
       client_id: CLIENT_A,
-      actor: { type: "human" },
+      actor: { role: "founder" },
       ticket: {
         project: "p",
         function: "dev",
@@ -101,16 +101,19 @@ describe("FakeTicketRepository claim and idempotency", () => {
     if (!epic.ok) {
       throw new Error("epic failed");
     }
-    await repo.transition({
+    const epicApproved = await repo.transition({
       client_id: CLIENT_A,
       ticket_id: epic.value.ticket.id,
-      verb: "ticket_progress",
-      actor: { type: "agent", mandate_ids: [mandate.value.ticket.id] },
+      verb: "ticket_approve",
+      actor: { role: "founder" },
     });
+    if (!epicApproved.ok) {
+      throw new Error(`epic approve failed ${JSON.stringify(epicApproved)}`);
+    }
 
     const task = await repo.create({
       client_id: CLIENT_A,
-      actor: { type: "agent", mandate_ids: [mandate.value.ticket.id] },
+      actor: { role: "executor", mandate_ids: [mandate.value.ticket.id] },
       ticket: {
         project: "p",
         function: "dev",
@@ -128,7 +131,7 @@ describe("FakeTicketRepository claim and idempotency", () => {
       client_id: CLIENT_A,
       ticket_id: task.value.ticket.id,
       verb: "ticket_claim",
-      actor: { type: "agent", mandate_ids: [mandate.value.ticket.id] },
+      actor: { role: "executor", mandate_ids: [mandate.value.ticket.id] },
       expected_version: task.value.ticket.version,
       lease_seconds: 120,
       lease_holder: "agent:worker",
@@ -144,7 +147,7 @@ describe("FakeTicketRepository claim and idempotency", () => {
       client_id: CLIENT_A,
       ticket_id: task.value.ticket.id,
       verb: "ticket_claim",
-      actor: { type: "agent", mandate_ids: [mandate.value.ticket.id] },
+      actor: { role: "executor", mandate_ids: [mandate.value.ticket.id] },
       lease_seconds: 120,
       lease_holder: "agent:worker",
       idempotency_key: "claim-1",
@@ -158,7 +161,7 @@ describe("FakeTicketRepository claim and idempotency", () => {
       client_id: CLIENT_A,
       ticket_id: task.value.ticket.id,
       verb: "ticket_claim",
-      actor: { type: "agent", mandate_ids: [mandate.value.ticket.id] },
+      actor: { role: "executor", mandate_ids: [mandate.value.ticket.id] },
       expected_version: 1,
       lease_seconds: 120,
       lease_holder: "agent:other",
@@ -175,7 +178,7 @@ describe("FakeTicketRepository list filters", () => {
     const repo = new FakeTicketRepository();
     await repo.create({
       client_id: CLIENT_A,
-      actor: { type: "human" },
+      actor: { role: "founder" },
       ticket: {
         project: "alpha",
         function: "dev",
@@ -186,7 +189,7 @@ describe("FakeTicketRepository list filters", () => {
     });
     await repo.create({
       client_id: CLIENT_A,
-      actor: { type: "human" },
+      actor: { role: "founder" },
       ticket: {
         project: "beta",
         function: "dev",
@@ -214,7 +217,7 @@ describe("FakeTicketRepository mandate subtree health", () => {
     const repo = new FakeTicketRepository();
     const mandate = await repo.create({
       client_id: CLIENT_A,
-      actor: { type: "human" },
+      actor: { role: "founder" },
       ticket: {
         project: "p",
         function: "dev",
@@ -243,7 +246,7 @@ describe("FakeTicketRepository lease expiry", () => {
     const repo = new FakeTicketRepository();
     const mandate = await repo.create({
       client_id: CLIENT_A,
-      actor: { type: "human" },
+      actor: { role: "founder" },
       ticket: {
         project: "p",
         function: "dev",
@@ -257,11 +260,11 @@ describe("FakeTicketRepository lease expiry", () => {
       client_id: CLIENT_A,
       ticket_id: mandate.value.ticket.id,
       verb: "ticket_approve",
-      actor: { type: "human" },
+      actor: { role: "founder" },
     });
     const epic = await repo.create({
       client_id: CLIENT_A,
-      actor: { type: "human" },
+      actor: { role: "founder" },
       ticket: {
         project: "p",
         function: "dev",
@@ -273,15 +276,18 @@ describe("FakeTicketRepository lease expiry", () => {
       },
     });
     if (!epic.ok) throw new Error("epic");
-    await repo.transition({
+    const epicApproved = await repo.transition({
       client_id: CLIENT_A,
       ticket_id: epic.value.ticket.id,
-      verb: "ticket_progress",
-      actor: { type: "agent", mandate_ids: [mandate.value.ticket.id] },
+      verb: "ticket_approve",
+      actor: { role: "founder" },
     });
+    if (!epicApproved.ok) {
+      throw new Error(`epic approve ${JSON.stringify(epicApproved)}`);
+    }
     const task = await repo.create({
       client_id: CLIENT_A,
-      actor: { type: "agent", mandate_ids: [mandate.value.ticket.id] },
+      actor: { role: "executor", mandate_ids: [mandate.value.ticket.id] },
       ticket: {
         project: "p",
         function: "dev",
@@ -296,7 +302,7 @@ describe("FakeTicketRepository lease expiry", () => {
       client_id: CLIENT_A,
       ticket_id: task.value.ticket.id,
       verb: "ticket_claim",
-      actor: { type: "agent", mandate_ids: [mandate.value.ticket.id] },
+      actor: { role: "executor", mandate_ids: [mandate.value.ticket.id] },
       expected_version: task.value.ticket.version,
       lease_seconds: 1,
       lease_holder: "agent:old",
@@ -307,7 +313,7 @@ describe("FakeTicketRepository lease expiry", () => {
       client_id: CLIENT_A,
       ticket_id: task.value.ticket.id,
       verb: "ticket_claim",
-      actor: { type: "agent", mandate_ids: [mandate.value.ticket.id] },
+      actor: { role: "executor", mandate_ids: [mandate.value.ticket.id] },
       lease_seconds: 120,
       lease_holder: "agent:new",
     });
@@ -323,7 +329,7 @@ describe("FakeTicketRepository soft_breach events", () => {
     const repo = new FakeTicketRepository();
     const mandate = await repo.create({
       client_id: CLIENT_A,
-      actor: { type: "human" },
+      actor: { role: "founder" },
       ticket: {
         project: "p",
         function: "dev",
@@ -340,13 +346,13 @@ describe("FakeTicketRepository soft_breach events", () => {
       client_id: CLIENT_A,
       ticket_id: id,
       verb: "ticket_approve",
-      actor: { type: "human" },
+      actor: { role: "founder" },
     });
     const comment = await repo.transition({
       client_id: CLIENT_A,
       ticket_id: id,
       verb: "ticket_comment",
-      actor: { type: "human" },
+      actor: { role: "founder" },
       soft_observations: { effort: 6 },
       comment: "warn threshold crossed",
     });

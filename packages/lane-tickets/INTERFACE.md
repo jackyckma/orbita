@@ -56,10 +56,10 @@ proposed → approved → active → done
 
 | From | Verb | To | Actor |
 |------|------|-----|-------|
-| proposed | ticket_approve | approved | human (non-auto epic create paths) |
-| approved | ticket_progress | active | agent |
-| active | ticket_complete | done | agent |
-| proposed / approved / active | ticket_cancel | cancelled | human (agents may not cancel approved/active epics) |
+| proposed | ticket_approve | approved | founder or integrator (integrator needs `precheckEpic` ok) |
+| approved | ticket_progress | active | executor |
+| active | ticket_complete | done | executor |
+| proposed / approved / active | ticket_cancel | cancelled | founder or integrator (executors may not cancel approved/active epics) |
 
 ### Task and decision
 
@@ -71,14 +71,14 @@ Side: waiting_human, blocked (ticket_block), cancelled
 
 | From | Verb | To | Notes |
 |------|------|-----|-------|
-| proposed | ticket_approve | approved | human (when create did not auto-approve) |
+| proposed | ticket_approve | approved | founder or integrator (decision: founder only) |
 | approved | ticket_claim | claimed | atomic lease |
 | claimed | ticket_progress | in_progress | lease holder |
 | in_progress | ticket_progress | in_review | |
 | in_review | ticket_complete | done | requires result_refs |
 | * | ticket_block | blocked | sets blocked_on |
 | approved+ | ticket_extend | (same) | renew lease |
-| proposed | ticket_cancel | cancelled | human only |
+| proposed | ticket_cancel | cancelled | founder or integrator |
 
 Expired lease: runtime returns ticket to **approved** with an event (documented for T-0084+).
 
@@ -86,14 +86,15 @@ Expired lease: runtime returns ticket to **approved** with an event (documented 
 
 All verbs share JSON bodies between **REST** (`/v1/tickets…`, separate from notes) and **MCP** tools named `ticket_*`. Schemas live under `contracts/verbs/*.schema.json`.
 
-**Actor derivation:** the runtime derives the ticket actor from the authenticated API key (`deriveTicketActor`). Keys listed in `ORBITA_TICKETS_APPROVER_KEY_IDS` act as **human**; all other keys act as **agent** with `mandate_ids` from `ORBITA_TICKETS_KEY_MANDATES`. Request bodies and MCP tool inputs **never** carry an `actor` field (stray fields are ignored).
+**Actor derivation:** the runtime derives **founder**, **integrator**, or **executor** from the authenticated API key (`deriveTicketActor`) using `ORBITA_TICKETS_FOUNDER_KEY_IDS`, `ORBITA_TICKETS_INTEGRATOR_KEY_IDS` (and deprecated `ORBITA_TICKETS_APPROVER_KEY_IDS` as founder alias). Executors carry `mandate_ids` from `ORBITA_TICKETS_KEY_MANDATES`. Mandates are read-only for executors; `ticket_update_charter` is founder/integrator (hard limits and assigned principals: founder only). Request bodies and MCP tool inputs **never** carry an `actor` field (stray fields are ignored).
 
 | Verb | Purpose |
 |------|---------|
 | `ticket_create` | Create mandate / epic / task / decision |
 | `ticket_list` | Filtered cursor list |
 | `ticket_get` | Single ticket (+ optional events) |
-| `ticket_approve` | Human approval transitions |
+| `ticket_approve` | Approval transitions (epic pre-check in response) |
+| `ticket_update_charter` | Mandate charter patch with `charter_changed` event |
 | `ticket_claim` | Atomic claim + lease |
 | `ticket_extend` | Lease renewal |
 | `ticket_progress` | Status / owner / next_action updates |
@@ -123,9 +124,10 @@ Validate: `node --test packages/lane-tickets/contracts/validate-contracts.test.m
 
 ## Pure engine (T-0084 / T-0089)
 
-- **`initialStatusOnCreate`**: mandate create is human-only → `draft`; epic/task/decision initial status from `approval_policy`, actor, parent, and `risk_tier`.
-- **`mandate_status`** on transitions: when ancestor mandate is `draft`, `paused`, or `retired`, **agent** mutating verbs deny with **`MANDATE_NOT_ACTIVE`** (except `ticket_comment`, `ticket_block`, `ticket_request_decision`). Missing `mandate_status` on agent writes is also denied (fail-closed).
-- **Ownership**: agent actors carry `mandate_ids`; **`OUTSIDE_MANDATE`** when not in the ticket’s mandate.
+- **`initialStatusOnCreate`**: mandate create is founder/integrator → `draft`; epic/task/decision initial status from `approval_policy`, role, parent, `risk_tier`, and `precheckEpic` on auto-approve.
+- **`precheckEpic`**: structural epic fit (function, risk, caps, active mandate) before integrator epic approve and auto-approve create.
+- **`mandate_status`** on transitions: when ancestor mandate is `draft`, `paused`, or `retired`, **executor** mutating verbs deny with **`MANDATE_NOT_ACTIVE`** (except `ticket_comment`, `ticket_block`, `ticket_request_decision`). Missing `mandate_status` on executor writes is also denied (fail-closed).
+- **Ownership**: executor actors carry `mandate_ids`; **`OUTSIDE_MANDATE`** when not in the ticket’s mandate.
 - **Fail-closed counters**: server **`hard_limits`** without supplied counters → **`HARD_LIMIT_COUNTERS_MISSING`**.
 
 ## Pause gate — what pausing or retiring a mandate does and does not do

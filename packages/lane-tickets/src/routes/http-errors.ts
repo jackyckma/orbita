@@ -19,6 +19,8 @@ export function repositoryToOrbitaError(error: RepositoryError): OrbitaError {
     case "INVALID_PARENT":
     case "INVALID_TRANSITION":
     case "HUMAN_ACTOR_REQUIRED":
+    case "PRIVILEGED_ROLE_REQUIRED":
+    case "PRECHECK_FAILED":
     case "MANDATE_NOT_ACTIVE":
     case "OUTSIDE_MANDATE":
     case "SOFT_BLOCK_THRESHOLD_EXCEEDED":

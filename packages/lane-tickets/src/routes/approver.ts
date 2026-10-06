@@ -1,5 +1,14 @@
 import type { TicketVerb } from "../types.js";
 
+export function isPrivilegedKeyAllowed(
+  apiKeyId: string,
+  founderKeyIds: ReadonlySet<string>,
+  integratorKeyIds: ReadonlySet<string>,
+): boolean {
+  return founderKeyIds.has(apiKeyId) || integratorKeyIds.has(apiKeyId);
+}
+
+/** @deprecated Use isPrivilegedKeyAllowed */
 export function isApproverKeyAllowed(
   apiKeyId: string,
   approverKeyIds: ReadonlySet<string>,
@@ -7,7 +16,7 @@ export function isApproverKeyAllowed(
   return approverKeyIds.has(apiKeyId);
 }
 
-/** Human approval verbs gated by ORBITA_TICKETS_APPROVER_KEY_IDS (human-capable api key ids from auth only). */
+/** Founder/integrator approval verbs gated by key allowlists (auth only). */
 export function requiresApproverGate(
   verb: TicketVerb,
   ticketStatus?: string,
@@ -16,6 +25,9 @@ export function requiresApproverGate(
     return true;
   }
   if (verb === "ticket_cancel" && ticketStatus === "proposed") {
+    return true;
+  }
+  if (verb === "ticket_update_charter") {
     return true;
   }
   return false;
