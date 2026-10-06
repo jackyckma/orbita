@@ -3,8 +3,8 @@
   "locks": {
     "T-0094": {
       "by": "maker",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/t-0094-derive-ticket-actor",
+      "pr": 54
     }
   }
 }

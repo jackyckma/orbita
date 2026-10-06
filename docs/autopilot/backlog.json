@@ -1340,10 +1340,11 @@
         "T-0086"
       ],
       "flag": "ORBITA_TICKETS_ENABLED",
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
       "feedback": [
-        "2026-10-06 hub review of T-0086: actor trusted from the request body; fixed here before MCP (T-0087)."
+        "2026-10-06 hub review of T-0086: actor trusted from the request body; fixed here before MCP (T-0087).",
+        "MAKER 2026-10-06: PR https://github.com/jackyckma/orbita/pull/54 — tickets test + typecheck green on branch."
       ]
     },
     {
