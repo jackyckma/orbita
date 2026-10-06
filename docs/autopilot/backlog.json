@@ -1407,11 +1407,35 @@
       ]
     },
     {
+      "id": "T-0097",
+      "lane": "platform",
+      "phase": "consultos-b",
+      "title": "tickets: proposals (bot requests and suggestions) escalated to the integrator or founder",
+      "description": "FOUNDER IDEA 2026-10-06: executors must be able to submit requests or suggestions (e.g. suggest how another bot should change its approach, change a process, request a new exception task type, ask for a tool or access) which ESCALATE to the founder/integrator for discussion and a final answer. DESIGN DECISION (hub): this is neither a new role nor a task type. Roles stay founder/integrator/executor (permissions); a task is executed by its owner; a proposal has no executor and waits for a decision. Implement it as a variant of the existing `decision` kind: add `decision_class` ('question' default, the existing behaviour | 'proposal') plus proposal fields: `proposal_type` (process_change | task_type_request | charter_change_request | access_or_tool_request | cross_agent_suggestion | other), `target` ({mandate_id?, ticket_id?}), `suggested_change` (text), `rationale` (text), `risk_tier`. New verbs: `ticket_propose` (any role; an executor only inside its own mandate subtree; creates a decision of class proposal with status proposed) and `ticket_resolve` (founder or integrator only; outcome accepted | declined | needs_info | deferred; `response` text; optional result_refs pointing at the charter change event or the ticket that implements the outcome; moves the proposal to done and records the outcome, or leaves it open for needs_info). The proposer can withdraw its own open proposal with ticket_cancel; it can never resolve its own proposal. AUTHORITY: charter `proposal_policy` {founder_only_types (default: charter_change_request, access_or_tool_request), integrator_can_resolve (default: all other types)}; the integrator must not resolve a founder-only type (engine denies); every proposal appears in the integrator inbox. ISOLATION (important, bots are untrusted): a cross-agent suggestion is created under the PROPOSER's own mandate with target.mandate_id pointing at the other mandate; executors can only read proposals inside their own mandate subtree, so another bot NEVER sees the proposal text; the outcome reaches other bots only through integrator/founder actions (a charter update via ticket_update_charter or a task created by the integrator). Mark proposal text as untrusted (untrusted_author marker) whenever it is returned to a founder/integrator reader. CAPS: `max_open_proposals` per mandate (default 5, hard limit with enforcement server) so a bot cannot spam. LISTING: ticket_list filters decision_class, proposal_type, status and mine=true so a proposer sees the answers to its own proposals and the integrator sees its inbox (decision_class=proposal and status=proposed). Contracts (new verb schemas, charter proposal_policy and max_open_proposals), engine rules, fake and Postgres repositories (a real-Postgres tier-A test for the inbox query and the isolation), REST routes (verbs derive the actor server-side as in T-0094), INTERFACE.md and technical.md, tests for every rule above. Do NOT add MCP tools here (T-0087 exposes ticket_propose and ticket_resolve).",
+      "acceptance": [
+        "pnpm --filter @orbita/tickets test",
+        "pnpm -r typecheck",
+        "rg -n \"ticket_propose\" packages docs",
+        "rg -n \"ticket_resolve\" packages docs",
+        "rg -n \"proposal_policy\" packages docs",
+        "node --test packages/lane-tickets/contracts/validate-contracts.test.mjs"
+      ],
+      "deps": [
+        "T-0096"
+      ],
+      "flag": "ORBITA_TICKETS_ENABLED",
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "2026-10-06 hub: written from the founder's idea that bots can send requests/suggestions escalated to founder/integrator; modelled as decision class 'proposal', not as a role or a task type."
+      ]
+    },
+    {
       "id": "T-0087",
       "lane": "platform",
       "phase": "consultos-b",
       "title": "lane-tickets: MCP ticket_* tools (additive, flag-gated)",
-      "description": "Epic E-16 task 5. Register MCP tools ticket_create, ticket_list, ticket_get, ticket_approve, ticket_claim, ticket_extend, ticket_progress, ticket_complete, ticket_block, ticket_request_decision, ticket_comment, ticket_cancel in packages/lane-mcp (or lane-tickets re-export mounted from mcp) ONLY when ORBITA_TICKETS_ENABLED=1. Tool names and existing 16 tools' input schemas must remain byte-identical when flag OFF — extend golden test from lane-mcp. Each tool inputSchema includes shared optional reported_by/labels fragment ONLY on ticket tools (do not alter non-ticket tools). Map tools to repository + transition engine; same approver key allowlist as REST. Do NOT add admin MCP tools. Approver rule is identical to REST (including the 'oauth' placeholder rule from T-0086); add a test that ticket_approve called through the MCP path with the 'oauth' placeholder is denied when the allowlist does not list it. ACTOR (hub review 2026-10-06): MCP ticket_* tool inputs NEVER carry an actor; use deriveTicketActor from T-0094 with the MCP auth context (an OAuth connection has the placeholder key id 'oauth', which is NOT human-capable unless explicitly listed; an API key has its real id). Add a test that a tool argument named actor is ignored. ROLES AND EXCEPTIONS (hub 2026-10-06): expose ticket_update_charter and ticket_review as MCP tools too (roles derived from the MCP auth context, never from arguments). MCP DISCOVERY: set the MCP initialize `instructions` field (short Orbita orientation: call orbita_whoami first; tickets: read your mandate's charter with ticket_get, check status, never act when the mandate is not active; point to docs/site/ticket-executors.md) and extend orbita_whoami (when tickets are enabled) to return the caller's role, the mandates bound to the key (from ORBITA_TICKETS_KEY_MANDATES until E-17 principals) with charter summaries (purpose, hard limits with enforcement class, exception types, cadence). Tool descriptions must mention roles. Flag OFF: the existing 16 tools and the initialize result are unchanged except the instructions text, which is harmless and applies always (add a test).",
+      "description": "Epic E-16 task 5. Register MCP tools ticket_create, ticket_list, ticket_get, ticket_approve, ticket_claim, ticket_extend, ticket_progress, ticket_complete, ticket_block, ticket_request_decision, ticket_comment, ticket_cancel in packages/lane-mcp (or lane-tickets re-export mounted from mcp) ONLY when ORBITA_TICKETS_ENABLED=1. Tool names and existing 16 tools' input schemas must remain byte-identical when flag OFF — extend golden test from lane-mcp. Each tool inputSchema includes shared optional reported_by/labels fragment ONLY on ticket tools (do not alter non-ticket tools). Map tools to repository + transition engine; same approver key allowlist as REST. Do NOT add admin MCP tools. Approver rule is identical to REST (including the 'oauth' placeholder rule from T-0086); add a test that ticket_approve called through the MCP path with the 'oauth' placeholder is denied when the allowlist does not list it. ACTOR (hub review 2026-10-06): MCP ticket_* tool inputs NEVER carry an actor; use deriveTicketActor from T-0094 with the MCP auth context (an OAuth connection has the placeholder key id 'oauth', which is NOT human-capable unless explicitly listed; an API key has its real id). Add a test that a tool argument named actor is ignored. ROLES AND EXCEPTIONS (hub 2026-10-06): expose ticket_update_charter and ticket_review as MCP tools too (roles derived from the MCP auth context, never from arguments). MCP DISCOVERY: set the MCP initialize `instructions` field (short Orbita orientation: call orbita_whoami first; tickets: read your mandate's charter with ticket_get, check status, never act when the mandate is not active; point to docs/site/ticket-executors.md) and extend orbita_whoami (when tickets are enabled) to return the caller's role, the mandates bound to the key (from ORBITA_TICKETS_KEY_MANDATES until E-17 principals) with charter summaries (purpose, hard limits with enforcement class, exception types, cadence). Tool descriptions must mention roles. Flag OFF: the existing 16 tools and the initialize result are unchanged except the instructions text, which is harmless and applies always (add a test). PROPOSALS (hub 2026-10-06): expose ticket_propose and ticket_resolve as MCP tools (actor/role derived from the auth context, never from arguments). The MCP initialize `instructions` text and the whoami extension must tell executors: to suggest a change or ask for something use ticket_propose; never instruct another bot; the integrator answers via ticket_resolve.",
       "acceptance": [
         "pnpm --filter @orbita/mcp test",
         "pnpm --filter @orbita/tickets test",
@@ -1422,7 +1446,8 @@
         "T-0086",
         "T-0094",
         "T-0095",
-        "T-0096"
+        "T-0096",
+        "T-0097"
       ],
       "flag": "ORBITA_TICKETS_ENABLED",
       "status": "ready",
@@ -1432,7 +1457,8 @@
         "2026-10-02 hub review (claude-hub-session): amended before implementation - see description.",
         "2026-10-05 hub: runs after T-0086, which now follows T-0088.",
         "2026-10-06 hub: depends on the actor-derivation task.",
-        "2026-10-06 hub: depends on roles/exception tasks; adds MCP instructions and whoami extension."
+        "2026-10-06 hub: depends on roles/exception tasks; adds MCP instructions and whoami extension.",
+        "2026-10-06 hub: depends on the proposals task."
       ]
     },
     {
