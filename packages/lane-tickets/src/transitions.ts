@@ -1,3 +1,17 @@
+import {
+  canActivateMandate,
+  canApproveEpicOrWork,
+  canCancelApprovedEpic,
+  canCreateMandate,
+  canResolveDecision,
+  canUpdateCharter,
+  isExecutor,
+  isFounder,
+  isFounderOrIntegrator,
+  isIntegrator,
+} from "./roles.js";
+import { applyCharterPatch, type CharterPatch } from "./charter-update.js";
+import { riskWithinAutoTier } from "./risk-tier.js";
 import type {
   Actor,
   EpicStatus,
@@ -40,6 +54,7 @@ const MUTATING_VERBS: ReadonlySet<TicketVerb> = new Set([
   "ticket_block",
   "ticket_cancel",
   "ticket_create",
+  "ticket_update_charter",
 ]);
 
 const PAUSE_GATE_EXEMPT: ReadonlySet<TicketVerb> = new Set([
@@ -69,29 +84,8 @@ const OWNERSHIP_VERBS: ReadonlySet<TicketVerb> = new Set([
   "ticket_approve",
 ]);
 
-const RISK_TIER_ORDER: Record<RiskTier, number> = {
-  L0: 0,
-  L1: 1,
-  L2: 2,
-  money: 3,
-};
-
-function isHuman(actor: Actor): boolean {
-  return actor.type === "human";
-}
-
-function isAgent(actor: Actor): boolean {
-  return actor.type === "agent";
-}
-
-function riskWithinAutoTier(
-  risk: RiskTier | undefined,
-  max: RiskTier | undefined,
-): boolean {
-  if (!risk || !max) {
-    return false;
-  }
-  return RISK_TIER_ORDER[risk] <= RISK_TIER_ORDER[max];
+function privilegedRequired(message: string): TransitionResult {
+  return deny("PRIVILEGED_ROLE_REQUIRED", message);
 }
 
 function defaultApprovalPolicy(charter: MandateCharter) {
@@ -198,31 +192,31 @@ function resolveMandateIdForCreate(
   return parent?.mandate_id ?? null;
 }
 
-function checkAgentMandateOwnership(
+function checkExecutorMandateOwnership(
   actor: Actor,
   mandateId: string | null | undefined,
 ): TransitionResult | null {
-  if (!isAgent(actor)) {
+  if (!isExecutor(actor)) {
     return null;
   }
   if (mandateId === undefined) {
     return deny(
       "OUTSIDE_MANDATE",
-      "Agent actor requires mandate_id for ownership check.",
+      "Executor actor requires mandate_id for ownership check.",
       { reason: "mandate_id_missing" },
     );
   }
   if (!mandateId) {
     return deny(
       "OUTSIDE_MANDATE",
-      "Agent actor requires mandate_id for ownership check.",
+      "Executor actor requires mandate_id for ownership check.",
     );
   }
   const ids = actor.mandate_ids ?? [];
   if (!ids.includes(mandateId)) {
     return deny(
       "OUTSIDE_MANDATE",
-      "Agent is not authorized for this mandate subtree.",
+      "Executor is not authorized for this mandate subtree.",
       { mandate_id: mandateId },
     );
   }
@@ -234,7 +228,7 @@ function checkMandatePauseGate(
   input: TransitionInput,
 ): TransitionResult | null {
   const { mandate_status, verb, actor, kind } = input;
-  if (!isAgent(actor) || kind === "mandate") {
+  if (!isExecutor(actor) || kind === "mandate") {
     return null;
   }
   if (READ_VERBS.has(verb) || PAUSE_GATE_EXEMPT.has(verb)) {
@@ -246,7 +240,7 @@ function checkMandatePauseGate(
   if (mandate_status === undefined) {
     return deny(
       "MANDATE_NOT_ACTIVE",
-      "Agent mutations require mandate_status from persistence.",
+      "Executor mutations require mandate_status from persistence.",
       { reason: "mandate_status_missing", mandate_status },
     );
   }
@@ -398,10 +392,9 @@ function evaluateMandate(
       if (status !== "draft") {
         return deny("INVALID_TRANSITION", "Mandate approve only from draft.");
       }
-      if (!isHuman(actor)) {
-        return deny(
-          "HUMAN_ACTOR_REQUIRED",
-          "Activating a mandate requires a human actor.",
+      if (!canActivateMandate(actor)) {
+        return privilegedRequired(
+          "Activating a mandate requires a founder.",
         );
       }
       return allow("active");
@@ -410,10 +403,9 @@ function evaluateMandate(
         (status === "active" || status === "paused") &&
         progress_target === "retired"
       ) {
-        if (!isHuman(actor)) {
-          return deny(
-            "HUMAN_ACTOR_REQUIRED",
-            "Retiring a mandate requires a human actor.",
+        if (!canActivateMandate(actor)) {
+          return privilegedRequired(
+            "Retiring a mandate requires a founder.",
           );
         }
         return allow("retired");
@@ -427,10 +419,9 @@ function evaluateMandate(
       return deny("INVALID_TRANSITION", `Cannot progress mandate from ${status}.`);
     case "ticket_cancel":
       if (status === "active" || status === "paused") {
-        if (!isHuman(actor)) {
-          return deny(
-            "HUMAN_ACTOR_REQUIRED",
-            "Retiring a mandate requires a human actor.",
+        if (!canActivateMandate(actor)) {
+          return privilegedRequired(
+            "Retiring a mandate requires a founder.",
           );
         }
         return allow("retired");
@@ -455,10 +446,9 @@ function evaluateEpic(
       if (status !== "proposed") {
         return deny("INVALID_TRANSITION", "Epic approve only from proposed.");
       }
-      if (!isHuman(actor)) {
-        return deny(
-          "HUMAN_ACTOR_REQUIRED",
-          "Approving an epic requires a human actor.",
+      if (!canApproveEpicOrWork(actor)) {
+        return privilegedRequired(
+          "Approving an epic requires founder or integrator.",
         );
       }
       return allow("approved");
@@ -471,7 +461,7 @@ function evaluateEpic(
       if (status !== "active") {
         return deny("INVALID_TRANSITION", "Epic complete only from active.");
       }
-      if (isAgent(actor) && (open_children_count ?? 0) > 0) {
+      if (isExecutor(actor) && (open_children_count ?? 0) > 0) {
         return deny(
           "INVALID_TRANSITION",
           "Epic cannot complete while open children remain.",
@@ -481,19 +471,17 @@ function evaluateEpic(
       return allow("done");
     case "ticket_cancel":
       if (status === "proposed") {
-        if (!isHuman(actor)) {
-          return deny(
-            "HUMAN_ACTOR_REQUIRED",
-            "Cancelling a proposed epic requires a human actor.",
+        if (!canCancelApprovedEpic(actor)) {
+          return privilegedRequired(
+            "Cancelling a proposed epic requires founder or integrator.",
           );
         }
         return allow("cancelled");
       }
       if (status === "approved" || status === "active") {
-        if (!isHuman(actor)) {
-          return deny(
-            "HUMAN_ACTOR_REQUIRED",
-            "Cancelling an approved or active epic requires a human actor.",
+        if (!canCancelApprovedEpic(actor)) {
+          return privilegedRequired(
+            "Cancelling an approved or active epic requires founder or integrator.",
           );
         }
         return allow("cancelled");
@@ -508,6 +496,7 @@ function evaluateEpic(
 }
 
 function evaluateWork(
+  kind: TicketKind,
   status: WorkStatus,
   verb: TicketVerb,
   actor: Actor,
@@ -518,10 +507,15 @@ function evaluateWork(
       if (status !== "proposed") {
         return deny("INVALID_TRANSITION", "Work approve only from proposed.");
       }
-      if (!isHuman(actor)) {
-        return deny(
-          "HUMAN_ACTOR_REQUIRED",
-          "Approving work requires a human actor.",
+      if (kind === "decision") {
+        if (!canResolveDecision(actor)) {
+          return privilegedRequired(
+            "Resolving a decision requires a founder.",
+          );
+        }
+      } else if (!canApproveEpicOrWork(actor)) {
+        return privilegedRequired(
+          "Approving work requires founder or integrator.",
         );
       }
       return allow("approved");
@@ -570,10 +564,9 @@ function evaluateWork(
       return allow("blocked");
     case "ticket_cancel":
       if (status === "proposed") {
-        if (!isHuman(actor)) {
-          return deny(
-            "HUMAN_ACTOR_REQUIRED",
-            "Cancelling proposed work requires a human actor.",
+        if (!canApproveEpicOrWork(actor)) {
+          return privilegedRequired(
+            "Cancelling proposed work requires founder or integrator.",
           );
         }
         return allow("cancelled");
@@ -614,7 +607,7 @@ export function initialStatusOnCreate(
 
   const mandateId = resolveMandateIdForCreate(kind, parent);
   if (kind !== "mandate") {
-    const ownership = checkAgentMandateOwnership(actor, mandateId);
+    const ownership = checkExecutorMandateOwnership(actor, mandateId);
     if (ownership && !ownership.allowed) {
       return { ok: false, error: ownership.error };
     }
@@ -624,12 +617,12 @@ export function initialStatusOnCreate(
   const policy = defaultApprovalPolicy(charter);
 
   if (kind === "mandate") {
-    if (!isHuman(actor)) {
+    if (!canCreateMandate(actor)) {
       return {
         ok: false,
         error: {
-          code: "HUMAN_ACTOR_REQUIRED",
-          message: "Only a human actor may create a mandate.",
+          code: "PRIVILEGED_ROLE_REQUIRED",
+          message: "Only a founder or integrator may create a mandate.",
         },
       };
     }
@@ -637,11 +630,11 @@ export function initialStatusOnCreate(
   }
 
   if (kind === "epic") {
-    if (isHuman(actor)) {
-      return { ok: true, status: "approved", mandate_id: mandateId };
+    if (isFounderOrIntegrator(actor)) {
+      return { ok: true, status: "proposed", mandate_id: mandateId };
     }
     if (
-      isAgent(actor) &&
+      isExecutor(actor) &&
       policy.epics === "auto_within_tier" &&
       riskWithinAutoTier(risk_tier, maxAuto)
     ) {
@@ -652,7 +645,7 @@ export function initialStatusOnCreate(
 
   if (kind === "task" || kind === "decision") {
     if (!riskWithinAutoTier(risk_tier, maxAuto)) {
-      if (kind === "task" && isHuman(actor)) {
+      if (kind === "task" && isFounderOrIntegrator(actor)) {
         return { ok: true, status: "approved", mandate_id: mandateId };
       }
       if (kind !== "decision") {
@@ -669,13 +662,13 @@ export function initialStatusOnCreate(
       return { ok: true, status: "proposed", mandate_id: mandateId };
     }
     if (
-      isAgent(actor) &&
+      isExecutor(actor) &&
       policy.tasks === "auto" &&
       riskWithinAutoTier(risk_tier, maxAuto)
     ) {
       return { ok: true, status: "approved", mandate_id: mandateId };
     }
-    if (isHuman(actor)) {
+    if (isFounderOrIntegrator(actor)) {
       return { ok: true, status: "approved", mandate_id: mandateId };
     }
     return { ok: true, status: "proposed", mandate_id: mandateId };
@@ -718,13 +711,13 @@ export function evaluateTransition(input: TransitionInput): TransitionResult {
     }
     if (createKind !== "mandate") {
       const mandateForCreate = resolveMandateIdForCreate(createKind, input.parent);
-      const ownCreate = checkAgentMandateOwnership(actor, mandateForCreate);
+      const ownCreate = checkExecutorMandateOwnership(actor, mandateForCreate);
       if (ownCreate) {
         return ownCreate;
       }
     }
   } else if (OWNERSHIP_VERBS.has(verb)) {
-    const own = checkAgentMandateOwnership(actor, input.mandate_id);
+    const own = checkExecutorMandateOwnership(actor, input.mandate_id);
     if (own) {
       return own;
     }
@@ -782,6 +775,53 @@ export function evaluateTransition(input: TransitionInput): TransitionResult {
     return allow(undefined, soft);
   }
 
+  if (verb === "ticket_update_charter") {
+    if (kind !== "mandate") {
+      return deny(
+        "INVALID_TRANSITION",
+        "ticket_update_charter applies only to mandate tickets.",
+      );
+    }
+    if (!canUpdateCharter(actor)) {
+      return privilegedRequired(
+        "Updating a mandate charter requires founder or integrator.",
+      );
+    }
+    if (isExecutor(actor)) {
+      return privilegedRequired(
+        "Executors cannot modify a mandate or its charter.",
+      );
+    }
+    const patch = input.charter_patch as CharterPatch | undefined;
+    if (!patch) {
+      return deny(
+        "INVALID_TRANSITION",
+        "ticket_update_charter requires charter_patch in transition input.",
+      );
+    }
+    const applied = applyCharterPatch(actor, charter, patch);
+    if (!applied.ok) {
+      return deny(applied.code, applied.message);
+    }
+    const soft = collectSoftBreaches(charter, input.soft_observations);
+    return allow(undefined, soft);
+  }
+
+  if (
+    verb === "ticket_approve" &&
+    kind === "epic" &&
+    status === "proposed" &&
+    isIntegrator(actor) &&
+    input.epic_precheck &&
+    !input.epic_precheck.ok
+  ) {
+    return deny(
+      "PRECHECK_FAILED",
+      "Integrator epic approval requires a passing pre-check.",
+      { violations: input.epic_precheck.violations },
+    );
+  }
+
   let lifecycle: TransitionResult;
   if (kind === "mandate") {
     lifecycle = evaluateMandate(
@@ -799,6 +839,7 @@ export function evaluateTransition(input: TransitionInput): TransitionResult {
     );
   } else {
     lifecycle = evaluateWork(
+      kind,
       status as WorkStatus,
       verb,
       actor,
@@ -858,6 +899,7 @@ export const ALL_VERBS: TicketVerb[] = [
   "ticket_request_decision",
   "ticket_comment",
   "ticket_cancel",
+  "ticket_update_charter",
 ];
 
 export function statusesForKind(kind: TicketKind): TicketStatus[] {

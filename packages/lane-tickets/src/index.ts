@@ -11,10 +11,15 @@ export {
 export {
   loadTicketsEnv,
   parseApproverKeyIds,
+  parseFounderKeyIds,
+  parseIntegratorKeyIds,
   parseKeyMandates,
   ticketsFeatureEnabled,
   warnIfOAuthInApproverAllowlist,
+  warnIfOAuthInPrivilegedAllowlist,
 } from "./config.js";
+export { precheckEpic } from "./precheck-epic.js";
+export type { EpicPrecheckResult } from "./precheck-epic.js";
 export type { TicketsEnv } from "./config.js";
 export {
   deriveTicketActor,
@@ -32,6 +37,7 @@ export {
 export type { TicketRoutesDeps } from "./routes/tickets.js";
 export {
   isApproverKeyAllowed,
+  isPrivilegedKeyAllowed,
   requiresApproverGate,
 } from "./routes/approver.js";
 export { PgTicketRepository } from "./pg-repository.js";
@@ -59,7 +65,7 @@ export {
 } from "./repository/pg.js";
 export type {
   Actor,
-  ActorType,
+  TicketRole,
   ApprovalPolicy,
   EpicApprovalPolicy,
   EpicStatus,

@@ -7,6 +7,25 @@
   "additionalProperties": false,
   "properties": {
     "ticket": { "$ref": "../ticket.schema.json" },
-    "event": { "$ref": "../ticket-event.schema.json" }
+    "event": { "$ref": "../ticket-event.schema.json" },
+    "precheck": {
+      "type": "object",
+      "required": ["ok", "violations"],
+      "additionalProperties": false,
+      "properties": {
+        "ok": { "type": "boolean" },
+        "violations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["code", "message"],
+            "properties": {
+              "code": { "type": "string" },
+              "message": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
   }
 }

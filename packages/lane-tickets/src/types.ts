@@ -1,3 +1,12 @@
+export type TicketFunction =
+  | "dev"
+  | "infra"
+  | "support"
+  | "marketing"
+  | "sales"
+  | "ops"
+  | "research";
+
 export type TicketKind = "mandate" | "epic" | "task" | "decision";
 
 export type TicketSource = "native" | "git";
@@ -36,18 +45,27 @@ export type TicketVerb =
   | "ticket_block"
   | "ticket_request_decision"
   | "ticket_comment"
-  | "ticket_cancel";
+  | "ticket_cancel"
+  | "ticket_update_charter";
 
-export type ActorType = "human" | "agent" | "system";
+export type TicketRole = "founder" | "integrator" | "executor" | "system";
 
 export type RiskTier = "L0" | "L1" | "L2" | "money";
 
 export interface Actor {
-  type: ActorType;
+  role: TicketRole;
   principal_id?: string;
   api_key_id?: string;
-  /** Mandate uuids this agent may operate in (required for agent ownership checks). */
+  /** Mandate uuids this executor may operate in (required for ownership checks). */
   mandate_ids?: string[];
+}
+
+export interface ExceptionTypeDef {
+  type: string;
+  description: string;
+  auto_approve?: boolean;
+  risk_tier_max?: RiskTier;
+  max_open?: number;
 }
 
 export type EpicApprovalPolicy = "integrator" | "auto_within_tier";
@@ -107,6 +125,7 @@ export interface MandateCharter {
   hard_limits: HardLimit[];
   soft_constraints: SoftConstraint[];
   approval_policy?: ApprovalPolicy;
+  exception_types?: ExceptionTypeDef[];
 }
 
 /** Snapshot counts for server-enforceable hard_limits (no database). */
@@ -121,6 +140,8 @@ export type TransitionErrorCode =
   | "GIT_READ_ONLY"
   | "INVALID_TRANSITION"
   | "HUMAN_ACTOR_REQUIRED"
+  | "PRIVILEGED_ROLE_REQUIRED"
+  | "PRECHECK_FAILED"
   | "HARD_LIMIT_EXCEEDED"
   | "MANDATE_NOT_ACTIVE"
   | "OUTSIDE_MANDATE"
@@ -186,8 +207,17 @@ export interface TransitionInput {
   mandate_id?: string;
   /** Parent ticket for ticket_create parent/ownership rules. */
   parent?: ParentTicketRef | null;
-  /** Open non-terminal children under an epic (required for agent epic complete). */
+  /** Open non-terminal children under an epic (required for executor epic complete). */
   open_children_count?: number;
+  /** Epic ticket function (precheck on approve). */
+  ticket_function?: TicketFunction;
+  risk_tier?: RiskTier;
+  /** Epic approve: integrator must pass precheck unless founder overrides. */
+  override_precheck?: boolean;
+  /** Result of precheckEpic attached to approve allow path. */
+  epic_precheck?: { ok: boolean; violations: { code: string; message: string }[] };
+  /** Mandate charter patch for ticket_update_charter. */
+  charter_patch?: Partial<MandateCharter>;
 }
 
 export interface InitialStatusInput {

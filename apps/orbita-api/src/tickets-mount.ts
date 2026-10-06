@@ -2,9 +2,10 @@ import type { OpenAPIHono } from "@hono/zod-openapi";
 import {
   createTicketRoutes,
   createTicketsDb,
-  parseApproverKeyIds,
+  parseFounderKeyIds,
+  parseIntegratorKeyIds,
   parseKeyMandates,
-  warnIfOAuthInApproverAllowlist,
+  warnIfOAuthInPrivilegedAllowlist,
 } from "@orbita/tickets";
 import type { Logger } from "@orbita/platform";
 import type { PlatformEnv } from "@orbita/platform";
@@ -29,10 +30,13 @@ export function mountTicketRoutesIfEnabled(
   if (!shouldMountTicketRoutes(deps.platformEnv)) {
     return;
   }
-  const approverKeyIds = parseApproverKeyIds(
-    deps.platformEnv.ORBITA_TICKETS_APPROVER_KEY_IDS,
+  const founderKeyIds = parseFounderKeyIds(deps.platformEnv);
+  const integratorKeyIds = parseIntegratorKeyIds(deps.platformEnv);
+  warnIfOAuthInPrivilegedAllowlist(
+    deps.logger,
+    founderKeyIds,
+    integratorKeyIds,
   );
-  warnIfOAuthInApproverAllowlist(deps.logger, approverKeyIds);
   const keyMandates = parseKeyMandates(
     deps.platformEnv.ORBITA_TICKETS_KEY_MANDATES,
   );
@@ -41,7 +45,7 @@ export function mountTicketRoutesIfEnabled(
     "/",
     createTicketRoutes({
       repository,
-      actorConfig: { approverKeyIds, keyMandates },
+      actorConfig: { founderKeyIds, integratorKeyIds, keyMandates },
     }),
   );
 }

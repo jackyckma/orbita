@@ -28,6 +28,8 @@ export const PlatformEnvSchema = z.object({
   /** E-16 tickets lane: unset or not `1` keeps DDL, REST, and MCP ticket tools off. */
   ORBITA_TICKETS_ENABLED: z.enum(["0", "1"]).optional(),
   /** Comma-separated api_keys.id values that act as human-capable ticket actors (approver gates). */
+  ORBITA_TICKETS_FOUNDER_KEY_IDS: z.string().optional(),
+  ORBITA_TICKETS_INTEGRATOR_KEY_IDS: z.string().optional(),
   ORBITA_TICKETS_APPROVER_KEY_IDS: z.string().optional(),
   /** JSON map api_keys.id → mandate uuid[] for agent ticket actors (invalid JSON fails startup when tickets enabled). */
   ORBITA_TICKETS_KEY_MANDATES: z.string().optional(),

@@ -27,6 +27,9 @@ import {
   openChildrenCount,
   parentRef,
 } from "./repository-internal.js";
+import { applyCharterPatch } from "./charter-update.js";
+import { precheckEpic } from "./precheck-epic.js";
+import { isFounder, isIntegrator } from "./roles.js";
 import type {
   MandateCharter,
   MandateCounters,
@@ -298,8 +301,29 @@ export class FakeTicketRepository implements TicketRepository {
       return err(initial.error.code, initial.error.message, initial.error.details);
     }
 
+    let createStatus = initial.status;
+    if (
+      ticket.kind === "epic" &&
+      createStatus === "approved" &&
+      parent &&
+      ticket.function
+    ) {
+      const counters = this.countersFor(this.mandateRow(client_id, initial.mandate_id!)!);
+      const pre = precheckEpic({
+        function: ticket.function,
+        risk_tier: ticket.risk_tier,
+        charter,
+        counters,
+        mandate_status: parent.status as MandateStatus,
+        for_auto_approve: true,
+      });
+      if (!pre.ok) {
+        createStatus = "proposed";
+      }
+    }
+
     const anchorKind = parent?.kind ?? "mandate";
-    const anchorStatus = parent?.status ?? initial.status;
+    const anchorStatus = parent?.status ?? createStatus;
     const subtreeMandateStatus =
       ticket.kind === "mandate"
         ? undefined
@@ -346,7 +370,7 @@ export class FakeTicketRepository implements TicketRepository {
       ticket.kind === "mandate" ? id : (initial.mandate_id ?? null);
     const mandate_status: MandateStatus | null =
       ticket.kind === "mandate"
-        ? (initial.status as MandateStatus)
+        ? (createStatus as MandateStatus)
         : parent?.kind === "mandate"
           ? (parent.status as MandateStatus)
           : (parent?.mandate_status ?? null);
@@ -360,7 +384,7 @@ export class FakeTicketRepository implements TicketRepository {
       parent_id: ticket.parent_id ?? null,
       title: ticket.title,
       description: ticket.description,
-      status: initial.status,
+      status: createStatus,
       owner: ticket.owner,
       requester: ticket.requester,
       priority: ticket.priority,
@@ -389,7 +413,7 @@ export class FakeTicketRepository implements TicketRepository {
       actor,
       verb,
       from_status: null,
-      to_status: initial.status,
+      to_status: createStatus,
       at: ts,
     });
 
@@ -398,7 +422,7 @@ export class FakeTicketRepository implements TicketRepository {
       row,
       createCheck.record_soft_breach,
       actor,
-      initial.status,
+      createStatus,
       ts,
     );
 
@@ -497,6 +521,8 @@ export class FakeTicketRepository implements TicketRepository {
       soft_observations,
       blocked_on,
       comment,
+      charter_patch,
+      override_precheck,
     } = params;
 
     if (idempotency_key) {
@@ -541,6 +567,39 @@ export class FakeTicketRepository implements TicketRepository {
     const serverCounters = charter.hard_limits.some(
       (l) => l.enforcement === "server",
     );
+    let epicPrecheck:
+      | { ok: boolean; violations: { code: string; message: string }[] }
+      | undefined;
+
+    if (
+      verb === "ticket_approve" &&
+      row.kind === "epic" &&
+      row.status === "proposed"
+    ) {
+      const mandateRow = row.mandate_id
+        ? this.mandateRow(client_id, row.mandate_id)
+        : undefined;
+      const mandate_status =
+        (mandateRow?.status as MandateStatus) ?? "draft";
+      epicPrecheck = precheckEpic({
+        function: row.function,
+        risk_tier: row.risk_tier,
+        charter,
+        counters: serverCounters ? this.countersFor(row) : EMPTY_COUNTERS,
+        mandate_status,
+      });
+      if (
+        isIntegrator(actor) &&
+        !epicPrecheck.ok
+      ) {
+        return err(
+          "PRECHECK_FAILED",
+          "Integrator epic approval requires a passing pre-check.",
+          { violations: epicPrecheck.violations },
+        );
+      }
+    }
+
     const input = buildTransitionInput(row, charter, verb, actor, {
       progress_target,
       soft_observations,
@@ -548,6 +607,11 @@ export class FakeTicketRepository implements TicketRepository {
       counters: serverCounters ? this.countersFor(row) : undefined,
       mandate_status: mandateStatusOf(row),
       mandate_id: mandateIdOf(row),
+      epic_precheck: epicPrecheck,
+      charter_patch,
+      ticket_function: row.function,
+      risk_tier: row.risk_tier,
+      override_precheck,
     });
 
     const decision = evaluateTransition(input);
@@ -561,6 +625,41 @@ export class FakeTicketRepository implements TicketRepository {
 
     const from_status = row.status;
     let to_status = decision.to_status ?? row.status;
+
+    if (verb === "ticket_update_charter" && charter_patch && row.charter) {
+      const applied = applyCharterPatch(actor, row.charter, charter_patch);
+      if (!applied.ok) {
+        return err(applied.code, applied.message);
+      }
+      row.charter = applied.charter;
+      const tsCharter = nowIso();
+      row.version += 1;
+      row.updated_at = tsCharter;
+      this.data.setStored(row);
+      const charterEvent = this.appendEvent(row, {
+        ticket_id: row.id,
+        actor,
+        verb,
+        from_status: row.status,
+        to_status: row.status,
+        payload: {
+          event_kind: "charter_changed",
+          diff: applied.diff,
+        },
+        at: tsCharter,
+      });
+      const successCharter: TransitionSuccess = {
+        ticket: publicTicket(row),
+        event: charterEvent,
+      };
+      if (idempotency_key) {
+        this.data.idempotencySet(
+          idempotencyKey(client_id, verb, idempotency_key),
+          successCharter,
+        );
+      }
+      return { ok: true, value: successCharter };
+    }
 
     if (verb === "ticket_claim") {
       if (!lease_seconds || !lease_holder) {
@@ -613,10 +712,21 @@ export class FakeTicketRepository implements TicketRepository {
 
     this.data.setStored(row);
 
-    const payload =
+    const payloadBase =
       comment !== undefined
         ? { comment }
-        : params.payload;
+        : params.payload ?? {};
+
+    const payload =
+      verb === "ticket_approve" && row.kind === "epic" && epicPrecheck
+        ? {
+            ...payloadBase,
+            precheck: epicPrecheck,
+            ...(override_precheck && isFounder(actor)
+              ? { override_precheck: true }
+              : {}),
+          }
+        : payloadBase;
 
     const event = this.appendEvent(row, {
       ticket_id: row.id,
@@ -631,7 +741,11 @@ export class FakeTicketRepository implements TicketRepository {
     this.bumpWriteCounter(client_id, row.mandate_id);
     this.persistSoftBreaches(row, decision.record_soft_breach, actor, row.status, ts);
 
-    const success: TransitionSuccess = { ticket: publicTicket(row), event };
+    const success: TransitionSuccess = {
+      ticket: publicTicket(row),
+      event,
+      ...(epicPrecheck ? { precheck: epicPrecheck } : {}),
+    };
     if (idempotency_key) {
       this.data.idempotencySet(
         idempotencyKey(client_id, verb, idempotency_key),

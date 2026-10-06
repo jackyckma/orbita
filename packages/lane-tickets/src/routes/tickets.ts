@@ -9,7 +9,7 @@ import {
   type TicketActorConfig,
 } from "../derive-actor.js";
 import {
-  isApproverKeyAllowed,
+  isPrivilegedKeyAllowed,
   requiresApproverGate,
 } from "./approver.js";
 import { approverForbidden, repositoryToOrbitaError } from "./http-errors.js";
@@ -51,6 +51,17 @@ const TransitionResponseSchema = z.object({
     })
     .optional(),
   replayed: z.boolean().optional(),
+  precheck: z
+    .object({
+      ok: z.boolean(),
+      violations: z.array(
+        z.object({
+          code: z.string(),
+          message: z.string(),
+        }),
+      ),
+    })
+    .optional(),
 });
 
 export const TICKET_OPENAPI_PATHS = [
@@ -65,6 +76,7 @@ export const TICKET_OPENAPI_PATHS = [
   "/tickets/ticket_request_decision",
   "/tickets/ticket_comment",
   "/tickets/ticket_cancel",
+  "/tickets/ticket_update_charter",
 ] as const;
 
 export type TicketRoutesDeps = {
@@ -82,12 +94,25 @@ const TRANSITION_VERBS: TicketVerb[] = [
   "ticket_request_decision",
   "ticket_comment",
   "ticket_cancel",
+  "ticket_update_charter",
 ];
 
 export function createTicketRoutes(deps: TicketRoutesDeps): OpenAPIHono {
   const app = new OpenAPIHono();
   const { repository, actorConfig } = deps;
-  const { approverKeyIds } = actorConfig;
+  const founderKeyIds =
+    actorConfig.founderKeyIds ??
+    actorConfig.approverKeyIds ??
+    new Set<string>();
+  const integratorKeyIds =
+    actorConfig.integratorKeyIds ?? new Set<string>();
+  const keyMandates = actorConfig.keyMandates ?? new Map();
+  const normalizedActorConfig = {
+    founderKeyIds,
+    integratorKeyIds,
+    approverKeyIds: actorConfig.approverKeyIds,
+    keyMandates,
+  };
 
   const createRouteDef = createRoute({
     method: "post",
@@ -147,7 +172,7 @@ export function createTicketRoutes(deps: TicketRoutesDeps): OpenAPIHono {
   app.openapi(createRouteDef, async (c) => {
     const auth = getAuth(c);
     const body = c.req.valid("json");
-    const actor = deriveTicketActor(auth, actorConfig);
+    const actor = deriveTicketActor(auth, normalizedActorConfig);
     const result = await repository.create({
       client_id: auth.clientId,
       ticket: body.ticket as Parameters<
@@ -276,8 +301,14 @@ export function createTicketRoutes(deps: TicketRoutesDeps): OpenAPIHono {
     ticket_id: string,
   ): Promise<void> {
     const auth = getAuth(c);
-    if (verb === "ticket_approve") {
-      if (!isApproverKeyAllowed(auth.apiKey.id, approverKeyIds)) {
+    if (requiresApproverGate(verb, undefined)) {
+      if (
+        !isPrivilegedKeyAllowed(
+          auth.apiKey.id,
+          founderKeyIds,
+          integratorKeyIds,
+        )
+      ) {
         throw approverForbidden();
       }
       return;
@@ -289,7 +320,13 @@ export function createTicketRoutes(deps: TicketRoutesDeps): OpenAPIHono {
       });
       const status = loaded.ok ? loaded.value.ticket.status : undefined;
       if (requiresApproverGate(verb, status)) {
-        if (!isApproverKeyAllowed(auth.apiKey.id, approverKeyIds)) {
+        if (
+          !isPrivilegedKeyAllowed(
+            auth.apiKey.id,
+            founderKeyIds,
+            integratorKeyIds,
+          )
+        ) {
           throw approverForbidden();
         }
       }
@@ -323,6 +360,8 @@ export function createTicketRoutes(deps: TicketRoutesDeps): OpenAPIHono {
                   blocked_on: z.string().optional(),
                   progress_target: z.string().optional(),
                   payload: z.record(z.unknown()).optional(),
+                  override_precheck: z.boolean().optional(),
+                  charter_patch: z.record(z.unknown()).optional(),
                 })
                 .passthrough(),
             },
@@ -356,7 +395,7 @@ export function createTicketRoutes(deps: TicketRoutesDeps): OpenAPIHono {
       const body = c.req.valid("json");
       await ensureApprover(c, verb, body.ticket_id);
 
-      const actor = deriveTicketActor(auth, actorConfig);
+      const actor = deriveTicketActor(auth, normalizedActorConfig);
 
       const params: TransitionParams = {
         client_id: auth.clientId,
@@ -374,6 +413,8 @@ export function createTicketRoutes(deps: TicketRoutesDeps): OpenAPIHono {
           body.reason !== undefined
             ? { ...(body.payload ?? {}), reason: body.reason }
             : body.payload,
+        override_precheck: body.override_precheck,
+        charter_patch: body.charter_patch as TransitionParams["charter_patch"],
       };
 
       const result = await repository.transition(params);
@@ -385,6 +426,7 @@ export function createTicketRoutes(deps: TicketRoutesDeps): OpenAPIHono {
           ticket: result.value.ticket,
           event: result.value.event,
           replayed: result.value.replayed,
+          precheck: result.value.precheck,
         },
         200,
       );

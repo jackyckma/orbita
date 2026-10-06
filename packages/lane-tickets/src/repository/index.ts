@@ -12,14 +12,9 @@ import type {
   TransitionErrorCode,
 } from "../types.js";
 
-export type TicketFunction =
-  | "dev"
-  | "infra"
-  | "support"
-  | "marketing"
-  | "sales"
-  | "ops"
-  | "research";
+import type { TicketFunction } from "../types.js";
+
+export type { TicketFunction };
 
 /** Public ticket record (matches contracts/ticket.schema.json). */
 export interface TicketRecord {
@@ -158,12 +153,15 @@ export interface TransitionParams {
   blocked_on?: string;
   soft_observations?: Record<string, number>;
   payload?: Record<string, unknown>;
+  charter_patch?: Partial<MandateCharter>;
+  override_precheck?: boolean;
 }
 
 export interface TransitionSuccess {
   ticket: TicketRecord;
   event: TicketEventRecord;
   replayed?: boolean;
+  precheck?: { ok: boolean; violations: { code: string; message: string }[] };
 }
 
 export interface MandateSubtreeHealth {
