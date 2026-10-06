@@ -1353,11 +1353,58 @@
       ]
     },
     {
+      "id": "T-0095",
+      "lane": "platform",
+      "phase": "consultos-b",
+      "title": "tickets: roles (founder, integrator, executor), executor-read-only mandates, epic pre-check",
+      "description": "FOUNDER DESIGN 2026-10-06: Mandate = decided by the founder and/or the integrator (Claude hub); once written it is READ-ONLY for every executor. Epic = proposed by the integrator or an executor; approved by the founder or the integrator AFTER a pre-check that it fits the mandate and its limits. Replace the human/agent split by three ROLES everywhere in the pure engine, contracts and routes: founder, integrator, executor (keep 'system' internal only). deriveTicketActor (T-0094) gains role derivation, stopgap until E-17 principals: ORBITA_TICKETS_FOUNDER_KEY_IDS (keep ORBITA_TICKETS_APPROVER_KEY_IDS as a deprecated alias of it), ORBITA_TICKETS_INTEGRATOR_KEY_IDS, everything else = executor; the OAuth placeholder key id 'oauth' is founder/integrator-capable only if explicitly listed (startup warning that every OAuth-connected client then gets that role). Permission matrix to implement and test in the engine: create mandate = founder or integrator, always lands in `draft`; activate (draft->active) = founder (default); executors can NEVER create or modify a mandate or its charter; a new verb `ticket_update_charter` (founder or integrator) may change non-hard fields (purpose, principles, cadence, reporting, success_measures, soft_constraints, exception_types) and appends a `charter_changed` event with a before/after diff, while any change to hard_limits (including loosening hard to soft) and any change to assigned principals requires the founder; epic create = any role (initial status from approval_policy and initialStatusOnCreate); epic approve and approved/active epic cancel = founder or integrator; non-auto task approve = founder or integrator; decision resolution = founder. PRE-CHECK: add a pure function precheckEpic(epic, charter, counters) returning {ok, violations[]} used by ticket_approve (and by the auto-approve path): structural checks only (function allowed by the charter guardrails, risk_tier not forbidden and, for auto-approve, within max_auto_risk_tier, caps such as max_open_epics, mandate active); an integrator approval requires precheck.ok; the founder may override with `override_precheck: true`, recorded in the event; the approve response always returns the precheck result. Semantic fit is the integrator's judgement and is outside the server. Update contracts, INTERFACE.md, docs/site/technical.md, tests for every cell of the matrix, and keep every existing test green. Do NOT touch Postgres SQL beyond what the new event types need; the tickets tables have never been created in production, so DDL may be edited directly (keep both DDL copies in sync).",
+      "acceptance": [
+        "pnpm --filter @orbita/tickets test",
+        "pnpm -r typecheck",
+        "rg -n \"ticket_update_charter\" packages docs",
+        "rg -n \"precheckEpic\" packages",
+        "rg -n \"ORBITA_TICKETS_INTEGRATOR_KEY_IDS\" packages docs",
+        "node --test packages/lane-tickets/contracts/validate-contracts.test.mjs"
+      ],
+      "deps": [
+        "T-0094"
+      ],
+      "flag": "ORBITA_TICKETS_ENABLED",
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "2026-10-06 hub: written from the founder's refined model (roles, read-only mandates, epic pre-check, typed exception tasks with integrator review)."
+      ]
+    },
+    {
+      "id": "T-0096",
+      "lane": "platform",
+      "phase": "consultos-b",
+      "title": "tickets: typed exception tasks directly under a mandate, with integrator review",
+      "description": "FOUNDER DESIGN 2026-10-06: besides planned tasks under an approved epic, a mandate may allow typed EXCEPTION tasks that are not under an epic (maintenance, fixes, incidents and similar). The types must be DEFINED in the charter and the integrator must REVIEW the exceptions. Implement: charter gets `exception_types`: array of {type (slug), description, auto_approve (default true), risk_tier_max, max_open}; tickets get `task_class` ('planned' default | 'exception'), `exception_type` (required and must exist in the charter when task_class is exception) and `requires_review` (true for every exception task) plus reviewed_at / reviewed_by / review_outcome; engine: validateParentForCreate lets an exception task have the MANDATE as parent (only if the type is defined, the mandate is active and the per-type max_open and a global exception cap from soft/hard constraints are respected); planned tasks still require an approved/active epic; initial status = approved when auto_approve and risk tier allow, else proposed; new verb `ticket_review` (founder or integrator only) with outcome accepted | needs_changes | cancel, appends a `reviewed` event; `ticket_list` gets filters task_class, requires_review and reviewed (so the integrator sees the review queue: requires_review=true and unreviewed); an executor cannot review its own exception; exceptions count in the mandate subtree health counters as a separate bucket. Contracts, repository (fake and Postgres), REST routes, docs and tests, including a real-Postgres tier-A test for the review queue. Do NOT add MCP tools here (T-0087 does).",
+      "acceptance": [
+        "pnpm --filter @orbita/tickets test",
+        "pnpm -r typecheck",
+        "rg -n \"exception_types\" packages docs",
+        "rg -n \"ticket_review\" packages docs",
+        "node --test packages/lane-tickets/contracts/validate-contracts.test.mjs"
+      ],
+      "deps": [
+        "T-0095"
+      ],
+      "flag": "ORBITA_TICKETS_ENABLED",
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "2026-10-06 hub: written from the founder's refined model (roles, read-only mandates, epic pre-check, typed exception tasks with integrator review)."
+      ]
+    },
+    {
       "id": "T-0087",
       "lane": "platform",
       "phase": "consultos-b",
       "title": "lane-tickets: MCP ticket_* tools (additive, flag-gated)",
-      "description": "Epic E-16 task 5. Register MCP tools ticket_create, ticket_list, ticket_get, ticket_approve, ticket_claim, ticket_extend, ticket_progress, ticket_complete, ticket_block, ticket_request_decision, ticket_comment, ticket_cancel in packages/lane-mcp (or lane-tickets re-export mounted from mcp) ONLY when ORBITA_TICKETS_ENABLED=1. Tool names and existing 16 tools' input schemas must remain byte-identical when flag OFF — extend golden test from lane-mcp. Each tool inputSchema includes shared optional reported_by/labels fragment ONLY on ticket tools (do not alter non-ticket tools). Map tools to repository + transition engine; same approver key allowlist as REST. Do NOT add admin MCP tools. Approver rule is identical to REST (including the 'oauth' placeholder rule from T-0086); add a test that ticket_approve called through the MCP path with the 'oauth' placeholder is denied when the allowlist does not list it. ACTOR (hub review 2026-10-06): MCP ticket_* tool inputs NEVER carry an actor; use deriveTicketActor from T-0094 with the MCP auth context (an OAuth connection has the placeholder key id 'oauth', which is NOT human-capable unless explicitly listed; an API key has its real id). Add a test that a tool argument named actor is ignored.",
+      "description": "Epic E-16 task 5. Register MCP tools ticket_create, ticket_list, ticket_get, ticket_approve, ticket_claim, ticket_extend, ticket_progress, ticket_complete, ticket_block, ticket_request_decision, ticket_comment, ticket_cancel in packages/lane-mcp (or lane-tickets re-export mounted from mcp) ONLY when ORBITA_TICKETS_ENABLED=1. Tool names and existing 16 tools' input schemas must remain byte-identical when flag OFF — extend golden test from lane-mcp. Each tool inputSchema includes shared optional reported_by/labels fragment ONLY on ticket tools (do not alter non-ticket tools). Map tools to repository + transition engine; same approver key allowlist as REST. Do NOT add admin MCP tools. Approver rule is identical to REST (including the 'oauth' placeholder rule from T-0086); add a test that ticket_approve called through the MCP path with the 'oauth' placeholder is denied when the allowlist does not list it. ACTOR (hub review 2026-10-06): MCP ticket_* tool inputs NEVER carry an actor; use deriveTicketActor from T-0094 with the MCP auth context (an OAuth connection has the placeholder key id 'oauth', which is NOT human-capable unless explicitly listed; an API key has its real id). Add a test that a tool argument named actor is ignored. ROLES AND EXCEPTIONS (hub 2026-10-06): expose ticket_update_charter and ticket_review as MCP tools too (roles derived from the MCP auth context, never from arguments). MCP DISCOVERY: set the MCP initialize `instructions` field (short Orbita orientation: call orbita_whoami first; tickets: read your mandate's charter with ticket_get, check status, never act when the mandate is not active; point to docs/site/ticket-executors.md) and extend orbita_whoami (when tickets are enabled) to return the caller's role, the mandates bound to the key (from ORBITA_TICKETS_KEY_MANDATES until E-17 principals) with charter summaries (purpose, hard limits with enforcement class, exception types, cadence). Tool descriptions must mention roles. Flag OFF: the existing 16 tools and the initialize result are unchanged except the instructions text, which is harmless and applies always (add a test).",
       "acceptance": [
         "pnpm --filter @orbita/mcp test",
         "pnpm --filter @orbita/tickets test",
@@ -1366,7 +1413,9 @@
       ],
       "deps": [
         "T-0086",
-        "T-0094"
+        "T-0094",
+        "T-0095",
+        "T-0096"
       ],
       "flag": "ORBITA_TICKETS_ENABLED",
       "status": "ready",
@@ -1375,7 +1424,8 @@
         "REPLAN 2026-10-02: E-16 first pass (5/6) — MCP verbs behind same flag.",
         "2026-10-02 hub review (claude-hub-session): amended before implementation - see description.",
         "2026-10-05 hub: runs after T-0086, which now follows T-0088.",
-        "2026-10-06 hub: depends on the actor-derivation task."
+        "2026-10-06 hub: depends on the actor-derivation task.",
+        "2026-10-06 hub: depends on roles/exception tasks; adds MCP instructions and whoami extension."
       ]
     },
     {
