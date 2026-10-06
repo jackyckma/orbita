@@ -1309,12 +1309,13 @@
         "T-0088"
       ],
       "flag": "ORBITA_TICKETS_ENABLED",
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-02: E-16 first pass (4/6) — REST surface behind flag.",
         "2026-10-02 hub review (claude-hub-session): amended before implementation - see description.",
-        "2026-10-05 hub: now depends on T-0088 so REST is built on the executable, tested Postgres repository."
+        "2026-10-05 hub: now depends on T-0088 so REST is built on the executable, tested Postgres repository.",
+        "MAKER 2026-10-06: PR https://github.com/jackyckma/orbita/pull/53 — acceptance + typecheck green on branch."
       ]
     },
     {

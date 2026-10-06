@@ -4,8 +4,8 @@
     "T-0086": {
       "by": "maker",
       "since": "2026-10-06T12:51:49Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/t-0086-tickets-rest-routes",
+      "pr": 53
     }
   }
 }
