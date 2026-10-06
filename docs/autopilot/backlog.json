@@ -1264,8 +1264,8 @@
         "T-0085"
       ],
       "flag": "ORBITA_TICKETS_ENABLED",
-      "status": "ready",
-      "retries": 1,
+      "status": "needs_human",
+      "retries": 2,
       "feedback": [
         "REPLAN 2026-10-02: E-16 first pass (6/6) — DDL gated + docs; production enable stays on D-005 (founder-only).",
         "2026-10-02 hub review (claude-hub-session): amended before implementation - see description.",
@@ -1276,6 +1276,11 @@
           "at": "2026-10-05T23:25:00.000Z",
           "by": "checker",
           "note": "REVIEW PR #52: verify-all green. Blocked merge — zero-row tenant has no FOR UPDATE lock in loadClientTicketData (pg-persistence.ts); parallel same idempotency_key on first ticket can double-create. Fix: pg_advisory_xact_lock per client_id + concurrent idempotency e2e. Minor: acceptance rg optional-tickets fails (allowlist path only lists drizzle file). Bounced to ready (retries=1). PR #52 left open (draft). gh pr comment blocked (403)."
+        },
+        {
+          "at": "2026-10-06T06:15:00.000Z",
+          "by": "checker",
+          "note": "REVIEW PR #52 (second pass): PR head unchanged since prior bounce (no pg_advisory_xact_lock). verify-all PASS; e2e-tier-a PASS locally (4 pg repo tests incl. concurrent claim on existing task; no concurrent idempotency-on-empty-tenant test). Task acceptance still fails: rg optional-tickets on migrations+allowlist (exit 1). Escalated needs_human (retries=2). PR #52 left open (draft). gh pr comment blocked (403)."
         }
       ]
     },
