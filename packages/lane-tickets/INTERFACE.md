@@ -42,10 +42,12 @@ draft → active → paused → retired
 
 | From | Verb (conceptual) | To |
 |------|-------------------|-----|
-| draft | activate | active |
-| active | pause | paused |
-| paused | resume | active |
-| active / paused | retire | retired |
+| draft | activate | active | founder only |
+| active | pause | paused | founder or integrator |
+| paused | resume | active | founder or integrator |
+| active / paused | retire | retired | founder or integrator |
+
+Executors **never** activate, pause, resume, or retire a mandate (`ROLE_REQUIRED`). `ticket_progress` on a mandate may only set status `active`, `paused`, or `retired`.
 
 ### Epic
 
@@ -56,7 +58,7 @@ proposed → approved → active → done
 
 | From | Verb | To | Actor |
 |------|------|-----|-------|
-| proposed | ticket_approve | approved | founder or integrator (integrator needs `precheckEpic` ok) |
+| proposed | ticket_approve | approved | founder or integrator (integrator needs `precheckEpic` ok; founder may set `override_precheck` when precheck fails) |
 | approved | ticket_progress | active | executor |
 | active | ticket_complete | done | executor |
 | proposed / approved / active | ticket_cancel | cancelled | founder or integrator (executors may not cancel approved/active epics) |
@@ -126,6 +128,7 @@ Validate: `node --test packages/lane-tickets/contracts/validate-contracts.test.m
 
 - **`initialStatusOnCreate`**: mandate create is founder/integrator → `draft`; epic/task/decision initial status from `approval_policy`, role, parent, `risk_tier`, and `precheckEpic` on auto-approve.
 - **`precheckEpic`**: structural epic fit (function, risk, caps, active mandate) before integrator epic approve and auto-approve create.
+- **Auto-approve on create** (`approval_policy.tasks` / `auto_within_tier`): the engine trusts the **declared** `risk_tier` and `function` on the request body; it does not independently verify them. Integrators review auto-approved epics and tasks via the review queue (see T-0096 `requires_review`).
 - **`mandate_status`** on transitions: when ancestor mandate is `draft`, `paused`, or `retired`, **executor** mutating verbs deny with **`MANDATE_NOT_ACTIVE`** (except `ticket_comment`, `ticket_block`, `ticket_request_decision`). Missing `mandate_status` on executor writes is also denied (fail-closed).
 - **Ownership**: executor actors carry `mandate_ids`; **`OUTSIDE_MANDATE`** when not in the ticket’s mandate.
 - **Fail-closed counters**: server **`hard_limits`** without supplied counters → **`HARD_LIMIT_COUNTERS_MISSING`**.

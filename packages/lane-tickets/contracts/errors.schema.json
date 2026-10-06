@@ -104,6 +104,51 @@
         }
       ],
       "description": "Observed metric crossed a soft_constraint block_threshold."
+    },
+    "role_required": {
+      "allOf": [
+        { "$ref": "common.schema.json#/definitions/error_envelope" },
+        {
+          "properties": {
+            "error": {
+              "properties": {
+                "code": { "const": "ROLE_REQUIRED" },
+                "details": {
+                  "type": "object",
+                  "required": ["required_roles"],
+                  "additionalProperties": true,
+                  "properties": {
+                    "required_roles": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": ["founder", "integrator"]
+                      },
+                      "minItems": 1
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "description": "Mandate lifecycle or other role-gated transition denied for the actor role."
+    },
+    "precheck_failed": {
+      "allOf": [
+        { "$ref": "common.schema.json#/definitions/error_envelope" },
+        {
+          "properties": {
+            "error": {
+              "properties": {
+                "code": { "const": "PRECHECK_FAILED" }
+              }
+            }
+          }
+        }
+      ],
+      "description": "Epic approve precheckEpic failed and override_precheck was not supplied."
     }
   }
 }

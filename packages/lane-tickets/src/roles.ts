@@ -16,9 +16,14 @@ export function isFounderOrIntegrator(actor: Actor): boolean {
   return isFounder(actor) || isIntegrator(actor);
 }
 
-/** Founder-only mandate lifecycle (activate draft→active, retire). */
+/** Founder-only mandate activation (draft→active). */
 export function canActivateMandate(actor: Actor): boolean {
   return isFounder(actor);
+}
+
+/** Pause, resume, or retire a mandate (not activate). */
+export function canManageMandateLifecycle(actor: Actor): boolean {
+  return isFounderOrIntegrator(actor);
 }
 
 export function canCreateMandate(actor: Actor): boolean {

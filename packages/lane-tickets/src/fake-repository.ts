@@ -598,6 +598,17 @@ export class FakeTicketRepository implements TicketRepository {
           { violations: epicPrecheck.violations },
         );
       }
+      if (
+        isFounder(actor) &&
+        !epicPrecheck.ok &&
+        !override_precheck
+      ) {
+        return err(
+          "PRECHECK_FAILED",
+          "Founder epic approval with failing pre-check requires override_precheck.",
+          { violations: epicPrecheck.violations },
+        );
+      }
     }
 
     const input = buildTransitionInput(row, charter, verb, actor, {
