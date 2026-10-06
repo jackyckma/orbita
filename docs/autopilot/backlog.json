@@ -1291,7 +1291,7 @@
       "lane": "platform",
       "phase": "consultos-b",
       "title": "lane-tickets: REST /v1/tickets routes (flag-gated mount)",
-      "description": "Epic E-16 task 4. Wire packages/lane-tickets/src/routes/tickets.ts with verb-style handlers matching contracts; register in apps/orbita-api ONLY when ORBITA_TICKETS_ENABLED=1 (default OFF, parse like other flags in packages/lane-platform/src/config.ts). Auth: client_id from auth context only. ticket_approve and cancel-of-proposed allowed only when caller API key id is listed in ORBITA_TICKETS_APPROVER_KEY_IDS (comma-separated, default empty = deny). OpenAPI entries under /v1/tickets/* in the protected app (admin paths unchanged). Golden test: with flag OFF, route table / openapi paths unchanged vs baseline snapshot committed in test fixture. Do NOT mount MCP tools (T-0087). Do NOT run DDL (T-0088). APPROVER SAFETY (hub review): the MCP/OAuth auth context uses a placeholder api key id 'oauth' (verified: the real OAuth client_id is dropped). Treat 'oauth' as NOT approver-capable by default: it is accepted by ORBITA_TICKETS_APPROVER_KEY_IDS only if explicitly listed, and listing it must log a startup warning that every OAuth-connected client can then approve. Add tests: empty allowlist denies everyone; an API key id in the list can approve; 'oauth' is denied unless listed; the approver check never looks at client-supplied headers such as x-orbita-agent or labels.",
+      "description": "Epic E-16 task 4. Wire packages/lane-tickets/src/routes/tickets.ts with verb-style handlers matching contracts; register in apps/orbita-api ONLY when ORBITA_TICKETS_ENABLED=1 (default OFF, parse like other flags in packages/lane-platform/src/config.ts). Auth: client_id from auth context only. ticket_approve and cancel-of-proposed allowed only when caller API key id is listed in ORBITA_TICKETS_APPROVER_KEY_IDS (comma-separated, default empty = deny). OpenAPI entries under /v1/tickets/* in the protected app (admin paths unchanged). Golden test: with flag OFF, route table / openapi paths unchanged vs baseline snapshot committed in test fixture. Do NOT mount MCP tools (T-0087). Do NOT run DDL (T-0088). APPROVER SAFETY (hub review): the MCP/OAuth auth context uses a placeholder api key id 'oauth' (verified: the real OAuth client_id is dropped). Treat 'oauth' as NOT approver-capable by default: it is accepted by ORBITA_TICKETS_APPROVER_KEY_IDS only if explicitly listed, and listing it must log a startup warning that every OAuth-connected client can then approve. Add tests: empty allowlist denies everyone; an API key id in the list can approve; 'oauth' is denied unless listed; the approver check never looks at client-supplied headers such as x-orbita-agent or labels. PILOT CRITICAL (hub 2026-10-06): CAPS WIRING - on every create and mutating path compute the real counters from the repository INSIDE the same transaction (open tasks per mandate subtree, writes today per principal/mandate, etc.) and pass them to the engine; the engine already denies server-enforced hard limits when counters are missing, so a missing counter must surface as a clear error, never a skip. Add tests that exceed max_open_tasks and writes_per_day through the REST layer and get 409/429-style structured errors.",
       "acceptance": [
         "pnpm -r typecheck",
         "pnpm --filter @orbita/tickets test",
@@ -1351,10 +1351,11 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "ready",
+      "status": "blocked",
       "retries": 0,
       "feedback": [
-        "2026-10-03 hub (claude-hub-session): written after the founder said productised tenants will bring their own API keys and EU-only operation must be possible."
+        "2026-10-03 hub (claude-hub-session): written after the founder said productised tenants will bring their own API keys and EU-only operation must be possible.",
+        "DEFERRED by hub 2026-10-06: Grok Bot pilot first; set back to ready afterwards (T-0093 must be done before any visitor or third-party personal data is stored in Orbita notes)."
       ]
     },
     {
@@ -1372,10 +1373,11 @@
       ],
       "deps": [],
       "flag": "ORBITA_NOTES_DELETE_ENABLED",
-      "status": "ready",
+      "status": "blocked",
       "retries": 0,
       "feedback": [
-        "2026-10-03 hub (claude-hub-session): written after the founder approved notes deletion as a prerequisite for storing visitor conversations."
+        "2026-10-03 hub (claude-hub-session): written after the founder approved notes deletion as a prerequisite for storing visitor conversations.",
+        "DEFERRED by hub 2026-10-06: Grok Bot pilot first; set back to ready afterwards (T-0093 must be done before any visitor or third-party personal data is stored in Orbita notes)."
       ]
     }
   ]
