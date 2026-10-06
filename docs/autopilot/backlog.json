@@ -1437,11 +1437,12 @@
         "T-0098"
       ],
       "flag": "ORBITA_TICKETS_ENABLED",
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
       "feedback": [
         "2026-10-06 hub: written from the founder's refined model (roles, read-only mandates, epic pre-check, typed exception tasks with integrator review).",
-        "2026-10-06 hub: depends on the lifecycle-role fix; auto-approved executor items need review."
+        "2026-10-06 hub: depends on the lifecycle-role fix; auto-approved executor items need review.",
+        "2026-10-06T23:08:00.000Z maker: PR https://github.com/jackyckma/orbita/pull/57 opened; acceptance green on branch head."
       ]
     },
     {
