@@ -1406,12 +1406,17 @@
         "T-0095"
       ],
       "flag": "ORBITA_TICKETS_ENABLED",
-      "status": "in_review",
+      "status": "done",
       "retries": 0,
       "feedback": [
         "2026-10-06 hub security review of merged T-0095: executors could pause/resume their own mandate; fixed here before exception tasks.",
         "2026-10-06T16:54:00.000Z maker: lease on main; IMPLEMENT T-0098.",
-        "2026-10-06T16:57:00.000Z maker: PR https://github.com/jackyckma/orbita/pull/56 opened; acceptance green on branch head."
+        "2026-10-06T16:57:00.000Z maker: PR https://github.com/jackyckma/orbita/pull/56 opened; acceptance green on branch head.",
+        {
+          "at": "2026-10-06T17:10:00.000Z",
+          "by": "checker",
+          "note": "REVIEW PR #56: verify-all PASS; T-0098 acceptance PASS; CI verify + e2e-tier-a SUCCESS. Scope matches (mandate lifecycle ROLE_REQUIRED, founder override_precheck, INTERFACE auto-approve trust). Merged PR #56 to main (a4f875e). Flag ORBITA_TICKETS_ENABLED unchanged."
+        }
       ]
     },
     {
