@@ -1264,7 +1264,7 @@
         "T-0085"
       ],
       "flag": "ORBITA_TICKETS_ENABLED",
-      "status": "in_review",
+      "status": "done",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-02: E-16 first pass (6/6) — DDL gated + docs; production enable stays on D-005 (founder-only).",
@@ -1283,7 +1283,12 @@
           "note": "REVIEW PR #52 (second pass): PR head unchanged since prior bounce (no pg_advisory_xact_lock). verify-all PASS; e2e-tier-a PASS locally (4 pg repo tests incl. concurrent claim on existing task; no concurrent idempotency-on-empty-tenant test). Task acceptance still fails: rg optional-tickets on migrations+allowlist (exit 1). Escalated needs_human (retries=2). PR #52 left open (draft). gh pr comment blocked (403)."
         },
         "HUB DECISION 2026-10-06 (claude-hub-session): reset to ready after two Checker bounces (empty-tenant idempotency race, flush-on-read, upsert without client_id guard); see description.",
-        "MAKER 2026-10-06: PR #52 head 20b492f — pg_advisory_xact_lock per tenant; read path no flush; dirty-row flush + client_id-guarded upserts; 9 tier-A PgTicketRepository tests (incl. empty-tenant concurrent idempotency); sql-sync allowlist + optional-tickets acceptance; docs/site/technical.md scale note. Local bash scripts/e2e-tier-a.sh green."
+        "MAKER 2026-10-06: PR #52 head 20b492f — pg_advisory_xact_lock per tenant; read path no flush; dirty-row flush + client_id-guarded upserts; 9 tier-A PgTicketRepository tests (incl. empty-tenant concurrent idempotency); sql-sync allowlist + optional-tickets acceptance; docs/site/technical.md scale note. Local bash scripts/e2e-tier-a.sh green.",
+        {
+          "at": "2026-10-06T11:15:00.000Z",
+          "by": "checker",
+          "note": "REVIEW PR #52: verify-all PASS; task acceptance PASS; CI verify + e2e-tier-a SUCCESS. Scope matches T-0088 (optional DDL behind ORBITA_TICKETS_ENABLED, PgTicketRepository, no route mount). Merged PR #52 to main (5898bef). D-005 prod flag flip remains founder-only."
+        }
       ]
     },
     {
