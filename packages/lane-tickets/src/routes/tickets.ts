@@ -77,6 +77,7 @@ export const TICKET_OPENAPI_PATHS = [
   "/tickets/ticket_comment",
   "/tickets/ticket_cancel",
   "/tickets/ticket_update_charter",
+  "/tickets/ticket_review",
 ] as const;
 
 export type TicketRoutesDeps = {
@@ -95,6 +96,7 @@ const TRANSITION_VERBS: TicketVerb[] = [
   "ticket_comment",
   "ticket_cancel",
   "ticket_update_charter",
+  "ticket_review",
 ];
 
 export function createTicketRoutes(deps: TicketRoutesDeps): OpenAPIHono {
@@ -146,6 +148,8 @@ export function createTicketRoutes(deps: TicketRoutesDeps): OpenAPIHono {
                 charter: z.record(z.unknown()).optional(),
                 acceptance_criteria: z.array(z.string().min(1)).optional(),
                 data: z.record(z.unknown()).optional(),
+                task_class: z.enum(["planned", "exception"]).optional(),
+                exception_type: z.string().min(1).optional(),
               }),
               idempotency_key: z.string().min(1).max(128).optional(),
             }),
@@ -211,6 +215,15 @@ export function createTicketRoutes(deps: TicketRoutesDeps): OpenAPIHono {
         updated_since: z.string().optional(),
         limit: z.coerce.number().int().min(1).max(200).optional(),
         cursor: z.string().optional(),
+        task_class: z.enum(["planned", "exception"]).optional(),
+        requires_review: z
+          .enum(["true", "false"])
+          .optional()
+          .transform((v) => (v === undefined ? undefined : v === "true")),
+        reviewed: z
+          .enum(["true", "false"])
+          .optional()
+          .transform((v) => (v === undefined ? undefined : v === "true")),
       }),
     },
     responses: {
@@ -240,6 +253,9 @@ export function createTicketRoutes(deps: TicketRoutesDeps): OpenAPIHono {
       limit: query.limit,
       cursor: query.cursor,
       status: query.status as TicketStatus | undefined,
+      task_class: query.task_class,
+      requires_review: query.requires_review,
+      reviewed: query.reviewed,
     });
     if (!result.ok) {
       throw repositoryToOrbitaError(result.error);
@@ -362,6 +378,9 @@ export function createTicketRoutes(deps: TicketRoutesDeps): OpenAPIHono {
                   payload: z.record(z.unknown()).optional(),
                   override_precheck: z.boolean().optional(),
                   charter_patch: z.record(z.unknown()).optional(),
+                  review_outcome: z
+                    .enum(["accepted", "needs_changes", "cancel"])
+                    .optional(),
                 })
                 .passthrough(),
             },
@@ -415,6 +434,7 @@ export function createTicketRoutes(deps: TicketRoutesDeps): OpenAPIHono {
             : body.payload,
         override_precheck: body.override_precheck,
         charter_patch: body.charter_patch as TransitionParams["charter_patch"],
+        review_outcome: body.review_outcome as TransitionParams["review_outcome"],
       };
 
       const result = await repository.transition(params);

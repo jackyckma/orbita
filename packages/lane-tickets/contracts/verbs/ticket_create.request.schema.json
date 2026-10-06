@@ -71,6 +71,14 @@
         },
         "data": {
           "type": "object"
+        },
+        "task_class": {
+          "$ref": "../common.schema.json#/definitions/task_class"
+        },
+        "exception_type": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Required when task_class is exception; must exist on mandate charter exception_types."
         }
       }
     },

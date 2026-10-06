@@ -117,9 +117,34 @@
       "type": "array",
       "description": "warn_threshold records soft_breach only; block_threshold denies with SOFT_BLOCK_THRESHOLD_EXCEEDED when observed >= threshold.",
       "items": { "$ref": "#/definitions/soft_constraint" }
+    },
+    "exception_types": {
+      "type": "array",
+      "description": "Typed exception tasks may be created directly under an active mandate (task_class=exception).",
+      "items": { "$ref": "#/definitions/exception_type" }
     }
   },
   "definitions": {
+    "exception_type": {
+      "type": "object",
+      "required": ["type", "description"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "description": { "type": "string", "minLength": 1 },
+        "auto_approve": {
+          "type": "boolean",
+          "default": true
+        },
+        "risk_tier_max": {
+          "$ref": "common.schema.json#/definitions/risk_tier"
+        },
+        "max_open": { "type": "integer", "minimum": 0 }
+      }
+    },
     "hard_limit": {
       "type": "object",
       "required": ["id", "description", "enforcement"],
@@ -130,6 +155,7 @@
         "enforcement": { "$ref": "common.schema.json#/definitions/enforcement" },
         "max_open_epics": { "type": "integer", "minimum": 0 },
         "max_open_tasks": { "type": "integer", "minimum": 0 },
+        "max_open_exceptions": { "type": "integer", "minimum": 0 },
         "max_creations_per_day": { "type": "integer", "minimum": 0 },
         "max_writes_per_day": { "type": "integer", "minimum": 0 },
         "authority_boundary": { "type": "string" }

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { EMPTY_COUNTERS } from "./repository-internal.js";
 import {
   ALL_VERBS,
   evaluateTransition,
@@ -143,7 +144,7 @@ describe("evaluateTransition — hard limits", () => {
       source: "native",
       charter,
       create_kind: "epic",
-      counters: { open_epics: 2, open_tasks: 0, creations_today: 0, writes_today: 0 },
+      counters: { ...EMPTY_COUNTERS, open_epics: 2 },
       parent: activeMandateParent,
     });
     expect(r.allowed).toBe(false);
@@ -245,7 +246,7 @@ describe("evaluateTransition — soft_breach hints", () => {
       charter,
       mandate_id: MANDATE_UUID,
       mandate_status: "active",
-      counters: { open_epics: 0, open_tasks: 0, creations_today: 0, writes_today: 0 },
+      counters: { ...EMPTY_COUNTERS },
       soft_observations: { effort: 25 },
     });
     expect(r.allowed).toBe(false);
@@ -266,7 +267,7 @@ describe("mandate pause gate", () => {
         actor: executor,
         mandate_status: "paused",
         mandate_id: MANDATE_UUID,
-        counters: { open_epics: 0, open_tasks: 0, creations_today: 0, writes_today: 0 },
+        counters: { ...EMPTY_COUNTERS },
       }),
     );
     expect(r.allowed).toBe(false);
@@ -311,7 +312,7 @@ describe("mandate pause gate", () => {
         actor: executor,
         mandate_status: undefined,
         mandate_id: MANDATE_UUID,
-        counters: { open_epics: 0, open_tasks: 0, creations_today: 0, writes_today: 0 },
+        counters: { ...EMPTY_COUNTERS },
       }),
     );
     expect(r.allowed).toBe(false);
@@ -331,7 +332,7 @@ describe("ownership OUTSIDE_MANDATE", () => {
         verb: "ticket_claim",
         actor: executor,
         mandate_id: undefined,
-        counters: { open_epics: 0, open_tasks: 0, creations_today: 0, writes_today: 0 },
+        counters: { ...EMPTY_COUNTERS },
       }),
     );
     expect(r.allowed).toBe(false);
@@ -349,7 +350,7 @@ describe("ownership OUTSIDE_MANDATE", () => {
         verb: "ticket_claim",
         actor: { role: "executor", mandate_ids: ["other-mandate"] },
         mandate_id: MANDATE_UUID,
-        counters: { open_epics: 0, open_tasks: 0, creations_today: 0, writes_today: 0 },
+        counters: { ...EMPTY_COUNTERS },
       }),
     );
     expect(r.allowed).toBe(false);
@@ -462,7 +463,12 @@ describe("initialStatusOnCreate", () => {
       }),
       risk_tier: "L0",
     });
-    expect(r).toEqual({ ok: true, status: "approved", mandate_id: MANDATE_UUID });
+    expect(r).toEqual({
+      ok: true,
+      status: "approved",
+      mandate_id: MANDATE_UUID,
+      requires_review: true,
+    });
   });
 
   it("task: executor auto → approved within tier", () => {
@@ -473,7 +479,13 @@ describe("initialStatusOnCreate", () => {
       charter: emptyCharter(),
       risk_tier: "L0",
     });
-    expect(r).toEqual({ ok: true, status: "approved", mandate_id: MANDATE_UUID });
+    expect(r).toEqual({
+      ok: true,
+      status: "approved",
+      mandate_id: MANDATE_UUID,
+      task_class: "planned",
+      requires_review: true,
+    });
   });
 
   it("task above tier: founder → approved", () => {
@@ -490,7 +502,13 @@ describe("initialStatusOnCreate", () => {
       }),
       risk_tier: "L2",
     });
-    expect(r).toEqual({ ok: true, status: "approved", mandate_id: MANDATE_UUID });
+    expect(r).toEqual({
+      ok: true,
+      status: "approved",
+      mandate_id: MANDATE_UUID,
+      task_class: "planned",
+      requires_review: false,
+    });
   });
 
   it("task above tier must be decision proposed", () => {
@@ -532,6 +550,10 @@ function expectedFor(
     allowed: false as const,
     code: "ROLE_REQUIRED",
   };
+
+  if (verb === "ticket_review") {
+    return actorType === "executor" ? roleRequired : invalid;
+  }
 
   if (verb === "ticket_list" || verb === "ticket_get") {
     return { allowed: true };

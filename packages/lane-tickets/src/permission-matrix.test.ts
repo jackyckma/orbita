@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { EMPTY_COUNTERS } from "./repository-internal.js";
 import { evaluateTransition, initialStatusOnCreate } from "./transitions.js";
 import type { MandateCharter } from "./types.js";
 
@@ -118,12 +119,7 @@ describe("permission matrix (roles)", () => {
       charter: charter(),
       mandate_id: MANDATE,
       mandate_status: "active",
-      counters: {
-        open_epics: 0,
-        open_tasks: 0,
-        creations_today: 0,
-        writes_today: 0,
-      },
+      counters: { ...EMPTY_COUNTERS },
     });
     expect(r.allowed).toBe(false);
   });

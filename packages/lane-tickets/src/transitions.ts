@@ -13,6 +13,13 @@ import {
 } from "./roles.js";
 import { applyCharterPatch, type CharterPatch } from "./charter-update.js";
 import { riskWithinAutoTier } from "./risk-tier.js";
+import {
+  exceptionTypeAllowsRisk,
+  findExceptionTypeDef,
+  normalizeTaskClass,
+  shouldRequireReviewOnCreate,
+  validateExceptionTaskParent,
+} from "./exception-tasks.js";
 import type {
   Actor,
   EpicStatus,
@@ -22,8 +29,10 @@ import type {
   MandateCounters,
   MandateStatus,
   ParentTicketRef,
+  ReviewOutcome,
   RiskTier,
   SoftBreachHint,
+  TaskClass,
   TicketKind,
   TicketStatus,
   TicketVerb,
@@ -56,12 +65,14 @@ const MUTATING_VERBS: ReadonlySet<TicketVerb> = new Set([
   "ticket_cancel",
   "ticket_create",
   "ticket_update_charter",
+  "ticket_review",
 ]);
 
 const PAUSE_GATE_EXEMPT: ReadonlySet<TicketVerb> = new Set([
   "ticket_comment",
   "ticket_block",
   "ticket_request_decision",
+  "ticket_review",
 ]);
 
 const PAUSE_GATED_AGENT_MUTATIONS: ReadonlySet<TicketVerb> = new Set([
@@ -185,11 +196,20 @@ function isTerminalParent(kind: TicketKind, status: TicketStatus): boolean {
   return status === "done" || status === "cancelled";
 }
 
+export interface ValidateParentOptions {
+  task_class?: TaskClass;
+  charter?: MandateCharter;
+  counters?: MandateCounters;
+  exception_type?: string;
+}
+
 /** Pure parent rules for ticket_create (and initial status). */
 export function validateParentForCreate(
   createKind: TicketKind,
   parent: ParentTicketRef | null | undefined,
+  options?: ValidateParentOptions,
 ): TransitionResult | null {
+  const task_class = normalizeTaskClass(createKind, options?.task_class);
   if (createKind === "mandate") {
     if (parent) {
       return deny(
@@ -213,6 +233,28 @@ export function validateParentForCreate(
     return null;
   }
   if (createKind === "task") {
+    if (task_class === "exception") {
+      if (!options?.charter) {
+        return deny(
+          "INVALID_PARENT",
+          "Exception task validation requires mandate charter.",
+        );
+      }
+      const exc = validateExceptionTaskParent(
+        parent,
+        options.charter,
+        options.exception_type,
+        options.counters,
+      );
+      if (!exc.ok) {
+        return deny(
+          exc.code as TransitionErrorCode,
+          exc.message,
+          exc.details,
+        );
+      }
+      return null;
+    }
     if (
       parent.kind !== "epic" ||
       (parent.status !== "approved" && parent.status !== "active")
@@ -405,6 +447,20 @@ function checkServerHardLimits(
           "HARD_LIMIT_EXCEEDED",
           `Hard limit ${limit.id}: max_open_tasks (${limit.max_open_tasks}) reached.`,
           { limit_id: limit.id, max_open_tasks: limit.max_open_tasks },
+        );
+      }
+      if (
+        create_kind === "task" &&
+        limit.max_open_exceptions !== undefined &&
+        counters.open_exception_tasks >= limit.max_open_exceptions
+      ) {
+        return deny(
+          "HARD_LIMIT_EXCEEDED",
+          `Hard limit ${limit.id}: max_open_exceptions (${limit.max_open_exceptions}) reached.`,
+          {
+            limit_id: limit.id,
+            max_open_exceptions: limit.max_open_exceptions,
+          },
         );
       }
       if (
@@ -678,8 +734,23 @@ function evaluateWork(
 export function initialStatusOnCreate(
   input: InitialStatusInput,
 ): InitialStatusResult {
-  const { kind, actor, parent, charter, risk_tier } = input;
-  const parentCheck = validateParentForCreate(kind, parent);
+  const {
+    kind,
+    actor,
+    parent,
+    charter,
+    risk_tier,
+    task_class: taskClassIn,
+    exception_type,
+    counters,
+  } = input;
+  const task_class = normalizeTaskClass(kind, taskClassIn);
+  const parentCheck = validateParentForCreate(kind, parent, {
+    task_class,
+    charter,
+    counters,
+    exception_type,
+  });
   if (parentCheck && !parentCheck.allowed) {
     return {
       ok: false,
@@ -720,15 +791,69 @@ export function initialStatusOnCreate(
       policy.epics === "auto_within_tier" &&
       riskWithinAutoTier(risk_tier, maxAuto)
     ) {
-      return { ok: true, status: "approved", mandate_id: mandateId };
+      return {
+        ok: true,
+        status: "approved",
+        mandate_id: mandateId,
+        requires_review: shouldRequireReviewOnCreate(
+          "epic",
+          "planned",
+          actor,
+          "approved",
+        ),
+      };
     }
     return { ok: true, status: "proposed", mandate_id: mandateId };
   }
 
   if (kind === "task" || kind === "decision") {
+    if (kind === "task" && task_class === "exception") {
+      const def = exception_type
+        ? findExceptionTypeDef(charter, exception_type)
+        : undefined;
+      if (!def) {
+        return {
+          ok: false,
+          error: {
+            code: "INVALID_PARENT",
+            message: "Exception tasks require a valid exception_type on the charter.",
+          },
+        };
+      }
+      if (!exceptionTypeAllowsRisk(def, risk_tier)) {
+        return {
+          ok: false,
+          error: {
+            code: "INVALID_TRANSITION",
+            message: "Risk tier exceeds exception type risk_tier_max.",
+            details: { risk_tier, risk_tier_max: def.risk_tier_max },
+          },
+        };
+      }
+      const autoApprove = def.auto_approve !== false;
+      const status =
+        autoApprove && riskWithinAutoTier(risk_tier, maxAuto)
+          ? "approved"
+          : "proposed";
+      return {
+        ok: true,
+        status,
+        mandate_id: mandateId,
+        task_class,
+        exception_type,
+        requires_review: true,
+      };
+    }
+
     if (!riskWithinAutoTier(risk_tier, maxAuto)) {
       if (kind === "task" && isFounderOrIntegrator(actor)) {
-        return { ok: true, status: "approved", mandate_id: mandateId };
+        return {
+          ok: true,
+          status: "approved",
+          mandate_id: mandateId,
+          task_class,
+          requires_review: false,
+        };
       }
       if (kind !== "decision") {
         return {
@@ -748,12 +873,29 @@ export function initialStatusOnCreate(
       policy.tasks === "auto" &&
       riskWithinAutoTier(risk_tier, maxAuto)
     ) {
-      return { ok: true, status: "approved", mandate_id: mandateId };
+      return {
+        ok: true,
+        status: "approved",
+        mandate_id: mandateId,
+        task_class,
+        requires_review: shouldRequireReviewOnCreate(
+          kind,
+          task_class,
+          actor,
+          "approved",
+        ),
+      };
     }
     if (isFounderOrIntegrator(actor)) {
-      return { ok: true, status: "approved", mandate_id: mandateId };
+      return {
+        ok: true,
+        status: "approved",
+        mandate_id: mandateId,
+        task_class,
+        requires_review: false,
+      };
     }
-    return { ok: true, status: "proposed", mandate_id: mandateId };
+    return { ok: true, status: "proposed", mandate_id: mandateId, task_class };
   }
 
   return {
@@ -792,7 +934,12 @@ export function evaluateTransition(input: TransitionInput): TransitionResult {
 
   if (verb === "ticket_create") {
     const createKind = input.create_kind ?? kind;
-    const parentCheck = validateParentForCreate(createKind, input.parent);
+    const parentCheck = validateParentForCreate(createKind, input.parent, {
+      task_class: input.task_class,
+      charter,
+      counters: input.counters,
+      exception_type: input.exception_type,
+    });
     if (parentCheck) {
       return parentCheck;
     }
@@ -826,6 +973,62 @@ export function evaluateTransition(input: TransitionInput): TransitionResult {
     }
     if (kind === "epic" && (status === "done" || status === "cancelled")) {
       return deny("INVALID_TRANSITION", "Cannot request decision on terminal epic.");
+    }
+    const soft = collectSoftBreaches(charter, input.soft_observations);
+    return allow(undefined, soft);
+  }
+
+  if (verb === "ticket_review") {
+    if (!isFounderOrIntegrator(actor)) {
+      return roleRequired(
+        ["founder", "integrator"],
+        "Reviewing tickets requires founder or integrator.",
+      );
+    }
+    if (kind !== "epic" && kind !== "task") {
+      return deny(
+        "INVALID_TRANSITION",
+        "ticket_review applies to epics and tasks only.",
+      );
+    }
+    if (!input.requires_review) {
+      return deny(
+        "INVALID_TRANSITION",
+        "Ticket is not in the integrator review queue.",
+      );
+    }
+    if (input.reviewed_at) {
+      return deny("INVALID_TRANSITION", "Ticket was already reviewed.");
+    }
+    const outcome = input.review_outcome;
+    const validOutcomes: ReviewOutcome[] = [
+      "accepted",
+      "needs_changes",
+      "cancel",
+    ];
+    if (!outcome || !validOutcomes.includes(outcome)) {
+      return deny(
+        "INVALID_TRANSITION",
+        "ticket_review requires review_outcome accepted | needs_changes | cancel.",
+      );
+    }
+    if (
+      input.creator_api_key_id &&
+      actor.api_key_id &&
+      input.creator_api_key_id === actor.api_key_id
+    ) {
+      return deny(
+        "INVALID_TRANSITION",
+        "Cannot review a ticket you created as executor.",
+      );
+    }
+    if (outcome === "cancel") {
+      const soft = collectSoftBreaches(charter, input.soft_observations);
+      return allow("cancelled", soft);
+    }
+    if (outcome === "needs_changes") {
+      const soft = collectSoftBreaches(charter, input.soft_observations);
+      return allow("proposed", soft);
     }
     const soft = collectSoftBreaches(charter, input.soft_observations);
     return allow(undefined, soft);
@@ -995,6 +1198,7 @@ export const ALL_VERBS: TicketVerb[] = [
   "ticket_comment",
   "ticket_cancel",
   "ticket_update_charter",
+  "ticket_review",
 ];
 
 export function statusesForKind(kind: TicketKind): TicketStatus[] {

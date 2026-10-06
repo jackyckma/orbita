@@ -477,4 +477,90 @@ describe.skipIf(!runE2e)("PgTicketRepository (real Postgres, tier A)", () => {
       expect(replay.value.ticket.id).toBe(mandate.value.ticket.id);
     }
   });
+
+  it("review queue: exception task persists and ticket_review clears unreviewed filter", async () => {
+    const repo = new PgTicketRepository(sql);
+    const charterWithExc = {
+      ...charter(),
+      exception_types: [
+        {
+          type: "incident",
+          description: "incident",
+          auto_approve: true,
+          risk_tier_max: "L1",
+        },
+      ],
+    };
+    const mandate = await repo.create({
+      client_id: CLIENT_B,
+      actor: { role: "founder" },
+      ticket: {
+        project: "review-q",
+        function: "dev",
+        kind: "mandate",
+        title: "M-review",
+        charter: charterWithExc,
+      },
+    });
+    if (!mandate.ok) throw new Error("mandate");
+    await repo.transition({
+      client_id: CLIENT_B,
+      ticket_id: mandate.value.ticket.id,
+      verb: "ticket_approve",
+      actor: { role: "founder" },
+    });
+    const exc = await repo.create({
+      client_id: CLIENT_B,
+      actor: {
+        role: "executor",
+        mandate_ids: [mandate.value.ticket.id],
+        api_key_id: "pg-exec",
+      },
+      ticket: {
+        project: "review-q",
+        function: "dev",
+        kind: "task",
+        parent_id: mandate.value.ticket.id,
+        title: "Exc",
+        task_class: "exception",
+        exception_type: "incident",
+        risk_tier: "L0",
+      },
+    });
+    expect(exc.ok).toBe(true);
+    if (!exc.ok) return;
+
+    const pending = await repo.list({
+      client_id: CLIENT_B,
+      requires_review: true,
+      reviewed: false,
+    });
+    expect(pending.ok).toBe(true);
+    if (pending.ok) {
+      expect(
+        pending.value.tickets.some((t) => t.id === exc.value.ticket.id),
+      ).toBe(true);
+    }
+
+    const done = await repo.transition({
+      client_id: CLIENT_B,
+      ticket_id: exc.value.ticket.id,
+      verb: "ticket_review",
+      actor: { role: "integrator", api_key_id: "pg-integrator" },
+      review_outcome: "accepted",
+    });
+    expect(done.ok).toBe(true);
+
+    const after = await repo.list({
+      client_id: CLIENT_B,
+      requires_review: true,
+      reviewed: false,
+    });
+    expect(after.ok).toBe(true);
+    if (after.ok) {
+      expect(
+        after.value.tickets.some((t) => t.id === exc.value.ticket.id),
+      ).toBe(false);
+    }
+  });
 });

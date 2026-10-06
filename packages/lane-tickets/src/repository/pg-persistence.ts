@@ -54,6 +54,14 @@ function mapTicketRow(row: Record<string, unknown>): StoredTicket {
     charter: normalizeCharter(row.charter),
     acceptance_criteria: row.acceptance_criteria as string[] | undefined,
     data: row.data as Record<string, unknown> | undefined,
+    task_class: row.task_class as StoredTicket["task_class"],
+    exception_type: row.exception_type as string | undefined,
+    requires_review: row.requires_review as boolean | undefined,
+    reviewed_at: row.reviewed_at
+      ? new Date(row.reviewed_at as string).toISOString()
+      : (row.reviewed_at as null) ?? null,
+    reviewed_by: row.reviewed_by as StoredTicket["reviewed_by"],
+    review_outcome: row.review_outcome as StoredTicket["review_outcome"],
     mandate_id: (row.mandate_id as string | null) ?? null,
     mandate_status: row.mandate_status as StoredTicket["mandate_status"],
     mandate_counters: {
@@ -152,6 +160,8 @@ async function upsertTicketRow(
       status, owner, requester, priority, next_action, blocked_on, risk_tier,
       source, source_ref, git_ref, synced_at, sync_state, version,
       lease_holder, lease_expires_at, charter, acceptance_criteria, data,
+      task_class, exception_type, requires_review, reviewed_at, reviewed_by,
+      review_outcome,
       mandate_id, mandate_status, mandate_counters, last_event_seq,
       created_at, updated_at
     ) VALUES (
@@ -165,6 +175,10 @@ async function upsertTicketRow(
       ${row.charter != null ? sql.json(row.charter as never) : null},
       ${row.acceptance_criteria != null ? sql.json(row.acceptance_criteria as never) : null},
       ${row.data != null ? sql.json(row.data as never) : null},
+      ${row.task_class ?? null}, ${row.exception_type ?? null},
+      ${row.requires_review ?? false}, ${row.reviewed_at ?? null},
+      ${row.reviewed_by != null ? sql.json(row.reviewed_by as never) : null},
+      ${row.review_outcome ?? null},
       ${row.mandate_id}, ${row.mandate_status},
       ${sql.json(row.mandate_counters as never)}, ${lastSeq},
       ${row.created_at}, ${row.updated_at}
@@ -194,6 +208,12 @@ async function upsertTicketRow(
       charter = EXCLUDED.charter,
       acceptance_criteria = EXCLUDED.acceptance_criteria,
       data = EXCLUDED.data,
+      task_class = EXCLUDED.task_class,
+      exception_type = EXCLUDED.exception_type,
+      requires_review = EXCLUDED.requires_review,
+      reviewed_at = EXCLUDED.reviewed_at,
+      reviewed_by = EXCLUDED.reviewed_by,
+      review_outcome = EXCLUDED.review_outcome,
       mandate_id = EXCLUDED.mandate_id,
       mandate_status = EXCLUDED.mandate_status,
       mandate_counters = EXCLUDED.mandate_counters,

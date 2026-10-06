@@ -1,4 +1,5 @@
 [
   "packages/lane-tickets/drizzle/0001_tickets.sql",
+  "packages/lane-tickets/drizzle/0002_tickets_exception_review.sql",
   "apps/orbita-api/migrations/optional-tickets.sql"
 ]
