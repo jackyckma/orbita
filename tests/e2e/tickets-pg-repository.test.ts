@@ -18,7 +18,7 @@ function charter() {
     purpose: "test",
     principles: ["p"],
     guardrails: {
-      allowed_action_categories: ["L0"],
+      allowed_action_categories: ["dev", "L0"],
       forbidden_action_categories: [],
       max_auto_risk_tier: "L1",
     },
@@ -52,7 +52,7 @@ describe.skipIf(!runE2e)("PgTicketRepository (real Postgres, tier A)", () => {
     const repo = new PgTicketRepository(sql);
     const mandate = await repo.create({
       client_id: CLIENT_A,
-      actor: { type: "human" },
+      actor: { role: "founder" },
       ticket: {
         project: "alpha",
         function: "dev",
@@ -68,13 +68,13 @@ describe.skipIf(!runE2e)("PgTicketRepository (real Postgres, tier A)", () => {
       client_id: CLIENT_A,
       ticket_id: mandate.value.ticket.id,
       verb: "ticket_approve",
-      actor: { type: "human" },
+      actor: { role: "founder" },
     });
     expect(mandateApproved.ok).toBe(true);
 
     const epic = await repo.create({
       client_id: CLIENT_A,
-      actor: { type: "human" },
+      actor: { role: "founder" },
       ticket: {
         project: "alpha",
         function: "dev",
@@ -91,13 +91,13 @@ describe.skipIf(!runE2e)("PgTicketRepository (real Postgres, tier A)", () => {
     await repo.transition({
       client_id: CLIENT_A,
       ticket_id: epic.value.ticket.id,
-      verb: "ticket_progress",
-      actor: { type: "agent", mandate_ids: [mandate.value.ticket.id] },
+      verb: "ticket_approve",
+      actor: { role: "founder" },
     });
 
     const task = await repo.create({
       client_id: CLIENT_A,
-      actor: { type: "agent", mandate_ids: [mandate.value.ticket.id] },
+      actor: { role: "executor", mandate_ids: [mandate.value.ticket.id] },
       ticket: {
         project: "alpha",
         function: "dev",
@@ -126,7 +126,7 @@ describe.skipIf(!runE2e)("PgTicketRepository (real Postgres, tier A)", () => {
     const repo = new PgTicketRepository(sql);
     const mandate = await repo.create({
       client_id: CLIENT_A,
-      actor: { type: "human" },
+      actor: { role: "founder" },
       ticket: {
         project: "claim",
         function: "dev",
@@ -140,11 +140,11 @@ describe.skipIf(!runE2e)("PgTicketRepository (real Postgres, tier A)", () => {
       client_id: CLIENT_A,
       ticket_id: mandate.value.ticket.id,
       verb: "ticket_approve",
-      actor: { type: "human" },
+      actor: { role: "founder" },
     });
     const epic = await repo.create({
       client_id: CLIENT_A,
-      actor: { type: "human" },
+      actor: { role: "founder" },
       ticket: {
         project: "claim",
         function: "dev",
@@ -159,12 +159,12 @@ describe.skipIf(!runE2e)("PgTicketRepository (real Postgres, tier A)", () => {
     await repo.transition({
       client_id: CLIENT_A,
       ticket_id: epic.value.ticket.id,
-      verb: "ticket_progress",
-      actor: { type: "agent", mandate_ids: [mandate.value.ticket.id] },
+      verb: "ticket_approve",
+      actor: { role: "founder" },
     });
     const task = await repo.create({
       client_id: CLIENT_A,
-      actor: { type: "agent", mandate_ids: [mandate.value.ticket.id] },
+      actor: { role: "executor", mandate_ids: [mandate.value.ticket.id] },
       ticket: {
         project: "claim",
         function: "dev",
@@ -182,7 +182,7 @@ describe.skipIf(!runE2e)("PgTicketRepository (real Postgres, tier A)", () => {
         client_id: CLIENT_A,
         ticket_id: task.value.ticket.id,
         verb: "ticket_claim",
-        actor: { type: "agent", mandate_ids: [mandate.value.ticket.id] },
+        actor: { role: "executor", mandate_ids: [mandate.value.ticket.id] },
         expected_version: version,
         lease_seconds: 60,
         lease_holder: "agent:a",
@@ -191,7 +191,7 @@ describe.skipIf(!runE2e)("PgTicketRepository (real Postgres, tier A)", () => {
         client_id: CLIENT_A,
         ticket_id: task.value.ticket.id,
         verb: "ticket_claim",
-        actor: { type: "agent", mandate_ids: [mandate.value.ticket.id] },
+        actor: { role: "executor", mandate_ids: [mandate.value.ticket.id] },
         expected_version: version,
         lease_seconds: 60,
         lease_holder: "agent:b",
@@ -213,7 +213,7 @@ describe.skipIf(!runE2e)("PgTicketRepository (real Postgres, tier A)", () => {
     const repo = new PgTicketRepository(sql);
     const created = await repo.create({
       client_id: CLIENT_A,
-      actor: { type: "human" },
+      actor: { role: "founder" },
       ticket: {
         project: "iso",
         function: "dev",
@@ -232,7 +232,7 @@ describe.skipIf(!runE2e)("PgTicketRepository (real Postgres, tier A)", () => {
       client_id: CLIENT_B,
       ticket_id: created.value.ticket.id,
       verb: "ticket_claim",
-      actor: { type: "human" },
+      actor: { role: "founder" },
       lease_seconds: 30,
       lease_holder: "x",
     });
@@ -244,7 +244,7 @@ describe.skipIf(!runE2e)("PgTicketRepository (real Postgres, tier A)", () => {
     const repo = new PgTicketRepository(sql);
     const payload = {
       client_id: client,
-      actor: { type: "human" as const },
+      actor: { role: "founder" as const },
       ticket: {
         project: "empty",
         function: "dev" as const,
@@ -272,7 +272,7 @@ describe.skipIf(!runE2e)("PgTicketRepository (real Postgres, tier A)", () => {
     const repo = new PgTicketRepository(sql);
     const mandate = await repo.create({
       client_id: CLIENT_A,
-      actor: { type: "human" },
+      actor: { role: "founder" },
       ticket: {
         project: "reclaim",
         function: "dev",
@@ -286,11 +286,11 @@ describe.skipIf(!runE2e)("PgTicketRepository (real Postgres, tier A)", () => {
       client_id: CLIENT_A,
       ticket_id: mandate.value.ticket.id,
       verb: "ticket_approve",
-      actor: { type: "human" },
+      actor: { role: "founder" },
     });
     const epic = await repo.create({
       client_id: CLIENT_A,
-      actor: { type: "human" },
+      actor: { role: "founder" },
       ticket: {
         project: "reclaim",
         function: "dev",
@@ -305,12 +305,12 @@ describe.skipIf(!runE2e)("PgTicketRepository (real Postgres, tier A)", () => {
     await repo.transition({
       client_id: CLIENT_A,
       ticket_id: epic.value.ticket.id,
-      verb: "ticket_progress",
-      actor: { type: "agent", mandate_ids: [mandate.value.ticket.id] },
+      verb: "ticket_approve",
+      actor: { role: "founder" },
     });
     const task = await repo.create({
       client_id: CLIENT_A,
-      actor: { type: "agent", mandate_ids: [mandate.value.ticket.id] },
+      actor: { role: "executor", mandate_ids: [mandate.value.ticket.id] },
       ticket: {
         project: "reclaim",
         function: "dev",
@@ -326,7 +326,7 @@ describe.skipIf(!runE2e)("PgTicketRepository (real Postgres, tier A)", () => {
       client_id: CLIENT_A,
       ticket_id: task.value.ticket.id,
       verb: "ticket_claim",
-      actor: { type: "agent", mandate_ids: [mandate.value.ticket.id] },
+      actor: { role: "executor", mandate_ids: [mandate.value.ticket.id] },
       expected_version: v,
       lease_seconds: 1,
       lease_holder: "agent:old",
@@ -337,7 +337,7 @@ describe.skipIf(!runE2e)("PgTicketRepository (real Postgres, tier A)", () => {
       client_id: CLIENT_A,
       ticket_id: task.value.ticket.id,
       verb: "ticket_claim",
-      actor: { type: "agent", mandate_ids: [mandate.value.ticket.id] },
+      actor: { role: "executor", mandate_ids: [mandate.value.ticket.id] },
       lease_seconds: 120,
       lease_holder: "agent:new",
     });
@@ -351,7 +351,7 @@ describe.skipIf(!runE2e)("PgTicketRepository (real Postgres, tier A)", () => {
     const repo = new PgTicketRepository(sql);
     const created = await repo.create({
       client_id: CLIENT_A,
-      actor: { type: "human" },
+      actor: { role: "founder" },
       ticket: {
         project: "ver",
         function: "dev",
@@ -365,7 +365,7 @@ describe.skipIf(!runE2e)("PgTicketRepository (real Postgres, tier A)", () => {
       client_id: CLIENT_A,
       ticket_id: created.value.ticket.id,
       verb: "ticket_approve",
-      actor: { type: "human" },
+      actor: { role: "founder" },
       expected_version: 999,
     });
     expect(bad.ok).toBe(false);
@@ -378,7 +378,7 @@ describe.skipIf(!runE2e)("PgTicketRepository (real Postgres, tier A)", () => {
     const repo = new PgTicketRepository(sql);
     const created = await repo.create({
       client_id: CLIENT_A,
-      actor: { type: "human" },
+      actor: { role: "founder" },
       ticket: {
         project: "seq",
         function: "dev",
@@ -394,14 +394,14 @@ describe.skipIf(!runE2e)("PgTicketRepository (real Postgres, tier A)", () => {
         client_id: CLIENT_A,
         ticket_id: id,
         verb: "ticket_comment",
-        actor: { type: "human" },
+        actor: { role: "founder" },
         comment: "a",
       }),
       repo.transition({
         client_id: CLIENT_A,
         ticket_id: id,
         verb: "ticket_comment",
-        actor: { type: "human" },
+        actor: { role: "founder" },
         comment: "b",
       }),
     ]);
@@ -423,7 +423,7 @@ describe.skipIf(!runE2e)("PgTicketRepository (real Postgres, tier A)", () => {
     const repo = new PgTicketRepository(sql);
     const created = await repo.create({
       client_id: CLIENT_A,
-      actor: { type: "human" },
+      actor: { role: "founder" },
       ticket: {
         project: "readonly",
         function: "dev",
@@ -448,7 +448,7 @@ describe.skipIf(!runE2e)("PgTicketRepository (real Postgres, tier A)", () => {
     const repo = new PgTicketRepository(sql);
     const mandate = await repo.create({
       client_id: CLIENT_A,
-      actor: { type: "human" },
+      actor: { role: "founder" },
       ticket: {
         project: "idem",
         function: "dev",
@@ -461,7 +461,7 @@ describe.skipIf(!runE2e)("PgTicketRepository (real Postgres, tier A)", () => {
     expect(mandate.ok).toBe(true);
     const replay = await repo.create({
       client_id: CLIENT_A,
-      actor: { type: "human" },
+      actor: { role: "founder" },
       ticket: {
         project: "idem",
         function: "dev",
