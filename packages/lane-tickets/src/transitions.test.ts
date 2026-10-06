@@ -528,6 +528,10 @@ function expectedFor(
     allowed: false as const,
     code: "PRIVILEGED_ROLE_REQUIRED",
   };
+  const roleRequired = {
+    allowed: false as const,
+    code: "ROLE_REQUIRED",
+  };
 
   if (verb === "ticket_list" || verb === "ticket_get") {
     return { allowed: true };
@@ -556,10 +560,19 @@ function expectedFor(
   }
 
   if (kind === "mandate") {
+    const lifecycleVerb =
+      verb === "ticket_approve" ||
+      verb === "ticket_progress" ||
+      verb === "ticket_cancel";
+
+    if (lifecycleVerb && actorType === "executor") {
+      return roleRequired;
+    }
+
     if (verb === "ticket_approve" && status === "draft") {
       return actorType === "founder"
         ? { allowed: true, to_status: "active" }
-        : humanRequired;
+        : roleRequired;
     }
     if (verb === "ticket_progress" && status === "active") {
       return { allowed: true, to_status: "paused" };
@@ -568,9 +581,7 @@ function expectedFor(
       return { allowed: true, to_status: "active" };
     }
     if (verb === "ticket_cancel" && (status === "active" || status === "paused")) {
-      return actorType === "founder"
-        ? { allowed: true, to_status: "retired" }
-        : humanRequired;
+      return { allowed: true, to_status: "retired" };
     }
     return invalid;
   }

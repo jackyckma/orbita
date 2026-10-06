@@ -20,6 +20,7 @@ export function repositoryToOrbitaError(error: RepositoryError): OrbitaError {
     case "INVALID_TRANSITION":
     case "HUMAN_ACTOR_REQUIRED":
     case "PRIVILEGED_ROLE_REQUIRED":
+    case "ROLE_REQUIRED":
     case "PRECHECK_FAILED":
     case "MANDATE_NOT_ACTIVE":
     case "OUTSIDE_MANDATE":

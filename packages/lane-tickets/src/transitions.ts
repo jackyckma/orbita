@@ -3,6 +3,7 @@ import {
   canApproveEpicOrWork,
   canCancelApprovedEpic,
   canCreateMandate,
+  canManageMandateLifecycle,
   canResolveDecision,
   canUpdateCharter,
   isExecutor,
@@ -86,6 +87,61 @@ const OWNERSHIP_VERBS: ReadonlySet<TicketVerb> = new Set([
 
 function privilegedRequired(message: string): TransitionResult {
   return deny("PRIVILEGED_ROLE_REQUIRED", message);
+}
+
+const MANDATE_LIFECYCLE_STATUSES: ReadonlySet<TicketStatus> = new Set([
+  "active",
+  "paused",
+  "retired",
+]);
+
+const MANDATE_LIFECYCLE_VERBS: ReadonlySet<TicketVerb> = new Set([
+  "ticket_approve",
+  "ticket_progress",
+  "ticket_cancel",
+]);
+
+function roleRequired(
+  required_roles: Array<"founder" | "integrator">,
+  message: string,
+): TransitionResult {
+  return deny("ROLE_REQUIRED", message, { required_roles });
+}
+
+function checkMandateLifecycleRoles(input: TransitionInput): TransitionResult | null {
+  const { kind, status, verb, actor, progress_target } = input;
+  if (kind !== "mandate" || !MANDATE_LIFECYCLE_VERBS.has(verb)) {
+    return null;
+  }
+
+  if (verb === "ticket_approve") {
+    if (!canActivateMandate(actor)) {
+      return roleRequired(["founder"], "Activating a mandate requires a founder.");
+    }
+    return null;
+  }
+
+  if (!canManageMandateLifecycle(actor)) {
+    return roleRequired(
+      ["founder", "integrator"],
+      "Mandate lifecycle changes require founder or integrator.",
+    );
+  }
+
+  if (verb === "ticket_progress") {
+    if (
+      progress_target !== undefined &&
+      !MANDATE_LIFECYCLE_STATUSES.has(progress_target)
+    ) {
+      return deny(
+        "INVALID_TRANSITION",
+        "ticket_progress on a mandate may only target active, paused, or retired.",
+        { progress_target },
+      );
+    }
+  }
+
+  return null;
 }
 
 function defaultApprovalPolicy(charter: MandateCharter) {
@@ -393,9 +449,7 @@ function evaluateMandate(
         return deny("INVALID_TRANSITION", "Mandate approve only from draft.");
       }
       if (!canActivateMandate(actor)) {
-        return privilegedRequired(
-          "Activating a mandate requires a founder.",
-        );
+        return roleRequired(["founder"], "Activating a mandate requires a founder.");
       }
       return allow("active");
     case "ticket_progress":
@@ -403,25 +457,53 @@ function evaluateMandate(
         (status === "active" || status === "paused") &&
         progress_target === "retired"
       ) {
-        if (!canActivateMandate(actor)) {
-          return privilegedRequired(
-            "Retiring a mandate requires a founder.",
+        if (!canManageMandateLifecycle(actor)) {
+          return roleRequired(
+            ["founder", "integrator"],
+            "Retiring a mandate requires founder or integrator.",
           );
         }
         return allow("retired");
       }
       if (status === "active") {
+        if (progress_target !== undefined && progress_target !== "paused") {
+          return deny(
+            "INVALID_TRANSITION",
+            "Active mandate may pause (target paused) or retire (target retired).",
+            { progress_target },
+          );
+        }
+        if (!canManageMandateLifecycle(actor)) {
+          return roleRequired(
+            ["founder", "integrator"],
+            "Pausing a mandate requires founder or integrator.",
+          );
+        }
         return allow("paused");
       }
       if (status === "paused") {
+        if (progress_target !== undefined && progress_target !== "active") {
+          return deny(
+            "INVALID_TRANSITION",
+            "Paused mandate may resume (target active) or retire (target retired).",
+            { progress_target },
+          );
+        }
+        if (!canManageMandateLifecycle(actor)) {
+          return roleRequired(
+            ["founder", "integrator"],
+            "Resuming a mandate requires founder or integrator.",
+          );
+        }
         return allow("active");
       }
       return deny("INVALID_TRANSITION", `Cannot progress mandate from ${status}.`);
     case "ticket_cancel":
       if (status === "active" || status === "paused") {
-        if (!canActivateMandate(actor)) {
-          return privilegedRequired(
-            "Retiring a mandate requires a founder.",
+        if (!canManageMandateLifecycle(actor)) {
+          return roleRequired(
+            ["founder", "integrator"],
+            "Retiring a mandate requires founder or integrator.",
           );
         }
         return allow("retired");
@@ -698,6 +780,11 @@ export function evaluateTransition(input: TransitionInput): TransitionResult {
     }
   }
 
+  const mandateLifecycleRole = checkMandateLifecycleRoles(input);
+  if (mandateLifecycleRole) {
+    return mandateLifecycleRole;
+  }
+
   const pauseGate = checkMandatePauseGate(input);
   if (pauseGate) {
     return pauseGate;
@@ -811,15 +898,23 @@ export function evaluateTransition(input: TransitionInput): TransitionResult {
     verb === "ticket_approve" &&
     kind === "epic" &&
     status === "proposed" &&
-    isIntegrator(actor) &&
     input.epic_precheck &&
     !input.epic_precheck.ok
   ) {
-    return deny(
-      "PRECHECK_FAILED",
-      "Integrator epic approval requires a passing pre-check.",
-      { violations: input.epic_precheck.violations },
-    );
+    if (isIntegrator(actor)) {
+      return deny(
+        "PRECHECK_FAILED",
+        "Integrator epic approval requires a passing pre-check.",
+        { violations: input.epic_precheck.violations },
+      );
+    }
+    if (isFounder(actor) && !input.override_precheck) {
+      return deny(
+        "PRECHECK_FAILED",
+        "Founder epic approval with failing pre-check requires override_precheck.",
+        { violations: input.epic_precheck.violations },
+      );
+    }
   }
 
   let lifecycle: TransitionResult;
