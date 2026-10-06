@@ -1370,11 +1370,12 @@
         "T-0094"
       ],
       "flag": "ORBITA_TICKETS_ENABLED",
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
       "feedback": [
         "2026-10-06 hub: written from the founder's refined model (roles, read-only mandates, epic pre-check, typed exception tasks with integrator review).",
-        "MAKER 2026-10-06T15:10:19.000Z: lease on main, implementing."
+        "MAKER 2026-10-06T15:10:19.000Z: lease on main, implementing.",
+        "MAKER 2026-10-06: PR https://github.com/jackyckma/orbita/pull/55 — tickets test + typecheck green on branch."
       ]
     },
     {
