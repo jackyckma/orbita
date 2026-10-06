@@ -11,10 +11,16 @@ export {
 export {
   loadTicketsEnv,
   parseApproverKeyIds,
+  parseKeyMandates,
   ticketsFeatureEnabled,
   warnIfOAuthInApproverAllowlist,
 } from "./config.js";
 export type { TicketsEnv } from "./config.js";
+export {
+  deriveTicketActor,
+  type TicketActorConfig,
+  type TicketAuthForActor,
+} from "./derive-actor.js";
 export { createTicketsDb } from "./db/client.js";
 export type { TicketsDb } from "./db/client.js";
 export { FakeTicketRepository } from "./fake-repository.js";

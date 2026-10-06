@@ -3,27 +3,51 @@
   "$id": "https://orbita.dev/schemas/lane-tickets/verbs/ticket_complete.request.schema.json",
   "title": "ticket_complete request",
   "type": "object",
-  "required": ["ticket_id", "actor", "result_refs"],
+  "required": [
+    "ticket_id",
+    "result_refs"
+  ],
   "additionalProperties": false,
   "properties": {
-    "ticket_id": { "$ref": "../common.schema.json#/definitions/uuid" },
-    "expected_version": { "type": "integer", "minimum": 1 },
+    "ticket_id": {
+      "$ref": "../common.schema.json#/definitions/uuid"
+    },
+    "expected_version": {
+      "type": "integer",
+      "minimum": 1
+    },
     "result_refs": {
       "type": "array",
       "minItems": 1,
       "items": {
         "type": "object",
-        "required": ["kind", "ref"],
+        "required": [
+          "kind",
+          "ref"
+        ],
         "additionalProperties": false,
         "properties": {
-          "kind": { "type": "string", "enum": ["note", "url", "artifact"] },
-          "ref": { "type": "string", "minLength": 1 }
+          "kind": {
+            "type": "string",
+            "enum": [
+              "note",
+              "url",
+              "artifact"
+            ]
+          },
+          "ref": {
+            "type": "string",
+            "minLength": 1
+          }
         }
       },
       "description": "At least one deliverable link (e.g. note id)."
     },
-    "idempotency_key": { "$ref": "../common.schema.json#/definitions/idempotency_key" },
-    "actor": { "$ref": "../common.schema.json#/definitions/actor" },
-    "summary": { "type": "string" }
+    "idempotency_key": {
+      "$ref": "../common.schema.json#/definitions/idempotency_key"
+    },
+    "summary": {
+      "type": "string"
+    }
   }
 }

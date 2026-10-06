@@ -90,6 +90,8 @@ When the flag is `1` at **migration time**, startup also runs `apps/orbita-api/m
 
 **Postgres repository (`PgTicketRepository`):** writes for a `client_id` are serialised with `pg_advisory_xact_lock(hashtextextended(client_id, 0))` inside a short transaction (transaction-scoped only — never session-level advisory locks). The implementation loads the tenant into memory, runs the same transition engine as the fake repository, and flushes only mutated rows. This whole-tenant pattern is intended for **one tenant per server** at modest scale (hundreds of tickets per tenant). A per-row SQL repository is the upgrade path if tenants grow large or hot.
 
+**Actor (REST / MCP):** Orbita derives the ticket actor server-side from the authenticated key. `ORBITA_TICKETS_APPROVER_KEY_IDS` lists **human-capable** API key ids (also used for approver gates on `ticket_approve` and cancel-of-proposed). Other keys are **agents**; bind them to mandates with `ORBITA_TICKETS_KEY_MANDATES` (JSON map `api_key_id` → mandate uuid array). Invalid JSON for that variable fails API startup when `ORBITA_TICKETS_ENABLED=1`. Request bodies never include `actor`.
+
 ## Further reading
 
 - [product-architecture.md](https://github.com/jackyckma/orbita/blob/main/docs/product-architecture.md)

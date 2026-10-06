@@ -86,6 +86,8 @@ Expired lease: runtime returns ticket to **approved** with an event (documented 
 
 All verbs share JSON bodies between **REST** (`/v1/tickets…`, separate from notes) and **MCP** tools named `ticket_*`. Schemas live under `contracts/verbs/*.schema.json`.
 
+**Actor derivation:** the runtime derives the ticket actor from the authenticated API key (`deriveTicketActor`). Keys listed in `ORBITA_TICKETS_APPROVER_KEY_IDS` act as **human**; all other keys act as **agent** with `mandate_ids` from `ORBITA_TICKETS_KEY_MANDATES`. Request bodies and MCP tool inputs **never** carry an `actor` field (stray fields are ignored).
+
 | Verb | Purpose |
 |------|---------|
 | `ticket_create` | Create mandate / epic / task / decision |

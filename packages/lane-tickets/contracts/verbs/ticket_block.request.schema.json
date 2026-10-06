@@ -3,14 +3,28 @@
   "$id": "https://orbita.dev/schemas/lane-tickets/verbs/ticket_block.request.schema.json",
   "title": "ticket_block request",
   "type": "object",
-  "required": ["ticket_id", "actor", "blocked_on"],
+  "required": [
+    "ticket_id",
+    "blocked_on"
+  ],
   "additionalProperties": false,
   "properties": {
-    "ticket_id": { "$ref": "../common.schema.json#/definitions/uuid" },
-    "expected_version": { "type": "integer", "minimum": 1 },
-    "blocked_on": { "type": "string", "minLength": 1 },
-    "idempotency_key": { "$ref": "../common.schema.json#/definitions/idempotency_key" },
-    "actor": { "$ref": "../common.schema.json#/definitions/actor" },
-    "note": { "type": "string" }
+    "ticket_id": {
+      "$ref": "../common.schema.json#/definitions/uuid"
+    },
+    "expected_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "blocked_on": {
+      "type": "string",
+      "minLength": 1
+    },
+    "idempotency_key": {
+      "$ref": "../common.schema.json#/definitions/idempotency_key"
+    },
+    "note": {
+      "type": "string"
+    }
   }
 }

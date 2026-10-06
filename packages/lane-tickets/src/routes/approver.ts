@@ -7,7 +7,7 @@ export function isApproverKeyAllowed(
   return approverKeyIds.has(apiKeyId);
 }
 
-/** Human approval verbs gated by ORBITA_TICKETS_APPROVER_KEY_IDS (api key id from auth only). */
+/** Human approval verbs gated by ORBITA_TICKETS_APPROVER_KEY_IDS (human-capable api key ids from auth only). */
 export function requiresApproverGate(
   verb: TicketVerb,
   ticketStatus?: string,

@@ -3,12 +3,21 @@
   "$id": "https://orbita.dev/schemas/lane-tickets/verbs/ticket_comment.request.schema.json",
   "title": "ticket_comment request",
   "type": "object",
-  "required": ["ticket_id", "actor", "body"],
+  "required": [
+    "ticket_id",
+    "body"
+  ],
   "additionalProperties": false,
   "properties": {
-    "ticket_id": { "$ref": "../common.schema.json#/definitions/uuid" },
-    "body": { "type": "string", "minLength": 1 },
-    "idempotency_key": { "$ref": "../common.schema.json#/definitions/idempotency_key" },
-    "actor": { "$ref": "../common.schema.json#/definitions/actor" }
+    "ticket_id": {
+      "$ref": "../common.schema.json#/definitions/uuid"
+    },
+    "body": {
+      "type": "string",
+      "minLength": 1
+    },
+    "idempotency_key": {
+      "$ref": "../common.schema.json#/definitions/idempotency_key"
+    }
   }
 }
