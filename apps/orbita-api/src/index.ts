@@ -86,6 +86,7 @@ import {
   requireMcpScope,
 } from "@orbita/oauth";
 import { createInboundEmailRoutes } from "./inbound-email.js";
+import { mountTicketRoutesIfEnabled } from "./tickets-mount.js";
 import { registerPublicCallerOpenApiRoute } from "./openapi-public.js";
 import { runMigrations } from "./migrate.js";
 import { createE2eMockTurnRunner } from "./e2e-mock.js";
@@ -366,6 +367,12 @@ protectedApp.route(
   }),
 );
 protectedApp.route("/", createCredentialListRoutes(credentialsDb));
+
+mountTicketRoutesIfEnabled(protectedApp, {
+  databaseUrl: env.DATABASE_URL!,
+  platformEnv: env,
+  logger,
+});
 
 app.route("/v1", protectedApp);
 

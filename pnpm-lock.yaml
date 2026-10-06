@@ -71,6 +71,9 @@ importers:
       '@orbita/sessions':
         specifier: workspace:*
         version: link:../../packages/lane-sessions
+      '@orbita/tickets':
+        specifier: workspace:*
+        version: link:../../packages/lane-tickets
       '@orbita/trajectory':
         specifier: workspace:*
         version: link:../../packages/lane-trajectory
@@ -470,9 +473,24 @@ importers:
 
   packages/lane-tickets:
     dependencies:
+      '@hono/zod-openapi':
+        specifier: ^0.19.6
+        version: 0.19.10(hono@4.12.26)(zod@3.25.76)
+      '@orbita/auth':
+        specifier: workspace:*
+        version: link:../lane-auth
+      '@orbita/platform':
+        specifier: workspace:*
+        version: link:../lane-platform
+      hono:
+        specifier: ^4.7.11
+        version: 4.12.26
       postgres:
         specifier: ^3.4.7
         version: 3.4.9
+      zod:
+        specifier: ^3.25.56
+        version: 3.25.76
     devDependencies:
       ajv:
         specifier: ^8.17.1

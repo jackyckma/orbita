@@ -1,0 +1,32 @@
+{
+  "_doc": "Protected caller OpenAPI paths on main before /v1/tickets mount (ORBITA_TICKETS_ENABLED off). Update only when adding non-ticket protected routes.",
+  "paths": [
+    "/capabilities",
+    "/credentials",
+    "/credentials/{name}",
+    "/harness-runs/{run_id}",
+    "/harness-templates",
+    "/harnesses",
+    "/harnesses/{harness_id}",
+    "/harnesses/{harness_id}/feedback",
+    "/harnesses/{harness_id}/runs",
+    "/harnesses/{harness_id}/trigger",
+    "/memories",
+    "/memories/{key}",
+    "/notes",
+    "/notes/export",
+    "/notes/links",
+    "/notes/search",
+    "/notes/{id}",
+    "/notes/{id}/links",
+    "/notes/{id}/neighbors",
+    "/sessions",
+    "/sessions/{session_id}",
+    "/sessions/{session_id}/compress",
+    "/sessions/{session_id}/jobs",
+    "/sessions/{session_id}/messages",
+    "/sessions/{session_id}/trajectory",
+    "/sessions/{session_id}/trajectory/replay",
+    "/whoami"
+  ]
+}

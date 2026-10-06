@@ -25,6 +25,10 @@ export const PlatformEnvSchema = z.object({
   ORBITA_QUOTA_MESSAGES_PER_DAY: z.coerce.number().int().nonnegative().default(0),
   /** Hub tenant client_id; unset uses deprecated fallback (see resolveHubClientId). */
   ORBITA_HUB_CLIENT_ID: z.string().min(1).optional(),
+  /** E-16 tickets lane: unset or not `1` keeps DDL, REST, and MCP ticket tools off. */
+  ORBITA_TICKETS_ENABLED: z.enum(["0", "1"]).optional(),
+  /** Comma-separated api_keys.id values allowed to ticket_approve / cancel proposed (default deny). */
+  ORBITA_TICKETS_APPROVER_KEY_IDS: z.string().optional(),
 });
 
 export type PlatformEnv = z.infer<typeof PlatformEnvSchema>;

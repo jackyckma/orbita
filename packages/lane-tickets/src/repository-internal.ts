@@ -54,6 +54,63 @@ export function parentRef(parent: StoredTicket): ParentTicketRef {
   };
 }
 
+const READ_ONLY_VERBS: ReadonlySet<TicketVerb> = new Set([
+  "ticket_list",
+  "ticket_get",
+]);
+
+/** Recompute mandate counters from subtree rows and today's events (same transaction view). */
+export function computeLiveMandateCounters(
+  mandate_id: string,
+  tickets: Iterable<StoredTicket>,
+  getEvents: (ticketId: string) => TicketEventRecord[],
+): MandateCounters {
+  const subtree: StoredTicket[] = [];
+  for (const t of tickets) {
+    if (t.id === mandate_id || t.mandate_id === mandate_id) {
+      subtree.push(t);
+    }
+  }
+
+  let open_epics = 0;
+  let open_tasks = 0;
+  for (const t of subtree) {
+    if (t.kind === "epic" && !TERMINAL_EPIC.has(t.status)) {
+      open_epics += 1;
+    }
+    if (
+      (t.kind === "task" || t.kind === "decision") &&
+      !TERMINAL_WORK.has(t.status)
+    ) {
+      open_tasks += 1;
+    }
+  }
+
+  const todayPrefix = new Date().toISOString().slice(0, 10);
+  let writes_today = 0;
+  let creations_today = 0;
+  for (const t of subtree) {
+    for (const ev of getEvents(t.id)) {
+      if (!ev.at.startsWith(todayPrefix)) {
+        continue;
+      }
+      if (ev.verb === "ticket_create") {
+        creations_today += 1;
+      }
+      if (!READ_ONLY_VERBS.has(ev.verb)) {
+        writes_today += 1;
+      }
+    }
+  }
+
+  return {
+    open_epics,
+    open_tasks,
+    creations_today,
+    writes_today,
+  };
+}
+
 export function openChildrenCount(
   parentId: string,
   tickets: Iterable<StoredTicket>,
