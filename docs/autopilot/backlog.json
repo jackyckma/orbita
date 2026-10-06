@@ -1390,16 +1390,16 @@
       ]
     },
     {
-      "id": "T-0096",
+      "id": "T-0098",
       "lane": "platform",
       "phase": "consultos-b",
-      "title": "tickets: typed exception tasks directly under a mandate, with integrator review",
-      "description": "FOUNDER DESIGN 2026-10-06: besides planned tasks under an approved epic, a mandate may allow typed EXCEPTION tasks that are not under an epic (maintenance, fixes, incidents and similar). The types must be DEFINED in the charter and the integrator must REVIEW the exceptions. Implement: charter gets `exception_types`: array of {type (slug), description, auto_approve (default true), risk_tier_max, max_open}; tickets get `task_class` ('planned' default | 'exception'), `exception_type` (required and must exist in the charter when task_class is exception) and `requires_review` (true for every exception task) plus reviewed_at / reviewed_by / review_outcome; engine: validateParentForCreate lets an exception task have the MANDATE as parent (only if the type is defined, the mandate is active and the per-type max_open and a global exception cap from soft/hard constraints are respected); planned tasks still require an approved/active epic; initial status = approved when auto_approve and risk tier allow, else proposed; new verb `ticket_review` (founder or integrator only) with outcome accepted | needs_changes | cancel, appends a `reviewed` event; `ticket_list` gets filters task_class, requires_review and reviewed (so the integrator sees the review queue: requires_review=true and unreviewed); an executor cannot review its own exception; exceptions count in the mandate subtree health counters as a separate bucket. Contracts, repository (fake and Postgres), REST routes, docs and tests, including a real-Postgres tier-A test for the review queue. Do NOT add MCP tools here (T-0087 does).",
+      "title": "tickets: mandate lifecycle is founder/integrator only; explicit precheck override",
+      "description": "HUB SECURITY REVIEW of merged T-0095 (2026-10-06, flag OFF so no production exposure): (1) packages/lane-tickets/src/transitions.ts: the pause gate lets kind==='mandate' through (~line 231) and the mandate lifecycle transitions via ticket_progress (active->paused ~401-418 and paused->active) do not check the role. An executor bound to a mandate can therefore pause it and resume it again, which defeats the pause gate and lets a bot undo the founder's pause. FIX: every mandate lifecycle transition (activate draft->active = founder only; pause, resume, retire = founder or integrator; executors NEVER) is role-checked in the pure engine and denied with a stable error code (ROLE_REQUIRED with details.required_roles) before anything else; ticket_progress on a mandate may only set status active|paused|retired; add the same checks for any other verb that can change a mandate's status. (2) A founder may currently approve an epic whose precheck FAILED without sending override_precheck; require override_precheck:true for a founder in that case (record it in the event), otherwise deny with PRECHECK_FAILED; integrators can never override. (3) Declared risk_tier and function come from the request body; do not change that, but document in INTERFACE.md that auto-approve trusts the declared tier and that the integrator reviews auto-approved items (see T-0096 requires_review). Tests: an executor bound to the mandate cannot activate, pause, resume or retire it (each denied), including after a founder paused it; an integrator can pause/resume/retire but not activate; the founder can do all; founder approve with failing precheck needs the override flag; keep every existing test green and the real-Postgres tier-A tests green; no weakened or skipped tests. Do not change DDL.",
       "acceptance": [
         "pnpm --filter @orbita/tickets test",
         "pnpm -r typecheck",
-        "rg -n \"exception_types\" packages docs",
-        "rg -n \"ticket_review\" packages docs",
+        "rg -n \"ROLE_REQUIRED\" packages/lane-tickets/src packages/lane-tickets/contracts",
+        "rg -n \"PRECHECK_FAILED\" packages/lane-tickets/src packages/lane-tickets/contracts",
         "node --test packages/lane-tickets/contracts/validate-contracts.test.mjs"
       ],
       "deps": [
@@ -1409,7 +1409,32 @@
       "status": "ready",
       "retries": 0,
       "feedback": [
-        "2026-10-06 hub: written from the founder's refined model (roles, read-only mandates, epic pre-check, typed exception tasks with integrator review)."
+        "2026-10-06 hub security review of merged T-0095: executors could pause/resume their own mandate; fixed here before exception tasks."
+      ]
+    },
+    {
+      "id": "T-0096",
+      "lane": "platform",
+      "phase": "consultos-b",
+      "title": "tickets: typed exception tasks directly under a mandate, with integrator review",
+      "description": "FOUNDER DESIGN 2026-10-06: besides planned tasks under an approved epic, a mandate may allow typed EXCEPTION tasks that are not under an epic (maintenance, fixes, incidents and similar). The types must be DEFINED in the charter and the integrator must REVIEW the exceptions. Implement: charter gets `exception_types`: array of {type (slug), description, auto_approve (default true), risk_tier_max, max_open}; tickets get `task_class` ('planned' default | 'exception'), `exception_type` (required and must exist in the charter when task_class is exception) and `requires_review` (true for every exception task) plus reviewed_at / reviewed_by / review_outcome; engine: validateParentForCreate lets an exception task have the MANDATE as parent (only if the type is defined, the mandate is active and the per-type max_open and a global exception cap from soft/hard constraints are respected); planned tasks still require an approved/active epic; initial status = approved when auto_approve and risk tier allow, else proposed; new verb `ticket_review` (founder or integrator only) with outcome accepted | needs_changes | cancel, appends a `reviewed` event; `ticket_list` gets filters task_class, requires_review and reviewed (so the integrator sees the review queue: requires_review=true and unreviewed); an executor cannot review its own exception; exceptions count in the mandate subtree health counters as a separate bucket. Contracts, repository (fake and Postgres), REST routes, docs and tests, including a real-Postgres tier-A test for the review queue. Do NOT add MCP tools here (T-0087 does). AUTO-APPROVED ITEMS (hub 2026-10-06): tasks and epics created by an EXECUTOR that the engine auto-approves on the strength of the DECLARED risk_tier or exception type must ALSO carry requires_review=true so the integrator reviews them through the same review queue (ticket_review); the declared tier is not independently verified by the server.",
+      "acceptance": [
+        "pnpm --filter @orbita/tickets test",
+        "pnpm -r typecheck",
+        "rg -n \"exception_types\" packages docs",
+        "rg -n \"ticket_review\" packages docs",
+        "node --test packages/lane-tickets/contracts/validate-contracts.test.mjs"
+      ],
+      "deps": [
+        "T-0095",
+        "T-0098"
+      ],
+      "flag": "ORBITA_TICKETS_ENABLED",
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "2026-10-06 hub: written from the founder's refined model (roles, read-only mandates, epic pre-check, typed exception tasks with integrator review).",
+        "2026-10-06 hub: depends on the lifecycle-role fix; auto-approved executor items need review."
       ]
     },
     {
