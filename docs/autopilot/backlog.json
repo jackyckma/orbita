@@ -1437,12 +1437,17 @@
         "T-0098"
       ],
       "flag": "ORBITA_TICKETS_ENABLED",
-      "status": "in_review",
+      "status": "done",
       "retries": 0,
       "feedback": [
         "2026-10-06 hub: written from the founder's refined model (roles, read-only mandates, epic pre-check, typed exception tasks with integrator review).",
         "2026-10-06 hub: depends on the lifecycle-role fix; auto-approved executor items need review.",
-        "2026-10-06T23:08:00.000Z maker: PR https://github.com/jackyckma/orbita/pull/57 opened; acceptance green on branch head."
+        "2026-10-06T23:08:00.000Z maker: PR https://github.com/jackyckma/orbita/pull/57 opened; acceptance green on branch head.",
+        {
+          "at": "2026-10-06T23:12:00.000Z",
+          "by": "checker",
+          "note": "REVIEW PR #57: verify-all PASS; T-0096 acceptance PASS; CI verify + e2e-tier-a SUCCESS. Scope matches (exception_types, ticket_review queue, requires_review on auto-approved executor items, ORBITA_TICKETS_ENABLED unchanged). Merged PR #57 to main (ddc80c6)."
+        }
       ]
     },
     {
