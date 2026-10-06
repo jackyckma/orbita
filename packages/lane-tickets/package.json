@@ -11,6 +11,9 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "node --test contracts/validate-contracts.test.mjs && vitest run"
   },
+  "dependencies": {
+    "postgres": "^3.4.7"
+  },
   "devDependencies": {
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",

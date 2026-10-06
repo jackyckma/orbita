@@ -238,6 +238,86 @@ describe("FakeTicketRepository mandate subtree health", () => {
   });
 });
 
+describe("FakeTicketRepository lease expiry", () => {
+  it("frees an expired lease so ticket_claim can succeed", async () => {
+    const repo = new FakeTicketRepository();
+    const mandate = await repo.create({
+      client_id: CLIENT_A,
+      actor: { type: "human" },
+      ticket: {
+        project: "p",
+        function: "dev",
+        kind: "mandate",
+        title: "M",
+        charter: charter(),
+      },
+    });
+    if (!mandate.ok) throw new Error("setup");
+    await repo.transition({
+      client_id: CLIENT_A,
+      ticket_id: mandate.value.ticket.id,
+      verb: "ticket_approve",
+      actor: { type: "human" },
+    });
+    const epic = await repo.create({
+      client_id: CLIENT_A,
+      actor: { type: "human" },
+      ticket: {
+        project: "p",
+        function: "dev",
+        kind: "epic",
+        parent_id: mandate.value.ticket.id,
+        title: "E",
+        acceptance_criteria: ["done"],
+        risk_tier: "L0",
+      },
+    });
+    if (!epic.ok) throw new Error("epic");
+    await repo.transition({
+      client_id: CLIENT_A,
+      ticket_id: epic.value.ticket.id,
+      verb: "ticket_progress",
+      actor: { type: "agent", mandate_ids: [mandate.value.ticket.id] },
+    });
+    const task = await repo.create({
+      client_id: CLIENT_A,
+      actor: { type: "agent", mandate_ids: [mandate.value.ticket.id] },
+      ticket: {
+        project: "p",
+        function: "dev",
+        kind: "task",
+        parent_id: epic.value.ticket.id,
+        title: "T",
+        risk_tier: "L0",
+      },
+    });
+    if (!task.ok) throw new Error("task");
+    const first = await repo.transition({
+      client_id: CLIENT_A,
+      ticket_id: task.value.ticket.id,
+      verb: "ticket_claim",
+      actor: { type: "agent", mandate_ids: [mandate.value.ticket.id] },
+      expected_version: task.value.ticket.version,
+      lease_seconds: 1,
+      lease_holder: "agent:old",
+    });
+    expect(first.ok).toBe(true);
+    await new Promise((r) => setTimeout(r, 1100));
+    const reclaim = await repo.transition({
+      client_id: CLIENT_A,
+      ticket_id: task.value.ticket.id,
+      verb: "ticket_claim",
+      actor: { type: "agent", mandate_ids: [mandate.value.ticket.id] },
+      lease_seconds: 120,
+      lease_holder: "agent:new",
+    });
+    expect(reclaim.ok).toBe(true);
+    if (reclaim.ok) {
+      expect(reclaim.value.ticket.lease_holder).toBe("agent:new");
+    }
+  });
+});
+
 describe("FakeTicketRepository soft_breach events", () => {
   it("persists soft_breach rows without blocking reads", async () => {
     const repo = new FakeTicketRepository();
