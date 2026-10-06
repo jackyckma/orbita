@@ -18,6 +18,7 @@ import type {
 import {
   EMPTY_COUNTERS,
   buildTransitionInput,
+  computeLiveMandateCounters,
   evaluateTransition,
   initialStatusOnCreate,
   mandateIdOf,
@@ -28,6 +29,7 @@ import {
 } from "./repository-internal.js";
 import type {
   MandateCharter,
+  MandateCounters,
   MandateStatus,
   SoftBreachHint,
   TicketStatus,
@@ -148,13 +150,16 @@ export class FakeTicketRepository implements TicketRepository {
     return mandate?.charter;
   }
 
-  private countersFor(row: StoredTicket): typeof EMPTY_COUNTERS {
+  private countersFor(row: StoredTicket): MandateCounters {
     const mandateId = mandateIdOf(row);
     if (!mandateId) {
       return EMPTY_COUNTERS;
     }
-    const mandate = this.mandateRow(row.client_id, mandateId);
-    return mandate?.mandate_counters ?? EMPTY_COUNTERS;
+    return computeLiveMandateCounters(
+      mandateId,
+      this.allForClient(row.client_id),
+      (id) => this.data.getEvents(id),
+    );
   }
 
   private bumpWriteCounter(client_id: string, mandate_id: string | null): void {
@@ -312,12 +317,20 @@ export class FakeTicketRepository implements TicketRepository {
       mandate_id: initial.mandate_id ?? undefined,
       mandate_status: subtreeMandateStatus,
       soft_observations,
-      counters:
-        initial.mandate_id
-          ? this.countersFor(
-              this.mandateRow(client_id, initial.mandate_id)!,
-            )
-          : undefined,
+      counters: (() => {
+        const needsCounters = charter.hard_limits.some(
+          (l) => l.enforcement === "server",
+        );
+        if (!needsCounters) {
+          return undefined;
+        }
+        if (initial.mandate_id) {
+          return this.countersFor(
+            this.mandateRow(client_id, initial.mandate_id)!,
+          );
+        }
+        return { ...EMPTY_COUNTERS };
+      })(),
     });
     if (!createCheck.allowed) {
       return err(

@@ -26,6 +26,7 @@
     "@orbita/profiles": "workspace:*",
     "@orbita/scheduler": "workspace:*",
     "@orbita/sessions": "workspace:*",
+    "@orbita/tickets": "workspace:*",
     "@orbita/trajectory": "workspace:*",
     "hono": "^4.7.11",
     "postgres": "^3.4.7",

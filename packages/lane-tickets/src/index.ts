@@ -8,7 +8,26 @@ export {
   statusesForKind,
   validateParentForCreate,
 } from "./transitions.js";
+export {
+  loadTicketsEnv,
+  parseApproverKeyIds,
+  ticketsFeatureEnabled,
+  warnIfOAuthInApproverAllowlist,
+} from "./config.js";
+export type { TicketsEnv } from "./config.js";
+export { createTicketsDb } from "./db/client.js";
+export type { TicketsDb } from "./db/client.js";
 export { FakeTicketRepository } from "./fake-repository.js";
+export {
+  createTicketRoutes,
+  listTicketOpenApiPaths,
+  TICKET_OPENAPI_PATHS,
+} from "./routes/tickets.js";
+export type { TicketRoutesDeps } from "./routes/tickets.js";
+export {
+  isApproverKeyAllowed,
+  requiresApproverGate,
+} from "./routes/approver.js";
 export { PgTicketRepository } from "./pg-repository.js";
 export type {
   CreateTicketParams,
