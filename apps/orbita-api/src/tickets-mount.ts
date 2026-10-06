@@ -3,6 +3,7 @@ import {
   createTicketRoutes,
   createTicketsDb,
   parseApproverKeyIds,
+  parseKeyMandates,
   warnIfOAuthInApproverAllowlist,
 } from "@orbita/tickets";
 import type { Logger } from "@orbita/platform";
@@ -32,9 +33,15 @@ export function mountTicketRoutesIfEnabled(
     deps.platformEnv.ORBITA_TICKETS_APPROVER_KEY_IDS,
   );
   warnIfOAuthInApproverAllowlist(deps.logger, approverKeyIds);
+  const keyMandates = parseKeyMandates(
+    deps.platformEnv.ORBITA_TICKETS_KEY_MANDATES,
+  );
   const repository = createTicketsDb(deps.databaseUrl);
   protectedApp.route(
     "/",
-    createTicketRoutes({ repository, approverKeyIds }),
+    createTicketRoutes({
+      repository,
+      actorConfig: { approverKeyIds, keyMandates },
+    }),
   );
 }

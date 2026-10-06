@@ -3,13 +3,23 @@
   "$id": "https://orbita.dev/schemas/lane-tickets/verbs/ticket_cancel.request.schema.json",
   "title": "ticket_cancel request",
   "type": "object",
-  "required": ["ticket_id", "actor"],
+  "required": [
+    "ticket_id"
+  ],
   "additionalProperties": false,
   "properties": {
-    "ticket_id": { "$ref": "../common.schema.json#/definitions/uuid" },
-    "expected_version": { "type": "integer", "minimum": 1 },
-    "reason": { "type": "string" },
-    "idempotency_key": { "$ref": "../common.schema.json#/definitions/idempotency_key" },
-    "actor": { "$ref": "../common.schema.json#/definitions/actor" }
+    "ticket_id": {
+      "$ref": "../common.schema.json#/definitions/uuid"
+    },
+    "expected_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "reason": {
+      "type": "string"
+    },
+    "idempotency_key": {
+      "$ref": "../common.schema.json#/definitions/idempotency_key"
+    }
   }
 }

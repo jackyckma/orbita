@@ -3,18 +3,16 @@ import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { getAuth } from "@orbita/auth";
 import { ApiErrorBodySchema } from "@orbita/platform";
 import type { TicketRepository, TransitionParams } from "../repository/index.js";
-import type { Actor, TicketStatus, TicketVerb } from "../types.js";
+import type { TicketStatus, TicketVerb } from "../types.js";
+import {
+  deriveTicketActor,
+  type TicketActorConfig,
+} from "../derive-actor.js";
 import {
   isApproverKeyAllowed,
   requiresApproverGate,
 } from "./approver.js";
 import { approverForbidden, repositoryToOrbitaError } from "./http-errors.js";
-
-const ActorSchema = z.object({
-  type: z.enum(["human", "agent", "system"]),
-  principal_id: z.string().min(1).optional(),
-  api_key_id: z.string().min(1).optional(),
-});
 
 const TicketSchema = z.object({
   id: z.string().uuid(),
@@ -71,7 +69,7 @@ export const TICKET_OPENAPI_PATHS = [
 
 export type TicketRoutesDeps = {
   repository: TicketRepository;
-  approverKeyIds: ReadonlySet<string>;
+  actorConfig: TicketActorConfig;
 };
 
 const TRANSITION_VERBS: TicketVerb[] = [
@@ -88,7 +86,8 @@ const TRANSITION_VERBS: TicketVerb[] = [
 
 export function createTicketRoutes(deps: TicketRoutesDeps): OpenAPIHono {
   const app = new OpenAPIHono();
-  const { repository, approverKeyIds } = deps;
+  const { repository, actorConfig } = deps;
+  const { approverKeyIds } = actorConfig;
 
   const createRouteDef = createRoute({
     method: "post",
@@ -124,7 +123,6 @@ export function createTicketRoutes(deps: TicketRoutesDeps): OpenAPIHono {
                 data: z.record(z.unknown()).optional(),
               }),
               idempotency_key: z.string().min(1).max(128).optional(),
-              actor: ActorSchema,
             }),
           },
         },
@@ -149,12 +147,13 @@ export function createTicketRoutes(deps: TicketRoutesDeps): OpenAPIHono {
   app.openapi(createRouteDef, async (c) => {
     const auth = getAuth(c);
     const body = c.req.valid("json");
+    const actor = deriveTicketActor(auth, actorConfig);
     const result = await repository.create({
       client_id: auth.clientId,
       ticket: body.ticket as Parameters<
         typeof repository.create
       >[0]["ticket"],
-      actor: body.actor as Actor,
+      actor,
       idempotency_key: body.idempotency_key,
     });
     if (!result.ok) {
@@ -313,7 +312,6 @@ export function createTicketRoutes(deps: TicketRoutesDeps): OpenAPIHono {
                   ticket_id: z.string().uuid(),
                   expected_version: z.number().int().min(1).optional(),
                   idempotency_key: z.string().min(1).max(128).optional(),
-                  actor: ActorSchema,
                   comment: z.string().optional(),
                   reason: z.string().optional(),
                   note: z.string().optional(),
@@ -358,11 +356,13 @@ export function createTicketRoutes(deps: TicketRoutesDeps): OpenAPIHono {
       const body = c.req.valid("json");
       await ensureApprover(c, verb, body.ticket_id);
 
+      const actor = deriveTicketActor(auth, actorConfig);
+
       const params: TransitionParams = {
         client_id: auth.clientId,
         ticket_id: body.ticket_id,
         verb,
-        actor: body.actor as Actor,
+        actor,
         expected_version: body.expected_version,
         idempotency_key: body.idempotency_key,
         comment: body.comment ?? body.note,

@@ -3,35 +3,79 @@
   "$id": "https://orbita.dev/schemas/lane-tickets/verbs/ticket_create.request.schema.json",
   "title": "ticket_create request (REST POST /v1/tickets, MCP ticket_create)",
   "type": "object",
-  "required": ["ticket"],
+  "required": [
+    "ticket"
+  ],
   "additionalProperties": false,
   "properties": {
     "ticket": {
       "type": "object",
-      "required": ["project", "function", "kind", "title"],
+      "required": [
+        "project",
+        "function",
+        "kind",
+        "title"
+      ],
       "additionalProperties": false,
       "properties": {
-        "project": { "type": "string", "minLength": 1 },
-        "function": { "$ref": "../common.schema.json#/definitions/ticket_function" },
-        "kind": { "$ref": "../common.schema.json#/definitions/ticket_kind" },
-        "parent_id": {
-          "oneOf": [{ "$ref": "../common.schema.json#/definitions/uuid" }, { "type": "null" }]
+        "project": {
+          "type": "string",
+          "minLength": 1
         },
-        "title": { "type": "string", "minLength": 1 },
-        "description": { "type": "string" },
-        "owner": { "$ref": "../common.schema.json#/definitions/owner" },
-        "requester": { "type": "string" },
-        "priority": { "type": "integer", "minimum": 0, "maximum": 4 },
-        "risk_tier": { "$ref": "../common.schema.json#/definitions/risk_tier" },
-        "charter": { "$ref": "../charter.schema.json" },
+        "function": {
+          "$ref": "../common.schema.json#/definitions/ticket_function"
+        },
+        "kind": {
+          "$ref": "../common.schema.json#/definitions/ticket_kind"
+        },
+        "parent_id": {
+          "oneOf": [
+            {
+              "$ref": "../common.schema.json#/definitions/uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string"
+        },
+        "owner": {
+          "$ref": "../common.schema.json#/definitions/owner"
+        },
+        "requester": {
+          "type": "string"
+        },
+        "priority": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4
+        },
+        "risk_tier": {
+          "$ref": "../common.schema.json#/definitions/risk_tier"
+        },
+        "charter": {
+          "$ref": "../charter.schema.json"
+        },
         "acceptance_criteria": {
           "type": "array",
-          "items": { "type": "string", "minLength": 1 }
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
         },
-        "data": { "type": "object" }
+        "data": {
+          "type": "object"
+        }
       }
     },
-    "idempotency_key": { "$ref": "../common.schema.json#/definitions/idempotency_key" },
-    "actor": { "$ref": "../common.schema.json#/definitions/actor" }
+    "idempotency_key": {
+      "$ref": "../common.schema.json#/definitions/idempotency_key"
+    }
   }
 }

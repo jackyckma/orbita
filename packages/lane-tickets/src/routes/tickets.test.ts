@@ -2,6 +2,7 @@ import { OpenAPIHono } from "@hono/zod-openapi";
 import { createMiddleware } from "hono/factory";
 import { createErrorHandler, createLogger, requestIdMiddleware } from "@orbita/platform";
 import { describe, expect, it } from "vitest";
+import type { TicketActorConfig } from "../derive-actor.js";
 import { FakeTicketRepository } from "../fake-repository.js";
 import type { MandateCharter } from "../types.js";
 import { createTicketRoutes, listTicketOpenApiPaths } from "./tickets.js";
@@ -77,7 +78,7 @@ async function activeMandate(repo: FakeTicketRepository) {
 
 function testTicketsApp(
   repo: FakeTicketRepository,
-  approverKeyIds: Set<string>,
+  actorConfig: TicketActorConfig,
   apiKeyId: string,
 ) {
   const root = new OpenAPIHono();
@@ -93,14 +94,18 @@ function testTicketsApp(
       await next();
     }),
   );
-  root.route("/", createTicketRoutes({ repository: repo, approverKeyIds }));
+  root.route("/", createTicketRoutes({ repository: repo, actorConfig }));
   return root;
 }
 
 describe("ticket REST routes", () => {
   it("openapi paths are disjoint from protected baseline (flag-off snapshot)", () => {
     const repo = new FakeTicketRepository();
-    const app = testTicketsApp(repo, new Set(), "key-1");
+    const app = testTicketsApp(
+      repo,
+      { approverKeyIds: new Set(), keyMandates: new Map() },
+      "key-1",
+    );
     const ticketPaths = listTicketOpenApiPaths(app);
     for (const p of ticketPaths) {
       expect(protectedBaseline.paths).not.toContain(p);
@@ -126,13 +131,16 @@ describe("ticket REST routes", () => {
       throw new Error(`epic: ${epic.error.code}`);
     }
 
-    const app = testTicketsApp(repo, new Set(), "key-1");
+    const app = testTicketsApp(
+      repo,
+      { approverKeyIds: new Set(), keyMandates: new Map() },
+      "key-1",
+    );
     const res = await app.request("/tickets/ticket_approve", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         ticket_id: epic.value.ticket.id,
-        actor: { type: "human" },
       }),
     });
     expect(res.status).toBe(403);
@@ -157,13 +165,16 @@ describe("ticket REST routes", () => {
       throw new Error(`epic: ${epic.error.code}`);
     }
 
-    const app = testTicketsApp(repo, new Set(["key-approver"]), "key-approver");
+    const app = testTicketsApp(
+      repo,
+      { approverKeyIds: new Set(["key-approver"]), keyMandates: new Map() },
+      "key-approver",
+    );
     const res = await app.request("/tickets/ticket_approve", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         ticket_id: epic.value.ticket.id,
-        actor: { type: "human" },
       }),
     });
     expect(res.status).toBe(200);
@@ -171,7 +182,11 @@ describe("ticket REST routes", () => {
 
   it("denies oauth placeholder approver unless listed", async () => {
     const repo = new FakeTicketRepository();
-    const app = testTicketsApp(repo, new Set(["key-approver"]), "oauth");
+    const app = testTicketsApp(
+      repo,
+      { approverKeyIds: new Set(["key-approver"]), keyMandates: new Map() },
+      "oauth",
+    );
     const mandate = await activeMandate(repo);
     const epic = await repo.create({
       client_id: "tenant-a",
@@ -254,12 +269,15 @@ describe("ticket REST routes", () => {
       actor: { type: "human" },
     });
 
-    const app = testTicketsApp(repo, new Set(["key-approver"]), "key-approver");
+    const app = testTicketsApp(
+      repo,
+      { approverKeyIds: new Set(["key-approver"]), keyMandates: new Map() },
+      "key-approver",
+    );
     const res = await app.request("/tickets", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        actor: { type: "human" },
         ticket: {
           project: "p",
           function: "dev",
@@ -299,17 +317,168 @@ describe("ticket REST routes", () => {
       throw new Error(`mandate: ${mandateRow.error.code}`);
     }
 
-    const app = testTicketsApp(repo, new Set(["key-approver"]), "key-approver");
+    const app = testTicketsApp(
+      repo,
+      { approverKeyIds: new Set(["key-approver"]), keyMandates: new Map() },
+      "key-approver",
+    );
     const res = await app.request("/tickets/ticket_approve", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         ticket_id: mandateRow.value.ticket.id,
-        actor: { type: "human" },
       }),
     });
     expect(res.status).toBe(429);
     const body = (await res.json()) as { error: { code: string } };
     expect(body.error.code).toBe("quota_exceeded");
+  });
+
+  it("ignores body actor.type human on non-allowlisted key when creating mandate", async () => {
+    const repo = new FakeTicketRepository();
+    const app = testTicketsApp(
+      repo,
+      { approverKeyIds: new Set(["key-approver"]), keyMandates: new Map() },
+      "key-agent",
+    );
+    const res = await app.request("/tickets", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        actor: { type: "human" },
+        ticket: {
+          project: "p",
+          function: "dev",
+          kind: "mandate",
+          title: "M",
+          charter: charter(),
+        },
+      }),
+    });
+    expect(res.status).toBe(409);
+    const body = (await res.json()) as { error: { details?: { ticket_error?: string } } };
+    expect(body.error.details?.ticket_error).toBe("HUMAN_ACTOR_REQUIRED");
+  });
+
+  it("ignores body actor.type system and still treats key as agent", async () => {
+    const repo = new FakeTicketRepository();
+    const app = testTicketsApp(
+      repo,
+      { approverKeyIds: new Set(), keyMandates: new Map() },
+      "key-agent",
+    );
+    const res = await app.request("/tickets", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        actor: { type: "system" },
+        ticket: {
+          project: "p",
+          function: "dev",
+          kind: "mandate",
+          title: "M",
+          charter: charter(),
+        },
+      }),
+    });
+    expect(res.status).toBe(409);
+    const body = (await res.json()) as { error: { details?: { ticket_error?: string } } };
+    expect(body.error.details?.ticket_error).toBe("HUMAN_ACTOR_REQUIRED");
+  });
+
+  it("allowlisted key creates mandate via REST without body actor", async () => {
+    const repo = new FakeTicketRepository();
+    const app = testTicketsApp(
+      repo,
+      { approverKeyIds: new Set(["key-approver"]), keyMandates: new Map() },
+      "key-approver",
+    );
+    const res = await app.request("/tickets", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        ticket: {
+          project: "p",
+          function: "dev",
+          kind: "mandate",
+          title: "M",
+          charter: charter(),
+        },
+      }),
+    });
+    expect(res.status).toBe(200);
+  });
+
+  it("denies cancelling approved epic when derived actor is agent", async () => {
+    const repo = new FakeTicketRepository();
+    const mandate = await activeMandate(repo);
+    const epic = await repo.create({
+      client_id: "tenant-a",
+      actor: { type: "agent", mandate_ids: [mandate.id] },
+      ticket: {
+        project: "p",
+        function: "dev",
+        kind: "epic",
+        parent_id: mandate.id,
+        title: "E",
+        risk_tier: "L0",
+      },
+    });
+    if (!epic.ok) {
+      throw new Error(`epic: ${epic.error.code}`);
+    }
+    await repo.transition({
+      client_id: "tenant-a",
+      ticket_id: epic.value.ticket.id,
+      verb: "ticket_approve",
+      actor: { type: "human" },
+    });
+
+    const app = testTicketsApp(
+      repo,
+      {
+        approverKeyIds: new Set(["key-approver"]),
+        keyMandates: new Map([["key-agent", [mandate.id]]]),
+      },
+      "key-agent",
+    );
+    const res = await app.request("/tickets/ticket_cancel", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        ticket_id: epic.value.ticket.id,
+        actor: { type: "human" },
+      }),
+    });
+    expect(res.status).toBe(409);
+    const body = (await res.json()) as { error: { details?: { ticket_error?: string } } };
+    expect(body.error.details?.ticket_error).toBe("HUMAN_ACTOR_REQUIRED");
+  });
+
+  it("denies agent key without mandate binding on create under mandate", async () => {
+    const repo = new FakeTicketRepository();
+    const mandate = await activeMandate(repo);
+    const app = testTicketsApp(
+      repo,
+      { approverKeyIds: new Set(), keyMandates: new Map() },
+      "key-agent",
+    );
+    const res = await app.request("/tickets", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        ticket: {
+          project: "p",
+          function: "dev",
+          kind: "epic",
+          parent_id: mandate.id,
+          title: "E",
+          risk_tier: "L0",
+        },
+      }),
+    });
+    expect(res.status).toBe(409);
+    const body = (await res.json()) as { error: { details?: { ticket_error?: string } } };
+    expect(body.error.details?.ticket_error).toBe("OUTSIDE_MANDATE");
   });
 });
