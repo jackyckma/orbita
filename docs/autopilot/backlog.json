@@ -1370,12 +1370,17 @@
         "T-0094"
       ],
       "flag": "ORBITA_TICKETS_ENABLED",
-      "status": "in_review",
-      "retries": 0,
+      "status": "ready",
+      "retries": 1,
       "feedback": [
         "2026-10-06 hub: written from the founder's refined model (roles, read-only mandates, epic pre-check, typed exception tasks with integrator review).",
         "MAKER 2026-10-06T15:10:19.000Z: lease on main, implementing.",
-        "MAKER 2026-10-06: PR https://github.com/jackyckma/orbita/pull/55 — tickets test + typecheck green on branch."
+        "MAKER 2026-10-06: PR https://github.com/jackyckma/orbita/pull/55 — tickets test + typecheck green on branch.",
+        {
+          "at": "2026-10-06T15:26:00.000Z",
+          "by": "checker",
+          "note": "REVIEW PR #55: verify-all PASS locally; CI e2e-tier-a FAIL — tests/e2e/tickets-pg-repository.test.ts still uses legacy actor {type:human|agent}; mandate create returns ok:false. Bounced to ready (retries=1), lock cleared. PR left open."
+        }
       ]
     },
     {
