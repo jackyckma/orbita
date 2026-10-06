@@ -1324,16 +1324,17 @@
       ]
     },
     {
-      "id": "T-0087",
+      "id": "T-0094",
       "lane": "platform",
       "phase": "consultos-b",
-      "title": "lane-tickets: MCP ticket_* tools (additive, flag-gated)",
-      "description": "Epic E-16 task 5. Register MCP tools ticket_create, ticket_list, ticket_get, ticket_approve, ticket_claim, ticket_extend, ticket_progress, ticket_complete, ticket_block, ticket_request_decision, ticket_comment, ticket_cancel in packages/lane-mcp (or lane-tickets re-export mounted from mcp) ONLY when ORBITA_TICKETS_ENABLED=1. Tool names and existing 16 tools' input schemas must remain byte-identical when flag OFF — extend golden test from lane-mcp. Each tool inputSchema includes shared optional reported_by/labels fragment ONLY on ticket tools (do not alter non-ticket tools). Map tools to repository + transition engine; same approver key allowlist as REST. Do NOT add admin MCP tools. Approver rule is identical to REST (including the 'oauth' placeholder rule from T-0086); add a test that ticket_approve called through the MCP path with the 'oauth' placeholder is denied when the allowlist does not list it.",
+      "title": "tickets: derive the actor server-side (no actor in request bodies)",
+      "description": "HUB REVIEW of merged T-0086 (2026-10-06): packages/lane-tickets/src/routes/tickets.ts accepts `actor` ({type: human|agent|system, principal_id, api_key_id}) from the REQUEST BODY and passes it straight to the repository and the pure engine (`actor: body.actor as Actor`). Only ticket_approve and ticket_cancel-of-a-proposed-ticket check the approver key allowlist; every other human-only rule in the engine (creating a mandate, cancelling an approved/active epic, creating above-tier tasks as approved) trusts the caller-declared actor.type, so any key holder could claim 'human'. Fix before ORBITA_TICKETS_ENABLED can ever be set in production and before T-0087 (MCP) copies the pattern: (1) REMOVE `actor` from every REST request schema (create and all transition verbs; the transition bodies use .passthrough(): make sure a stray `actor` field is IGNORED and never forwarded); (2) add and export `deriveTicketActor(auth, config)` in packages/lane-tickets (unit-testable, no HTTP types): type = 'human' ONLY if auth.apiKey.id is in ORBITA_TICKETS_APPROVER_KEY_IDS (document this variable as the list of HUMAN-CAPABLE keys), otherwise 'agent'; 'system' can never come from a caller; principal_id = `key:<apiKey.id>` until E-17 supplies principals; api_key_id = auth.apiKey.id; mandate_ids for an agent actor come from a new optional env ORBITA_TICKETS_KEY_MANDATES (JSON object mapping api key id -> array of mandate ticket ids; invalid JSON is a startup error when the flag is on; default empty, which means an agent key cannot write anything until it is bound - E-17 replaces this stopgap with principals); (3) the OAuth placeholder key id 'oauth' is human-capable only if explicitly listed (keep the existing startup warning); (4) the routes call deriveTicketActor(getAuth(c), config) for every verb and pass the result to the repository; keep the approver gate for ticket_approve and cancel-of-proposed; (5) tests: a body that claims actor.type 'human' from a NON-allowlisted key is treated as agent and is DENIED creating a mandate and cancelling an approved epic; an allowlisted key acts as human; a body claiming 'system' is ignored; an agent key without a mandate binding is denied with the engine's ownership error; the same derivation function is the one exported for T-0087; (6) update the OpenAPI schemas, docs/site/technical.md and packages/lane-tickets/INTERFACE.md ('the actor is derived from the authenticated key; request bodies never carry an actor'). Do NOT change the pure engine rules, the repository SQL, DDL, flag semantics or any non-ticket route.",
       "acceptance": [
-        "pnpm --filter @orbita/mcp test",
         "pnpm --filter @orbita/tickets test",
-        "rg -n \"ticket_\" packages/lane-mcp/src",
-        "pnpm -r typecheck"
+        "pnpm -r typecheck",
+        "rg -n \"deriveTicketActor\" packages apps",
+        "! rg -n \"actor: ActorSchema\" packages/lane-tickets/src/routes",
+        "rg -n \"ORBITA_TICKETS_KEY_MANDATES\" packages/lane-tickets/src docs"
       ],
       "deps": [
         "T-0086"
@@ -1342,9 +1343,33 @@
       "status": "ready",
       "retries": 0,
       "feedback": [
+        "2026-10-06 hub review of T-0086: actor trusted from the request body; fixed here before MCP (T-0087)."
+      ]
+    },
+    {
+      "id": "T-0087",
+      "lane": "platform",
+      "phase": "consultos-b",
+      "title": "lane-tickets: MCP ticket_* tools (additive, flag-gated)",
+      "description": "Epic E-16 task 5. Register MCP tools ticket_create, ticket_list, ticket_get, ticket_approve, ticket_claim, ticket_extend, ticket_progress, ticket_complete, ticket_block, ticket_request_decision, ticket_comment, ticket_cancel in packages/lane-mcp (or lane-tickets re-export mounted from mcp) ONLY when ORBITA_TICKETS_ENABLED=1. Tool names and existing 16 tools' input schemas must remain byte-identical when flag OFF — extend golden test from lane-mcp. Each tool inputSchema includes shared optional reported_by/labels fragment ONLY on ticket tools (do not alter non-ticket tools). Map tools to repository + transition engine; same approver key allowlist as REST. Do NOT add admin MCP tools. Approver rule is identical to REST (including the 'oauth' placeholder rule from T-0086); add a test that ticket_approve called through the MCP path with the 'oauth' placeholder is denied when the allowlist does not list it. ACTOR (hub review 2026-10-06): MCP ticket_* tool inputs NEVER carry an actor; use deriveTicketActor from T-0094 with the MCP auth context (an OAuth connection has the placeholder key id 'oauth', which is NOT human-capable unless explicitly listed; an API key has its real id). Add a test that a tool argument named actor is ignored.",
+      "acceptance": [
+        "pnpm --filter @orbita/mcp test",
+        "pnpm --filter @orbita/tickets test",
+        "rg -n \"ticket_\" packages/lane-mcp/src",
+        "pnpm -r typecheck"
+      ],
+      "deps": [
+        "T-0086",
+        "T-0094"
+      ],
+      "flag": "ORBITA_TICKETS_ENABLED",
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
         "REPLAN 2026-10-02: E-16 first pass (5/6) — MCP verbs behind same flag.",
         "2026-10-02 hub review (claude-hub-session): amended before implementation - see description.",
-        "2026-10-05 hub: runs after T-0086, which now follows T-0088."
+        "2026-10-05 hub: runs after T-0086, which now follows T-0088.",
+        "2026-10-06 hub: depends on the actor-derivation task."
       ]
     },
     {
