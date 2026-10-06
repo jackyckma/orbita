@@ -80,16 +80,30 @@ function mapEventRow(row: Record<string, unknown>): TicketEventRecord {
   };
 }
 
+/** Transaction-scoped tenant lock (empty tenants have no FOR UPDATE rows). */
+export async function acquireTenantAdvisoryLock(
+  sql: PgSql,
+  client_id: string,
+): Promise<void> {
+  await sql`SELECT pg_advisory_xact_lock(hashtextextended(${client_id}, 0))`;
+}
+
 export async function loadClientTicketData(
   sql: PgSql,
   client_id: string,
+  options?: { forUpdate?: boolean },
 ): Promise<MemoryTicketDataAccess> {
+  const forUpdate = options?.forUpdate ?? true;
   const data = new MemoryTicketDataAccess();
-  const ticketRows = await sql`
-    SELECT * FROM tickets WHERE client_id = ${client_id} FOR UPDATE
-  `;
+  const ticketRows = forUpdate
+    ? await sql`
+        SELECT * FROM tickets WHERE client_id = ${client_id} FOR UPDATE
+      `
+    : await sql`
+        SELECT * FROM tickets WHERE client_id = ${client_id}
+      `;
   for (const row of ticketRows) {
-    data.setStored(mapTicketRow(row as Record<string, unknown>));
+    data.setStored(mapTicketRow(row as Record<string, unknown>), false);
   }
 
   const eventRows = await sql`
@@ -105,7 +119,7 @@ export async function loadClientTicketData(
     eventsByTicket.set(ev.ticket_id, list);
   }
   for (const [ticket_id, events] of eventsByTicket) {
-    data.setEvents(ticket_id, events);
+    data.setEvents(ticket_id, events, false);
   }
 
   const idemRows = await sql`
@@ -119,10 +133,87 @@ export async function loadClientTicketData(
       typeof row.response_json === "string"
         ? (JSON.parse(row.response_json) as TransitionSuccess)
         : (row.response_json as TransitionSuccess);
-    data.idempotencySet(key, payload);
+    data.idempotencySet(key, payload, false);
   }
 
   return data;
+}
+
+async function upsertTicketRow(
+  sql: PgSql,
+  row: StoredTicket,
+  events: TicketEventRecord[],
+): Promise<void> {
+  const lastSeq = events.length ? Math.max(...events.map((e) => e.seq)) : 0;
+
+  await sql`
+    INSERT INTO tickets (
+      id, client_id, project, "function", kind, parent_id, title, description,
+      status, owner, requester, priority, next_action, blocked_on, risk_tier,
+      source, source_ref, git_ref, synced_at, sync_state, version,
+      lease_holder, lease_expires_at, charter, acceptance_criteria, data,
+      mandate_id, mandate_status, mandate_counters, last_event_seq,
+      created_at, updated_at
+    ) VALUES (
+      ${row.id}, ${row.client_id}, ${row.project}, ${row.function}, ${row.kind},
+      ${row.parent_id}, ${row.title}, ${row.description ?? null},
+      ${row.status}, ${row.owner ?? null}, ${row.requester ?? null},
+      ${row.priority ?? null}, ${row.next_action ?? null}, ${row.blocked_on ?? null},
+      ${row.risk_tier ?? null}, ${row.source}, ${row.source_ref ?? null},
+      ${row.git_ref ?? null}, ${row.synced_at ?? null}, ${row.sync_state ?? null},
+      ${row.version}, ${row.lease_holder}, ${row.lease_expires_at},
+      ${row.charter != null ? sql.json(row.charter as never) : null},
+      ${row.acceptance_criteria != null ? sql.json(row.acceptance_criteria as never) : null},
+      ${row.data != null ? sql.json(row.data as never) : null},
+      ${row.mandate_id}, ${row.mandate_status},
+      ${sql.json(row.mandate_counters as never)}, ${lastSeq},
+      ${row.created_at}, ${row.updated_at}
+    )
+    ON CONFLICT (id) DO UPDATE SET
+      project = EXCLUDED.project,
+      "function" = EXCLUDED."function",
+      kind = EXCLUDED.kind,
+      parent_id = EXCLUDED.parent_id,
+      title = EXCLUDED.title,
+      description = EXCLUDED.description,
+      status = EXCLUDED.status,
+      owner = EXCLUDED.owner,
+      requester = EXCLUDED.requester,
+      priority = EXCLUDED.priority,
+      next_action = EXCLUDED.next_action,
+      blocked_on = EXCLUDED.blocked_on,
+      risk_tier = EXCLUDED.risk_tier,
+      source = EXCLUDED.source,
+      source_ref = EXCLUDED.source_ref,
+      git_ref = EXCLUDED.git_ref,
+      synced_at = EXCLUDED.synced_at,
+      sync_state = EXCLUDED.sync_state,
+      version = EXCLUDED.version,
+      lease_holder = EXCLUDED.lease_holder,
+      lease_expires_at = EXCLUDED.lease_expires_at,
+      charter = EXCLUDED.charter,
+      acceptance_criteria = EXCLUDED.acceptance_criteria,
+      data = EXCLUDED.data,
+      mandate_id = EXCLUDED.mandate_id,
+      mandate_status = EXCLUDED.mandate_status,
+      mandate_counters = EXCLUDED.mandate_counters,
+      last_event_seq = EXCLUDED.last_event_seq,
+      updated_at = EXCLUDED.updated_at
+    WHERE tickets.client_id = EXCLUDED.client_id
+  `;
+
+  for (const ev of events) {
+    await sql`
+      INSERT INTO ticket_events (
+        id, ticket_id, client_id, seq, actor, verb, from_status, to_status, payload, at
+      ) VALUES (
+        ${ev.id}, ${ev.ticket_id}, ${ev.client_id}, ${ev.seq},
+        ${sql.json(ev.actor as never)}, ${ev.verb}, ${ev.from_status}, ${ev.to_status},
+        ${ev.payload != null ? sql.json(ev.payload as never) : null}, ${ev.at}
+      )
+      ON CONFLICT ON CONSTRAINT ticket_events_client_ticket_seq_unique DO NOTHING
+    `;
+  }
 }
 
 export async function flushClientTicketData(
@@ -130,83 +221,20 @@ export async function flushClientTicketData(
   data: MemoryTicketDataAccess,
   client_id: string,
 ): Promise<void> {
-  for (const row of data.allForClient(client_id)) {
-    const events = data.getEvents(row.id);
-    const lastSeq = events.length
-      ? Math.max(...events.map((e) => e.seq))
-      : 0;
-
-    await sql`
-      INSERT INTO tickets (
-        id, client_id, project, "function", kind, parent_id, title, description,
-        status, owner, requester, priority, next_action, blocked_on, risk_tier,
-        source, source_ref, git_ref, synced_at, sync_state, version,
-        lease_holder, lease_expires_at, charter, acceptance_criteria, data,
-        mandate_id, mandate_status, mandate_counters, last_event_seq,
-        created_at, updated_at
-      ) VALUES (
-        ${row.id}, ${row.client_id}, ${row.project}, ${row.function}, ${row.kind},
-        ${row.parent_id}, ${row.title}, ${row.description ?? null},
-        ${row.status}, ${row.owner ?? null}, ${row.requester ?? null},
-        ${row.priority ?? null}, ${row.next_action ?? null}, ${row.blocked_on ?? null},
-        ${row.risk_tier ?? null}, ${row.source}, ${row.source_ref ?? null},
-        ${row.git_ref ?? null}, ${row.synced_at ?? null}, ${row.sync_state ?? null},
-        ${row.version}, ${row.lease_holder}, ${row.lease_expires_at},
-        ${row.charter != null ? sql.json(row.charter as never) : null},
-        ${row.acceptance_criteria != null ? sql.json(row.acceptance_criteria as never) : null},
-        ${row.data != null ? sql.json(row.data as never) : null},
-        ${row.mandate_id}, ${row.mandate_status},
-        ${sql.json(row.mandate_counters as never)}, ${lastSeq},
-        ${row.created_at}, ${row.updated_at}
-      )
-      ON CONFLICT (id) DO UPDATE SET
-        project = EXCLUDED.project,
-        "function" = EXCLUDED."function",
-        kind = EXCLUDED.kind,
-        parent_id = EXCLUDED.parent_id,
-        title = EXCLUDED.title,
-        description = EXCLUDED.description,
-        status = EXCLUDED.status,
-        owner = EXCLUDED.owner,
-        requester = EXCLUDED.requester,
-        priority = EXCLUDED.priority,
-        next_action = EXCLUDED.next_action,
-        blocked_on = EXCLUDED.blocked_on,
-        risk_tier = EXCLUDED.risk_tier,
-        source = EXCLUDED.source,
-        source_ref = EXCLUDED.source_ref,
-        git_ref = EXCLUDED.git_ref,
-        synced_at = EXCLUDED.synced_at,
-        sync_state = EXCLUDED.sync_state,
-        version = EXCLUDED.version,
-        lease_holder = EXCLUDED.lease_holder,
-        lease_expires_at = EXCLUDED.lease_expires_at,
-        charter = EXCLUDED.charter,
-        acceptance_criteria = EXCLUDED.acceptance_criteria,
-        data = EXCLUDED.data,
-        mandate_id = EXCLUDED.mandate_id,
-        mandate_status = EXCLUDED.mandate_status,
-        mandate_counters = EXCLUDED.mandate_counters,
-        last_event_seq = EXCLUDED.last_event_seq,
-        updated_at = EXCLUDED.updated_at
-    `;
-
-    for (const ev of events) {
-      await sql`
-        INSERT INTO ticket_events (
-          id, ticket_id, client_id, seq, actor, verb, from_status, to_status, payload, at
-        ) VALUES (
-          ${ev.id}, ${ev.ticket_id}, ${ev.client_id}, ${ev.seq},
-          ${sql.json(ev.actor as never)}, ${ev.verb}, ${ev.from_status}, ${ev.to_status},
-          ${ev.payload != null ? sql.json(ev.payload as never) : null}, ${ev.at}
-        )
-        ON CONFLICT ON CONSTRAINT ticket_events_client_ticket_seq_unique DO NOTHING
-      `;
+  for (const ticket_id of data.ticketIdsPendingFlush()) {
+    const row = data.getStored(client_id, ticket_id);
+    if (!row) {
+      continue;
     }
+    await upsertTicketRow(sql, row, data.getEvents(ticket_id));
   }
 
-  for (const [key, value] of data.idempotency.entries()) {
+  for (const key of data.idempotencyKeysPendingFlush()) {
     if (!key.startsWith(`${client_id}:`)) {
+      continue;
+    }
+    const value = data.idempotency.get(key);
+    if (!value) {
       continue;
     }
     const [, verb, ...idemRest] = key.split(":");
@@ -219,6 +247,7 @@ export async function flushClientTicketData(
       VALUES (${client_id}, ${verb}, ${idemKey}, ${sql.json(value as never)})
       ON CONFLICT (client_id, verb, idempotency_key) DO UPDATE SET
         response_json = EXCLUDED.response_json
+      WHERE ticket_idempotency.client_id = EXCLUDED.client_id
     `;
   }
 }

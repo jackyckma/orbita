@@ -1,3 +1,4 @@
 [
-  "packages/lane-tickets/drizzle/0001_tickets.sql"
+  "packages/lane-tickets/drizzle/0001_tickets.sql",
+  "apps/orbita-api/migrations/optional-tickets.sql"
 ]

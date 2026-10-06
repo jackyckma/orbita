@@ -239,6 +239,211 @@ describe.skipIf(!runE2e)("PgTicketRepository (real Postgres, tier A)", () => {
     expect(foreignClaim.ok).toBe(false);
   });
 
+  it("concurrent create with same idempotency_key on empty tenant yields one ticket", async () => {
+    const client = "tickets-e2e-empty-idem";
+    const repo = new PgTicketRepository(sql);
+    const payload = {
+      client_id: client,
+      actor: { type: "human" as const },
+      ticket: {
+        project: "empty",
+        function: "dev" as const,
+        kind: "mandate" as const,
+        title: "Only one",
+        charter: charter(),
+      },
+      idempotency_key: "empty-tenant-once",
+    };
+    const [a, b] = await Promise.all([
+      repo.create(payload),
+      repo.create(payload),
+    ]);
+    expect(a.ok && b.ok).toBe(true);
+    if (a.ok && b.ok) {
+      expect(a.value.ticket.id).toBe(b.value.ticket.id);
+    }
+    const count = await sql`
+      SELECT count(*)::int AS c FROM tickets WHERE client_id = ${client}
+    `;
+    expect(count[0]?.c).toBe(1);
+  });
+
+  it("expired lease can be re-claimed", async () => {
+    const repo = new PgTicketRepository(sql);
+    const mandate = await repo.create({
+      client_id: CLIENT_A,
+      actor: { type: "human" },
+      ticket: {
+        project: "reclaim",
+        function: "dev",
+        kind: "mandate",
+        title: "M",
+        charter: charter(),
+      },
+    });
+    if (!mandate.ok) throw new Error("setup");
+    await repo.transition({
+      client_id: CLIENT_A,
+      ticket_id: mandate.value.ticket.id,
+      verb: "ticket_approve",
+      actor: { type: "human" },
+    });
+    const epic = await repo.create({
+      client_id: CLIENT_A,
+      actor: { type: "human" },
+      ticket: {
+        project: "reclaim",
+        function: "dev",
+        kind: "epic",
+        parent_id: mandate.value.ticket.id,
+        title: "E",
+        acceptance_criteria: ["x"],
+        risk_tier: "L0",
+      },
+    });
+    if (!epic.ok) throw new Error("epic");
+    await repo.transition({
+      client_id: CLIENT_A,
+      ticket_id: epic.value.ticket.id,
+      verb: "ticket_progress",
+      actor: { type: "agent", mandate_ids: [mandate.value.ticket.id] },
+    });
+    const task = await repo.create({
+      client_id: CLIENT_A,
+      actor: { type: "agent", mandate_ids: [mandate.value.ticket.id] },
+      ticket: {
+        project: "reclaim",
+        function: "dev",
+        kind: "task",
+        parent_id: epic.value.ticket.id,
+        title: "T",
+        risk_tier: "L0",
+      },
+    });
+    if (!task.ok) throw new Error("task");
+    const v = task.value.ticket.version;
+    const claim = await repo.transition({
+      client_id: CLIENT_A,
+      ticket_id: task.value.ticket.id,
+      verb: "ticket_claim",
+      actor: { type: "agent", mandate_ids: [mandate.value.ticket.id] },
+      expected_version: v,
+      lease_seconds: 1,
+      lease_holder: "agent:old",
+    });
+    expect(claim.ok).toBe(true);
+    await new Promise((r) => setTimeout(r, 1100));
+    const reclaim = await repo.transition({
+      client_id: CLIENT_A,
+      ticket_id: task.value.ticket.id,
+      verb: "ticket_claim",
+      actor: { type: "agent", mandate_ids: [mandate.value.ticket.id] },
+      lease_seconds: 120,
+      lease_holder: "agent:new",
+    });
+    expect(reclaim.ok).toBe(true);
+    if (reclaim.ok) {
+      expect(reclaim.value.ticket.lease_holder).toBe("agent:new");
+    }
+  });
+
+  it("expected_version mismatch returns VERSION_CONFLICT", async () => {
+    const repo = new PgTicketRepository(sql);
+    const created = await repo.create({
+      client_id: CLIENT_A,
+      actor: { type: "human" },
+      ticket: {
+        project: "ver",
+        function: "dev",
+        kind: "mandate",
+        title: "M",
+        charter: charter(),
+      },
+    });
+    if (!created.ok) throw new Error("setup");
+    const bad = await repo.transition({
+      client_id: CLIENT_A,
+      ticket_id: created.value.ticket.id,
+      verb: "ticket_approve",
+      actor: { type: "human" },
+      expected_version: 999,
+    });
+    expect(bad.ok).toBe(false);
+    if (!bad.ok) {
+      expect(bad.error.code).toBe("VERSION_CONFLICT");
+    }
+  });
+
+  it("concurrent ticket_comment appends monotonic unique event seq", async () => {
+    const repo = new PgTicketRepository(sql);
+    const created = await repo.create({
+      client_id: CLIENT_A,
+      actor: { type: "human" },
+      ticket: {
+        project: "seq",
+        function: "dev",
+        kind: "mandate",
+        title: "M",
+        charter: charter(),
+      },
+    });
+    if (!created.ok) throw new Error("setup");
+    const id = created.value.ticket.id;
+    const [c1, c2] = await Promise.all([
+      repo.transition({
+        client_id: CLIENT_A,
+        ticket_id: id,
+        verb: "ticket_comment",
+        actor: { type: "human" },
+        comment: "a",
+      }),
+      repo.transition({
+        client_id: CLIENT_A,
+        ticket_id: id,
+        verb: "ticket_comment",
+        actor: { type: "human" },
+        comment: "b",
+      }),
+    ]);
+    expect(c1.ok && c2.ok).toBe(true);
+    const events = await sql`
+      SELECT seq FROM ticket_events
+      WHERE ticket_id = ${id} AND client_id = ${CLIENT_A}
+      ORDER BY seq ASC
+    `;
+    const seqs = events.map((r) => r.seq as number);
+    expect(seqs.length).toBeGreaterThanOrEqual(2);
+    expect(new Set(seqs).size).toBe(seqs.length);
+    for (let i = 1; i < seqs.length; i++) {
+      expect(seqs[i]).toBeGreaterThan(seqs[i - 1]!);
+    }
+  });
+
+  it("list is read-only (does not persist incidental reads)", async () => {
+    const repo = new PgTicketRepository(sql);
+    const created = await repo.create({
+      client_id: CLIENT_A,
+      actor: { type: "human" },
+      ticket: {
+        project: "readonly",
+        function: "dev",
+        kind: "mandate",
+        title: "M",
+        charter: charter(),
+      },
+    });
+    if (!created.ok) throw new Error("setup");
+    const before = await sql`
+      SELECT updated_at FROM tickets WHERE id = ${created.value.ticket.id}
+    `;
+    const listed = await repo.list({ client_id: CLIENT_A, project: "readonly" });
+    expect(listed.ok).toBe(true);
+    const after = await sql`
+      SELECT updated_at FROM tickets WHERE id = ${created.value.ticket.id}
+    `;
+    expect(after[0]?.updated_at).toEqual(before[0]?.updated_at);
+  });
+
   it("idempotency_key replay returns the first result", async () => {
     const repo = new PgTicketRepository(sql);
     const mandate = await repo.create({

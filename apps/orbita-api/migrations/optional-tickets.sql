@@ -1,4 +1,4 @@
--- E-16: tickets lane (optional — applied when ORBITA_TICKETS_ENABLED=1)
+-- optional-tickets: E-16 tickets lane (applied when ORBITA_TICKETS_ENABLED=1)
 CREATE TABLE IF NOT EXISTS "tickets" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
   "client_id" text NOT NULL,

@@ -88,6 +88,8 @@ The ticket system (mandate → epic → task hierarchy, leases, idempotency) shi
 
 When the flag is `1` at **migration time**, startup also runs `apps/orbita-api/migrations/optional-tickets.sql` (mirrored from `packages/lane-tickets/drizzle/`). DDL is additive (`IF NOT EXISTS` only). Production enable is a founder decision ([D-005](https://github.com/jackyckma/orbita/blob/main/docs/autopilot/decisions.json)); verify with `bash scripts/e2e-tier-a.sh` (GitHub CI) before flipping Zeabur env.
 
+**Postgres repository (`PgTicketRepository`):** writes for a `client_id` are serialised with `pg_advisory_xact_lock(hashtextextended(client_id, 0))` inside a short transaction (transaction-scoped only — never session-level advisory locks). The implementation loads the tenant into memory, runs the same transition engine as the fake repository, and flushes only mutated rows. This whole-tenant pattern is intended for **one tenant per server** at modest scale (hundreds of tickets per tenant). A per-row SQL repository is the upgrade path if tenants grow large or hot.
+
 ## Further reading
 
 - [product-architecture.md](https://github.com/jackyckma/orbita/blob/main/docs/product-architecture.md)
