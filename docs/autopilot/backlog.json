@@ -1576,7 +1576,7 @@
       ],
       "deps": ["T-0100"],
       "flag": "ORBITA_TICKETS_ENABLED",
-      "status": "ready",
+      "status": "in_progress",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-07: E-16 second pass (a) — Grok Bot pilot mandate seed."
