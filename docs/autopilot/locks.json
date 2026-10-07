@@ -4,8 +4,8 @@
     "T-0097": {
       "by": "maker",
       "since": "2026-10-07T08:49:15.276Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/autopilot-maker-action-1040",
+      "pr": 58
     }
   }
 }
