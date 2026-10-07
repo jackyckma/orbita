@@ -1475,6 +1475,27 @@
       ]
     },
     {
+      "id": "T-0099",
+      "lane": "platform",
+      "phase": "consultos-admin",
+      "title": "admin: replace and delete vault credentials (rotation) without database access",
+      "description": "Today vault credentials (public.credentials: id, client_id, name, secret_ciphertext, scopes, created_at; AES-256-GCM with ORBITA_SECRETS_KEY) are write-once: POST of an existing (client_id, name) answers 409 and there is no replace or delete route or console button (packages/lane-credentials, packages/lane-admin, decision D-002), so rotating a token (e.g. github_read after a regenerated GitHub token) needs a manual SQL delete. Add, behind the existing admin auth only: (1) PUT /v1/admin/credentials/{client_id}/{name} with body {secret} that REPLACES the ciphertext of an EXISTING credential (404 if missing), keeps name and scopes, sets rotated_at = now(); never returns or logs the secret; (2) DELETE /v1/admin/credentials/{client_id}/{name}?confirm=<name> (confirm must equal the name, else 400); (3) additive nullable columns on credentials: rotated_at timestamptz, expires_at timestamptz (nullable, set optionally by PATCH /v1/admin/credentials/{client_id}/{name} body {expires_at|null}); migration with ALTER TABLE ... ADD COLUMN IF NOT EXISTS in init.sql and the credentials lane schema, no DROP; the list endpoint and console show rotated_at and expires_at but never the secret; (4) console (packages/lane-admin/public/admin.js, vanilla JS, existing escaping helpers) Credentials table: per row buttons Replace (prompts for the new secret in a password-type field, then confirms by name), Set expiry, Delete (type the name to confirm); a warning badge when expires_at is within 14 days or past; flash messages never contain the secret; clear the secret input after use; (5) structured info log lines credential_rotated / credential_deleted / credential_expiry_set with client_id and name only; (6) keep POST write-once semantics unchanged (409 on duplicates) so nothing is overwritten by accident; (7) tests with fakes: replace changes ciphertext but not name/scopes and updates rotated_at; replace on a missing credential is 404; delete requires confirm; no secret in responses or captured logs; 401/403 without admin auth; expiry badge logic as a pure function; (8) update docs/site and decisions D-002 note in docs/autopilot/decisions.json only if that file documents it (add a line 'rotation: use PUT, no SQL needed'). Do NOT change encryption, the key, harness code, or the caller API.",
+      "acceptance": [
+        "pnpm --filter @orbita/credentials test",
+        "pnpm --filter @orbita/admin test",
+        "pnpm -r typecheck",
+        "rg -n \"credentials/:client_id/:name|credentials/{client_id}/{name}\" packages/lane-admin apps/orbita-api/src",
+        "node --check packages/lane-admin/public/admin.js"
+      ],
+      "deps": [],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "2026-10-07 hub: written after the GitHub token rotation incident; replaces the manual SQL delete."
+      ]
+    },
+    {
       "id": "T-0087",
       "lane": "platform",
       "phase": "consultos-b",

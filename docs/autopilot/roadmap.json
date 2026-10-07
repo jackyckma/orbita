@@ -239,7 +239,7 @@
       "goal": "Let the founder list every harness across tenants and pause/resume one from the admin console and admin API, instead of editing the database.",
       "status": "approved",
       "phase": "consultos-admin",
-      "decomposes_into": ["T-0090"],
+      "decomposes_into": ["T-0090", "T-0099"],
       "decisions": [],
       "notes": "Small epic OUTSIDE the E-14..E-21 sequence; its task is written and ready. Apply the PRODUCTION SAFETY RULES block at the start of the notes of E-14. Founder decision 2026-10-03: operating the database directly to stop two ai-transformation harnesses was not acceptable; the admin API had no harness routes (the caller API PATCH /v1/harnesses/{id} needs that tenant's own API key). Admin = read plus one action (pause/resume)."
     },
