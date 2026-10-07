@@ -1495,10 +1495,11 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
       "feedback": [
-        "2026-10-07 hub: written after the GitHub token rotation incident; replaces the manual SQL delete."
+        "2026-10-07 hub: written after the GitHub token rotation incident; replaces the manual SQL delete.",
+        "2026-10-07 maker: PR https://github.com/jackyckma/orbita/pull/59 opened; acceptance green."
       ]
     },
     {

@@ -4,8 +4,8 @@
     "T-0099": {
       "by": "maker",
       "since": "2026-10-07T09:08:35Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/t-0099-credential-rotation",
+      "pr": 59
     }
   }
 }
