@@ -12,6 +12,8 @@ export const credentials = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
+    rotatedAt: timestamp("rotated_at", { withTimezone: true }),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
   },
   (table) => [unique("credentials_client_name_unique").on(table.clientId, table.name)],
 );

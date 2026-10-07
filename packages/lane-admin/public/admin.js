@@ -28,6 +28,58 @@ function esc(s) {
     .replaceAll('"', "&quot;");
 }
 
+/** Mirrors packages/lane-admin/src/credential-expiry.ts */
+function credentialExpiryWarning(expiresAt) {
+  if (!expiresAt) return "none";
+  const exp = new Date(expiresAt);
+  if (Number.isNaN(exp.getTime())) return "none";
+  const now = Date.now();
+  if (exp.getTime() <= now) return "expired";
+  if (exp.getTime() - now <= 14 * 24 * 60 * 60 * 1000) return "soon";
+  return "none";
+}
+
+// PUT/PATCH/DELETE /credentials/{client_id}/{name}
+function credentialAdminPath(clientId, name) {
+  return `/credentials/${encodeURIComponent(clientId)}/${encodeURIComponent(name)}`;
+}
+
+function promptForPassword(label) {
+  return new Promise((resolve) => {
+    const overlay = document.createElement("div");
+    overlay.style.cssText =
+      "position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:9999";
+    const box = document.createElement("div");
+    box.style.cssText =
+      "background:var(--panel,#fff);padding:1rem;border-radius:8px;min-width:280px;box-shadow:0 8px 24px rgba(0,0,0,.2)";
+    const title = document.createElement("p");
+    title.textContent = label;
+    const input = document.createElement("input");
+    input.type = "password";
+    input.autocomplete = "off";
+    input.style.width = "100%";
+    const row = document.createElement("div");
+    row.className = "row";
+    row.style.marginTop = "0.75rem";
+    const ok = document.createElement("button");
+    ok.textContent = "OK";
+    const cancel = document.createElement("button");
+    cancel.className = "secondary";
+    cancel.textContent = "Cancel";
+    const finish = (value) => {
+      overlay.remove();
+      resolve(value);
+    };
+    ok.onclick = () => finish(input.value);
+    cancel.onclick = () => finish(null);
+    row.append(ok, cancel);
+    box.append(title, input, row);
+    overlay.append(box);
+    document.body.append(overlay);
+    input.focus();
+  });
+}
+
 function renderLogin() {
   app.innerHTML = `
     <div class="wrap">
@@ -560,19 +612,105 @@ async function loadKeys() {
 async function loadCreds() {
   const { credentials } = await api("/credentials");
   const rows = credentials
-    .map(
-      (c) => `<tr>
+    .map((c) => {
+      const warn = credentialExpiryWarning(c.expires_at);
+      const badge =
+        warn === "expired"
+          ? '<span class="badge" style="background:var(--danger);color:#fff">expired</span>'
+          : warn === "soon"
+            ? '<span class="badge" style="background:#b45309;color:#fff">expires soon</span>'
+            : "";
+      return `<tr>
         <td class="mono">${esc(c.client_id)}</td>
         <td class="mono">${esc(c.name)}</td>
         <td>${esc(c.created_at)}</td>
-      </tr>`,
-    )
+        <td>${c.rotated_at ? esc(c.rotated_at) : "—"}</td>
+        <td>${c.expires_at ? esc(c.expires_at) : "—"} ${badge}</td>
+        <td class="row">
+          <button class="secondary" data-cred-replace="${esc(c.client_id)}" data-cred-name="${esc(c.name)}">Replace</button>
+          <button class="secondary" data-cred-expiry="${esc(c.client_id)}" data-cred-name="${esc(c.name)}">Set expiry</button>
+          <button class="danger" data-cred-delete="${esc(c.client_id)}" data-cred-name="${esc(c.name)}">Delete</button>
+        </td>
+      </tr>`;
+    })
     .join("");
   document.getElementById("creds-table").innerHTML = `
     <table>
-      <thead><tr><th>Client</th><th>Name</th><th>Created</th></tr></thead>
-      <tbody>${rows || '<tr><td colspan="3">No credentials.</td></tr>'}</tbody>
+      <thead><tr><th>Client</th><th>Name</th><th>Created</th><th>Rotated</th><th>Expires</th><th></th></tr></thead>
+      <tbody>${rows || '<tr><td colspan="6">No credentials.</td></tr>'}</tbody>
     </table>`;
+
+  document.querySelectorAll("[data-cred-replace]").forEach((btn) => {
+    btn.onclick = async () => {
+      const clientId = btn.dataset.credReplace;
+      const name = btn.dataset.credName;
+      const secret = await promptForPassword(`New secret for ${name}`);
+      if (secret == null) return;
+      if (!secret.trim()) {
+        flash("Secret cannot be empty.", true);
+        return;
+      }
+      const confirmName = window.prompt(`Type the credential name to confirm rotation:`, "");
+      if (confirmName !== name) {
+        if (confirmName != null) flash("Name did not match — rotation cancelled.", true);
+        return;
+      }
+      try {
+        await api(credentialAdminPath(clientId, name), {
+          method: "PUT",
+          body: JSON.stringify({ secret }),
+        });
+        flash(`Credential "${esc(name)}" rotated.`);
+        await loadCreds();
+      } catch (e) {
+        flash(e.message, true);
+      }
+    };
+  });
+
+  document.querySelectorAll("[data-cred-expiry]").forEach((btn) => {
+    btn.onclick = async () => {
+      const clientId = btn.dataset.credExpiry;
+      const name = btn.dataset.credName;
+      const raw = window.prompt(
+        "Expiry (ISO 8601 datetime, or empty to clear):",
+        "",
+      );
+      if (raw == null) return;
+      const expires_at = raw.trim() === "" ? null : raw.trim();
+      try {
+        await api(credentialAdminPath(clientId, name), {
+          method: "PATCH",
+          body: JSON.stringify({ expires_at }),
+        });
+        flash(`Expiry updated for "${esc(name)}".`);
+        await loadCreds();
+      } catch (e) {
+        flash(e.message, true);
+      }
+    };
+  });
+
+  document.querySelectorAll("[data-cred-delete]").forEach((btn) => {
+    btn.onclick = async () => {
+      const clientId = btn.dataset.credDelete;
+      const name = btn.dataset.credName;
+      const confirmName = window.prompt(`Type "${name}" to delete this credential:`);
+      if (confirmName !== name) {
+        if (confirmName != null) flash("Name did not match — delete cancelled.", true);
+        return;
+      }
+      try {
+        await api(`${credentialAdminPath(clientId, name)}?confirm=${encodeURIComponent(name)}`, {
+          method: "DELETE",
+        });
+        flash(`Credential "${esc(name)}" deleted.`);
+        await loadCreds();
+      } catch (e) {
+        flash(e.message, true);
+      }
+    };
+  });
 }
 
 (async () => {

@@ -81,6 +81,9 @@ CREATE TABLE IF NOT EXISTS "credentials" (
 
 CREATE INDEX IF NOT EXISTS "credentials_client_idx" ON "credentials" ("client_id");
 
+ALTER TABLE "credentials" ADD COLUMN IF NOT EXISTS "rotated_at" timestamp with time zone;
+ALTER TABLE "credentials" ADD COLUMN IF NOT EXISTS "expires_at" timestamp with time zone;
+
 -- W6: context compression + pgvector memory
 ALTER TABLE "sessions" ADD COLUMN IF NOT EXISTS "context_summary" text;
 

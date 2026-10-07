@@ -8,7 +8,7 @@ Single-user admin UI and deployment settings.
 - `POST /v1/admin/session` — admin token → HttpOnly cookie
 - `GET/DELETE /v1/admin/session`
 - `GET /v1/admin/api-keys`, `POST`, `DELETE` (via lane-auth)
-- `GET/POST /v1/admin/credentials` (via lane-credentials)
+- `GET/POST /v1/admin/credentials` and `PUT/PATCH/DELETE /v1/admin/credentials/{client_id}/{name}` (via lane-credentials)
 - `GET /v1/admin/settings`, `PUT /v1/admin/settings/http-domains`
 - `GET /v1/admin/usage/keys` — per API key metering + RPM (W17 prep)
 - `GET /v1/admin/sessions` — recent sessions (all clients)

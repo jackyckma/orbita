@@ -84,7 +84,7 @@
         "endpoint": "POST https://api.get-orbita.com/v1/admin/credentials",
         "auth_header": "x-orbita-admin-token: $ORBITA_ADMIN_TOKEN",
         "client_id": "personal-jacky",
-        "write_once": "Duplicate client_id+name returns 409. To replace a credential you must delete the row first — there is no update route. NOTE: a fine-grained PAT's permissions can be edited on GitHub without regenerating the token, so widening or narrowing access does NOT require touching the vault row.",
+        "write_once": "Duplicate client_id+name returns 409 on POST. rotation: use PUT /v1/admin/credentials/{client_id}/{name} with a new secret (no SQL needed); DELETE with ?confirm=<name> to remove. NOTE: a fine-grained PAT's permissions can be edited on GitHub without regenerating the token, so widening or narrowing access does NOT require touching the vault row.",
         "credentials": [
           {
             "name": "github_read",
