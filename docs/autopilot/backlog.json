@@ -1576,11 +1576,12 @@
       ],
       "deps": ["T-0100"],
       "flag": "ORBITA_TICKETS_ENABLED",
-      "status": "in_review",
+      "status": "done",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-07: E-16 second pass (a) — Grok Bot pilot mandate seed.",
-        "2026-10-07 maker: PR https://github.com/jackyckma/orbita/pull/62 opened; acceptance green."
+        "2026-10-07 maker: PR https://github.com/jackyckma/orbita/pull/62 opened; acceptance green.",
+        "2026-10-07 checker: merged PR #62 (05ac885); verify-all green; lock cleared."
       ]
     },
     {
