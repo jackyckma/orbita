@@ -7,6 +7,7 @@ import type {
   ListTicketsQuery,
   ListTicketsResult,
   MandateSubtreeHealth,
+  ProposeTicketParams,
   RepositoryResult,
   TicketRepository,
   TransitionParams,
@@ -77,6 +78,12 @@ export class PgTicketRepository implements TicketRepository {
     return this.withClientWrite(params.client_id, (repo) =>
       repo.transition(params),
     );
+  }
+
+  async propose(
+    params: ProposeTicketParams,
+  ): Promise<RepositoryResult<TransitionSuccess>> {
+    return this.withClientWrite(params.client_id, (repo) => repo.propose(params));
   }
 
   async getMandateSubtreeHealth(

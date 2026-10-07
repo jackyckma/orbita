@@ -73,6 +73,21 @@
         { "type": "null" }
       ]
     },
+    "decision_class": { "$ref": "common.schema.json#/definitions/decision_class" },
+    "proposal_type": { "$ref": "common.schema.json#/definitions/proposal_type" },
+    "target": { "$ref": "common.schema.json#/definitions/proposal_target" },
+    "suggested_change": { "type": "string" },
+    "rationale": { "type": "string" },
+    "proposal_outcome": {
+      "$ref": "common.schema.json#/definitions/proposal_resolve_outcome"
+    },
+    "proposal_response": { "type": "string" },
+    "result_refs": { "type": "object" },
+    "inputs_from": {
+      "type": "array",
+      "items": { "$ref": "common.schema.json#/definitions/ticket_input_ref" }
+    },
+    "proposer_api_key_id": { "type": "string" },
     "created_at": { "$ref": "common.schema.json#/definitions/iso_date_time" },
     "updated_at": { "$ref": "common.schema.json#/definitions/iso_date_time" }
   },

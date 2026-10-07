@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://orbita.dev/schemas/lane-tickets/verbs/ticket_propose.request.schema.json",
+  "title": "ticket_propose request",
+  "type": "object",
+  "required": [
+    "parent_id",
+    "project",
+    "function",
+    "proposal_type",
+    "suggested_change",
+    "rationale"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "parent_id": { "$ref": "../common.schema.json#/definitions/uuid" },
+    "project": { "type": "string", "minLength": 1 },
+    "function": { "$ref": "../common.schema.json#/definitions/ticket_function" },
+    "proposal_type": { "$ref": "../common.schema.json#/definitions/proposal_type" },
+    "suggested_change": { "type": "string", "minLength": 1 },
+    "rationale": { "type": "string", "minLength": 1 },
+    "risk_tier": { "$ref": "../common.schema.json#/definitions/risk_tier" },
+    "target": { "$ref": "../common.schema.json#/definitions/proposal_target" },
+    "title": { "type": "string", "minLength": 1 },
+    "inputs_from": {
+      "type": "array",
+      "items": { "$ref": "../common.schema.json#/definitions/ticket_input_ref" }
+    },
+    "idempotency_key": { "$ref": "../common.schema.json#/definitions/idempotency_key" }
+  }
+}

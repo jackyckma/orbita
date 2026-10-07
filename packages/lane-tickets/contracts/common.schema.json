@@ -92,8 +92,60 @@
         "ticket_comment",
         "ticket_cancel",
         "ticket_update_charter",
-        "ticket_review"
+        "ticket_review",
+        "ticket_propose",
+        "ticket_resolve"
       ]
+    },
+    "decision_class": {
+      "type": "string",
+      "enum": ["question", "proposal"]
+    },
+    "proposal_type": {
+      "type": "string",
+      "enum": [
+        "process_change",
+        "task_type_request",
+        "charter_change_request",
+        "access_or_tool_request",
+        "cross_agent_suggestion",
+        "other"
+      ]
+    },
+    "proposal_resolve_outcome": {
+      "type": "string",
+      "enum": ["accepted", "declined", "needs_info", "deferred"]
+    },
+    "proposal_target": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mandate_id": { "$ref": "#/definitions/uuid" },
+        "ticket_id": { "$ref": "#/definitions/uuid" }
+      }
+    },
+    "ticket_input_ref": {
+      "type": "object",
+      "required": ["kind", "ref"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["note", "url", "ticket", "chat"]
+        },
+        "ref": { "type": "string", "minLength": 1 },
+        "from": { "type": "string" }
+      }
+    },
+    "proposal_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "founder_only_types": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/proposal_type" }
+        }
+      }
     },
     "task_class": {
       "type": "string",

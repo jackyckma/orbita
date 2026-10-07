@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://orbita.dev/schemas/lane-tickets/verbs/ticket_resolve.request.schema.json",
+  "title": "ticket_resolve request",
+  "type": "object",
+  "required": ["ticket_id", "outcome", "response"],
+  "additionalProperties": false,
+  "properties": {
+    "ticket_id": { "$ref": "../common.schema.json#/definitions/uuid" },
+    "expected_version": { "type": "integer", "minimum": 1 },
+    "outcome": { "$ref": "../common.schema.json#/definitions/proposal_resolve_outcome" },
+    "response": { "type": "string", "minLength": 1 },
+    "result_refs": { "type": "object" },
+    "idempotency_key": { "$ref": "../common.schema.json#/definitions/idempotency_key" }
+  }
+}

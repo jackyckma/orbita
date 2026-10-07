@@ -6,6 +6,7 @@ import type {
   ListTicketsQuery,
   ListTicketsResult,
   MandateSubtreeHealth,
+  ProposeTicketParams,
   RepositoryError,
   RepositoryResult,
   StoredTicket,
@@ -15,6 +16,14 @@ import type {
   TransitionParams,
   TransitionSuccess,
 } from "./repository/index.js";
+import {
+  countOpenProposalsInMandate,
+  executorCanReadTicket,
+  proposalTitleFromType,
+  validateInputsFromForActor,
+  viewTicketForActor,
+} from "./proposals.js";
+import { evaluateProposalCreate } from "./transitions.js";
 import {
   EMPTY_COUNTERS,
   buildTransitionInput,
@@ -52,10 +61,14 @@ function err(
   return { ok: false, error: { code, message, details } };
 }
 
-function publicTicket(row: StoredTicket): TicketRecord {
+function publicTicket(row: StoredTicket, actor?: import("./types.js").Actor): TicketRecord {
   const { mandate_id: _m, mandate_status: _s, mandate_counters: _c, ...rest } =
     row;
-  return rest;
+  const base = rest as TicketRecord;
+  if (!actor) {
+    return base;
+  }
+  return viewTicketForActor(base, actor);
 }
 
 function idempotencyKey(
@@ -291,6 +304,22 @@ export class FakeTicketRepository implements TicketRepository {
       return err("INVALID_PARENT", "Mandate charter required for create.");
     }
 
+    const ticketsById = new Map(
+      this.allForClient(client_id).map((t) => [t.id, t]),
+    );
+    const inputsCheck = validateInputsFromForActor(
+      actor,
+      ticket.inputs_from,
+      ticketsById,
+    );
+    if (inputsCheck && !inputsCheck.allowed) {
+      return err(
+        inputsCheck.error.code,
+        inputsCheck.error.message,
+        inputsCheck.error.details,
+      );
+    }
+
     const countersForCreate = (() => {
       const needsCounters = charter.hard_limits.some(
         (l) => l.enforcement === "server",
@@ -425,6 +454,9 @@ export class FakeTicketRepository implements TicketRepository {
       reviewed_at: null,
       reviewed_by: null,
       review_outcome: null,
+      decision_class:
+        ticket.kind === "decision" ? ("question" as const) : undefined,
+      inputs_from: ticket.inputs_from,
       mandate_id,
       mandate_status,
       mandate_counters:
@@ -464,6 +496,136 @@ export class FakeTicketRepository implements TicketRepository {
     return { ok: true, value: success };
   }
 
+  async propose(
+    params: ProposeTicketParams,
+  ): Promise<RepositoryResult<TransitionSuccess>> {
+    const {
+      client_id,
+      actor,
+      parent_id,
+      project,
+      function: fn,
+      proposal_type,
+      suggested_change,
+      rationale,
+      risk_tier,
+      target,
+      title,
+      inputs_from,
+      idempotency_key,
+    } = params;
+    const verb = "ticket_propose";
+    if (idempotency_key) {
+      const cached = this.data.idempotencyGet(
+        idempotencyKey(client_id, verb, idempotency_key),
+      );
+      if (cached) {
+        return { ok: true, value: { ...cached, replayed: true } };
+      }
+    }
+
+    const parent = this.getStored(client_id, parent_id);
+    if (!parent || parent.kind !== "mandate") {
+      return err(
+        "INVALID_PARENT",
+        "ticket_propose parent_id must be an active mandate.",
+      );
+    }
+    const charter = parent.charter;
+    if (!charter) {
+      return err("INVALID_PARENT", "Mandate charter required.");
+    }
+
+    const ticketsById = new Map(
+      this.allForClient(client_id).map((t) => [t.id, t]),
+    );
+    const inputsCheck = validateInputsFromForActor(
+      actor,
+      inputs_from,
+      ticketsById,
+    );
+    if (inputsCheck && !inputsCheck.allowed) {
+      return err(
+        inputsCheck.error.code,
+        inputsCheck.error.message,
+        inputsCheck.error.details,
+      );
+    }
+
+    const mandate_id = parent.id;
+    const openCount = countOpenProposalsInMandate(
+      mandate_id,
+      this.allForClient(client_id),
+    );
+    const pre = evaluateProposalCreate({
+      actor,
+      charter,
+      mandate_status: parent.status as import("./types.js").MandateStatus,
+      mandate_id,
+      open_proposals_count: openCount,
+      proposal_type,
+    });
+    if (!pre.allowed) {
+      return err(pre.error.code, pre.error.message, pre.error.details);
+    }
+
+    const id = randomUUID();
+    const ts = nowIso();
+    const row: StoredTicket = {
+      id,
+      client_id,
+      project,
+      function: fn,
+      kind: "decision",
+      parent_id: mandate_id,
+      title: title ?? proposalTitleFromType(proposal_type),
+      description: suggested_change,
+      status: "proposed",
+      risk_tier,
+      source: "native",
+      version: 1,
+      lease_holder: null,
+      lease_expires_at: null,
+      decision_class: "proposal",
+      proposal_type,
+      target,
+      suggested_change,
+      rationale,
+      inputs_from,
+      proposer_api_key_id: actor.api_key_id,
+      mandate_id,
+      mandate_status: parent.status as import("./types.js").MandateStatus,
+      mandate_counters: EMPTY_COUNTERS,
+      created_at: ts,
+      updated_at: ts,
+    };
+
+    this.data.setStored(row);
+    this.data.setEvents(id, []);
+    const event = this.appendEvent(row, {
+      ticket_id: id,
+      actor,
+      verb: "ticket_propose",
+      from_status: null,
+      to_status: "proposed",
+      payload: { proposal_type, target },
+      at: ts,
+    });
+    this.bumpCreationCounter(client_id, mandate_id, "decision");
+
+    const success: TransitionSuccess = {
+      ticket: publicTicket(row, actor),
+      event,
+    };
+    if (idempotency_key) {
+      this.data.idempotencySet(
+        idempotencyKey(client_id, verb, idempotency_key),
+        success,
+      );
+    }
+    return { ok: true, value: success };
+  }
+
   async get(
     params: GetTicketParams,
   ): Promise<RepositoryResult<GetTicketResult>> {
@@ -471,7 +633,16 @@ export class FakeTicketRepository implements TicketRepository {
     if (!row) {
       return err("NOT_FOUND", "Ticket not found.");
     }
-    const result: GetTicketResult = { ticket: publicTicket(row) };
+    if (
+      row.decision_class === "proposal" &&
+      params.actor &&
+      !executorCanReadTicket(params.actor, row)
+    ) {
+      return err("NOT_FOUND", "Ticket not found.");
+    }
+    const result: GetTicketResult = {
+      ticket: publicTicket(row, params.actor),
+    };
     if (params.include_events) {
       result.events = [...this.data.getEvents(row.id)];
     }
@@ -511,6 +682,27 @@ export class FakeTicketRepository implements TicketRepository {
     } else if (query.reviewed === false) {
       rows = rows.filter((r) => !r.reviewed_at);
     }
+    if (query.decision_class) {
+      rows = rows.filter(
+        (r) => (r.decision_class ?? "question") === query.decision_class,
+      );
+    }
+    if (query.proposal_type) {
+      rows = rows.filter((r) => r.proposal_type === query.proposal_type);
+    }
+    if (query.mine && query.actor?.api_key_id) {
+      rows = rows.filter(
+        (r) => r.proposer_api_key_id === query.actor?.api_key_id,
+      );
+    }
+    if (query.actor) {
+      rows = rows.filter((r) => {
+        if (r.decision_class === "proposal") {
+          return executorCanReadTicket(query.actor!, r);
+        }
+        return true;
+      });
+    }
 
     rows.sort((a, b) => {
       if (a.updated_at !== b.updated_at) {
@@ -538,9 +730,13 @@ export class FakeTicketRepository implements TicketRepository {
         ? encodeCursor(last.updated_at, last.id)
         : null;
 
+    const actor = query.actor;
     return {
       ok: true,
-      value: { tickets: page.map(publicTicket), next_cursor: next },
+      value: {
+        tickets: page.map((r) => publicTicket(r, actor)),
+        next_cursor: next,
+      },
     };
   }
 
@@ -669,6 +865,10 @@ export class FakeTicketRepository implements TicketRepository {
       override_precheck,
       review_outcome,
       creator_api_key_id: createEvent?.actor.api_key_id,
+      decision_class: row.decision_class,
+      proposal_type: row.proposal_type,
+      proposer_api_key_id: row.proposer_api_key_id,
+      proposal_resolve_outcome: params.proposal_resolve_outcome,
     });
 
     const decision = evaluateTransition(input);
@@ -764,6 +964,12 @@ export class FakeTicketRepository implements TicketRepository {
       row.review_outcome = review_outcome;
     }
 
+    if (verb === "ticket_resolve" && params.proposal_resolve_outcome) {
+      row.proposal_outcome = params.proposal_resolve_outcome;
+      row.proposal_response = params.proposal_response;
+      row.result_refs = params.result_refs;
+    }
+
     if (row.kind === "mandate" && decision.to_status) {
       row.mandate_status = decision.to_status as MandateStatus;
       this.syncSubtreeMandateStatus(
@@ -795,7 +1001,15 @@ export class FakeTicketRepository implements TicketRepository {
               event_kind: "reviewed",
               review_outcome,
             }
-          : payloadBase;
+          : verb === "ticket_resolve" && params.proposal_resolve_outcome
+            ? {
+                ...payloadBase,
+                event_kind: "proposal_resolved",
+                outcome: params.proposal_resolve_outcome,
+                response: params.proposal_response,
+                result_refs: params.result_refs,
+              }
+            : payloadBase;
 
     const event = this.appendEvent(row, {
       ticket_id: row.id,

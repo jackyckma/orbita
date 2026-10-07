@@ -20,8 +20,14 @@ import {
   shouldRequireReviewOnCreate,
   validateExceptionTaskParent,
 } from "./exception-tasks.js";
+import {
+  integratorMayResolveProposalType,
+  maxOpenProposals,
+  statusAfterProposalResolve,
+} from "./proposals.js";
 import type {
   Actor,
+  DecisionClass,
   EpicStatus,
   InitialStatusInput,
   InitialStatusResult,
@@ -29,6 +35,8 @@ import type {
   MandateCounters,
   MandateStatus,
   ParentTicketRef,
+  ProposalResolveOutcome,
+  ProposalType,
   ReviewOutcome,
   RiskTier,
   SoftBreachHint,
@@ -66,6 +74,7 @@ const MUTATING_VERBS: ReadonlySet<TicketVerb> = new Set([
   "ticket_create",
   "ticket_update_charter",
   "ticket_review",
+  "ticket_resolve",
 ]);
 
 const PAUSE_GATE_EXEMPT: ReadonlySet<TicketVerb> = new Set([
@@ -73,6 +82,7 @@ const PAUSE_GATE_EXEMPT: ReadonlySet<TicketVerb> = new Set([
   "ticket_block",
   "ticket_request_decision",
   "ticket_review",
+  "ticket_propose",
 ]);
 
 const PAUSE_GATED_AGENT_MUTATIONS: ReadonlySet<TicketVerb> = new Set([
@@ -94,6 +104,7 @@ const OWNERSHIP_VERBS: ReadonlySet<TicketVerb> = new Set([
   "ticket_extend",
   "ticket_comment",
   "ticket_approve",
+  "ticket_resolve",
 ]);
 
 function privilegedRequired(message: string): TransitionResult {
@@ -633,13 +644,53 @@ function evaluateEpic(
   }
 }
 
+function evaluateProposalWork(
+  status: WorkStatus,
+  verb: TicketVerb,
+  actor: Actor,
+  proposer_api_key_id?: string,
+): TransitionResult {
+  switch (verb) {
+    case "ticket_cancel":
+      if (status !== "proposed" && status !== "waiting_human") {
+        return deny(
+          "INVALID_TRANSITION",
+          "Can only cancel open proposals (proposed or waiting_human).",
+        );
+      }
+      if (isFounderOrIntegrator(actor)) {
+        return allow("cancelled");
+      }
+      if (
+        isExecutor(actor) &&
+        proposer_api_key_id &&
+        actor.api_key_id === proposer_api_key_id
+      ) {
+        return allow("cancelled");
+      }
+      return privilegedRequired(
+        "Only the proposer or a privileged role may cancel this proposal.",
+      );
+    default:
+      return deny(
+        "INVALID_TRANSITION",
+        `Verb ${verb} does not apply to proposal decisions.`,
+      );
+  }
+}
+
 function evaluateWork(
   kind: TicketKind,
   status: WorkStatus,
   verb: TicketVerb,
   actor: Actor,
   progress_target?: TicketStatus,
+  decision_class?: DecisionClass,
+  proposer_api_key_id?: string,
 ): TransitionResult {
+  if (kind === "decision" && decision_class === "proposal") {
+    return evaluateProposalWork(status, verb, actor, proposer_api_key_id);
+  }
   switch (verb) {
     case "ticket_approve":
       if (status !== "proposed") {
@@ -978,6 +1029,66 @@ export function evaluateTransition(input: TransitionInput): TransitionResult {
     return allow(undefined, soft);
   }
 
+  if (verb === "ticket_resolve") {
+    if (kind !== "decision" || input.decision_class !== "proposal") {
+      return deny(
+        "INVALID_TRANSITION",
+        "ticket_resolve applies only to proposal decisions.",
+      );
+    }
+    if (!isFounderOrIntegrator(actor)) {
+      return roleRequired(
+        ["founder", "integrator"],
+        "Resolving proposals requires founder or integrator.",
+      );
+    }
+    if (status !== "proposed" && status !== "waiting_human") {
+      return deny(
+        "INVALID_TRANSITION",
+        "Proposal resolve only from proposed or waiting_human.",
+      );
+    }
+    const proposalType = input.proposal_type;
+    if (!proposalType) {
+      return deny("INVALID_TRANSITION", "Proposal is missing proposal_type.");
+    }
+    if (
+      isIntegrator(actor) &&
+      !integratorMayResolveProposalType(proposalType, charter)
+    ) {
+      return deny(
+        "PRIVILEGED_ROLE_REQUIRED",
+        "Integrator cannot resolve founder-only proposal types.",
+        { proposal_type: proposalType },
+      );
+    }
+    if (
+      input.proposer_api_key_id &&
+      actor.api_key_id &&
+      input.proposer_api_key_id === actor.api_key_id
+    ) {
+      return deny(
+        "INVALID_TRANSITION",
+        "Proposer cannot resolve its own proposal.",
+      );
+    }
+    const outcome = input.proposal_resolve_outcome;
+    const valid: ProposalResolveOutcome[] = [
+      "accepted",
+      "declined",
+      "needs_info",
+      "deferred",
+    ];
+    if (!outcome || !valid.includes(outcome)) {
+      return deny(
+        "INVALID_TRANSITION",
+        "ticket_resolve requires outcome accepted | declined | needs_info | deferred.",
+      );
+    }
+    const soft = collectSoftBreaches(charter, input.soft_observations);
+    return allow(statusAfterProposalResolve(outcome), soft);
+  }
+
   if (verb === "ticket_review") {
     if (!isFounderOrIntegrator(actor)) {
       return roleRequired(
@@ -1142,6 +1253,8 @@ export function evaluateTransition(input: TransitionInput): TransitionResult {
       verb,
       actor,
       input.progress_target,
+      input.decision_class,
+      input.proposer_api_key_id,
     );
   }
 
@@ -1199,7 +1312,40 @@ export const ALL_VERBS: TicketVerb[] = [
   "ticket_cancel",
   "ticket_update_charter",
   "ticket_review",
+  "ticket_propose",
+  "ticket_resolve",
 ];
+
+/** Validate ticket_propose create preconditions (pure). */
+export function evaluateProposalCreate(input: {
+  actor: Actor;
+  charter: MandateCharter;
+  mandate_status: MandateStatus;
+  mandate_id: string;
+  open_proposals_count: number;
+  proposal_type: ProposalType;
+}): TransitionResult {
+  if (input.mandate_status !== "active") {
+    return deny(
+      "MANDATE_NOT_ACTIVE",
+      "Proposals require an active mandate.",
+      { mandate_status: input.mandate_status },
+    );
+  }
+  const own = checkExecutorMandateOwnership(input.actor, input.mandate_id);
+  if (own) {
+    return own;
+  }
+  const cap = maxOpenProposals(input.charter);
+  if (input.open_proposals_count >= cap) {
+    return deny(
+      "HARD_LIMIT_EXCEEDED",
+      "max_open_proposals exceeded for this mandate.",
+      { max_open_proposals: cap, open: input.open_proposals_count },
+    );
+  }
+  return allow("proposed");
+}
 
 export function statusesForKind(kind: TicketKind): TicketStatus[] {
   if (kind === "mandate") {

@@ -47,9 +47,42 @@ export type TicketVerb =
   | "ticket_comment"
   | "ticket_cancel"
   | "ticket_update_charter"
-  | "ticket_review";
+  | "ticket_review"
+  | "ticket_propose"
+  | "ticket_resolve";
 
 export type TaskClass = "planned" | "exception";
+
+export type DecisionClass = "question" | "proposal";
+
+export type ProposalType =
+  | "process_change"
+  | "task_type_request"
+  | "charter_change_request"
+  | "access_or_tool_request"
+  | "cross_agent_suggestion"
+  | "other";
+
+export type ProposalResolveOutcome =
+  | "accepted"
+  | "declined"
+  | "needs_info"
+  | "deferred";
+
+export interface ProposalTarget {
+  mandate_id?: string;
+  ticket_id?: string;
+}
+
+export interface TicketInputRef {
+  kind: "note" | "url" | "ticket" | "chat";
+  ref: string;
+  from?: string;
+}
+
+export interface ProposalPolicy {
+  founder_only_types?: ProposalType[];
+}
 
 export type ReviewOutcome = "accepted" | "needs_changes" | "cancel";
 
@@ -132,6 +165,9 @@ export interface MandateCharter {
   soft_constraints: SoftConstraint[];
   approval_policy?: ApprovalPolicy;
   exception_types?: ExceptionTypeDef[];
+  proposal_policy?: ProposalPolicy;
+  /** Hard cap on open proposals (decision_class=proposal) per mandate; default 5. */
+  max_open_proposals?: number;
 }
 
 /** Snapshot counts for server-enforceable hard_limits (no database). */
@@ -234,6 +270,18 @@ export interface TransitionInput {
   review_outcome?: ReviewOutcome;
   /** Create-event actor api_key_id — self-review guard for ticket_review. */
   creator_api_key_id?: string;
+  decision_class?: DecisionClass;
+  proposal_type?: ProposalType;
+  target?: ProposalTarget;
+  suggested_change?: string;
+  rationale?: string;
+  proposal_outcome?: ProposalResolveOutcome;
+  proposal_response?: string;
+  result_refs?: Record<string, unknown>;
+  inputs_from?: TicketInputRef[];
+  proposer_api_key_id?: string;
+  open_proposals_count?: number;
+  proposal_resolve_outcome?: ProposalResolveOutcome;
 }
 
 export interface InitialStatusInput {
