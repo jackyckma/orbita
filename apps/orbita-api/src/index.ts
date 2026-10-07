@@ -294,6 +294,7 @@ adminApp.route("/", createAdminObservabilityRoutes(adminDb, {
   },
 }));
 adminApp.route("/", createAdminHarnessRoutes(adminDb));
+// PUT/PATCH/DELETE /v1/admin/credentials/{client_id}/{name} — vault rotation (T-0099)
 adminApp.route(
   "/",
   createCredentialAdminRoutes(credentialsDb, env.ORBITA_SECRETS_KEY!),
