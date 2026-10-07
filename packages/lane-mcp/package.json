@@ -15,6 +15,7 @@
     "@orbita/memory": "workspace:*",
     "@orbita/platform": "workspace:*",
     "@orbita/portfolio": "workspace:*",
+    "@orbita/tickets": "workspace:*",
     "zod": "^3.25.56"
   },
   "devDependencies": {
