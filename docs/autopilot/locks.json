@@ -4,8 +4,8 @@
     "T-0087": {
       "by": "maker",
       "since": "2026-10-07T09:22:05.200Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/t-0087-mcp-ticket-tools",
+      "pr": 60
     }
   }
 }

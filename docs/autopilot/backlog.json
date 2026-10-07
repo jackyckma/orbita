@@ -1523,7 +1523,7 @@
         "T-0097"
       ],
       "flag": "ORBITA_TICKETS_ENABLED",
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-02: E-16 first pass (5/6) — MCP verbs behind same flag.",
@@ -1531,7 +1531,8 @@
         "2026-10-05 hub: runs after T-0086, which now follows T-0088.",
         "2026-10-06 hub: depends on the actor-derivation task.",
         "2026-10-06 hub: depends on roles/exception tasks; adds MCP instructions and whoami extension.",
-        "2026-10-06 hub: depends on the proposals task."
+        "2026-10-06 hub: depends on the proposals task.",
+        "2026-10-07 maker: PR https://github.com/jackyckma/orbita/pull/60 opened; acceptance green."
       ]
     },
     {
