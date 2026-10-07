@@ -4,8 +4,8 @@
     "T-0100": {
       "by": "maker",
       "since": "2026-10-07T11:26:00.000Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/t-0100-mcp-tickets-pool-memo",
+      "pr": 61
     }
   }
 }
