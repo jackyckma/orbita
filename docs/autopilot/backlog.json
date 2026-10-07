@@ -1537,6 +1537,29 @@
       ]
     },
     {
+      "id": "T-0100",
+      "lane": "platform",
+      "phase": "consultos-b",
+      "title": "MCP tickets: build the tickets repository once per process (connection-pool leak)",
+      "description": "HUB REVIEW of merged PR #60 / T-0087 (2026-10-07): apps/orbita-api/src/index.ts calls buildMcpTicketsDeps(env, env.DATABASE_URL!) INSIDE the app.all(\"/v1/mcp\", ...) handler, i.e. on every MCP request; with ORBITA_TICKETS_ENABLED=1 that calls createTicketsDb() -> postgres(url, {max:5}) each time and never closes it, so every MCP call leaks a connection pool and Postgres connections are exhausted after a few dozen requests. PRIORITY: do this BEFORE the narrowed E-16 second pass and before any D-005 activation task; do not flip ORBITA_TICKETS_ENABLED in production. Fix: create the TicketRepository (and parsed actorConfig) ONCE at startup / lazily memoised at module scope and reuse it for MCP and for tickets-mount (share one repository instance between REST mount and MCP if practical). Flag-off path must stay allocation-free (no pool created when ORBITA_TICKETS_ENABLED != \"1\"). Acceptance: unit test proving buildMcpTicketsDeps / its replacement returns the same repository instance across calls and creates no db client when the flag is off; existing MCP golden test (16 legacy tools) unchanged; no change to ticket authorization logic; typecheck + all tests green.",
+      "acceptance": [
+        "pnpm --filter @orbita/api test",
+        "pnpm --filter @orbita/mcp test",
+        "pnpm -r typecheck",
+        "rg -n \"buildMcpTicketsDeps\" apps/orbita-api/src",
+        "rg -n \"mcp-golden\" packages/lane-mcp/src"
+      ],
+      "deps": [
+        "T-0087"
+      ],
+      "flag": "ORBITA_TICKETS_ENABLED",
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "2026-10-07 hub review of merged PR #60: MCP request handler opens a new postgres pool on every call."
+      ]
+    },
+    {
       "id": "T-0092",
       "lane": "agent",
       "phase": "consultos-byok",
