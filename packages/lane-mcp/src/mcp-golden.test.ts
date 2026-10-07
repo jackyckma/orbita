@@ -1,3 +1,4 @@
+/** mcp-golden: legacy 16-tool baseline when tickets flag is off. */
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";

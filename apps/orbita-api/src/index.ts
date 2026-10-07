@@ -258,9 +258,10 @@ app.route(
   createOAuthRoutes({ oauthDb, authDb, config: oauthConfig }),
 );
 
+const mcpTicketsDeps = buildMcpTicketsDeps(env, env.DATABASE_URL!);
+
 app.all("/v1/mcp", mcpAuthMiddleware, requireMcpScope("sessions:use"), async (c) => {
   const auth = getAuth(c);
-  const mcpTickets = buildMcpTicketsDeps(env, env.DATABASE_URL!);
   const handler = createOrbitaMcpHandler({
     clientId: auth.clientId,
     keyPrefix: auth.apiKey.keyPrefix,
@@ -271,8 +272,8 @@ app.all("/v1/mcp", mcpAuthMiddleware, requireMcpScope("sessions:use"), async (c)
     credentialsDb,
     secretsKey: env.ORBITA_SECRETS_KEY!,
     version: VERSION,
-    ticketsEnabled: mcpTickets.ticketsEnabled,
-    tickets: mcpTickets.tickets,
+    ticketsEnabled: mcpTicketsDeps.ticketsEnabled,
+    tickets: mcpTicketsDeps.tickets,
   });
   return handler(c.req.raw);
 });
