@@ -1468,11 +1468,16 @@
         "T-0096"
       ],
       "flag": "ORBITA_TICKETS_ENABLED",
-      "status": "in_review",
+      "status": "done",
       "retries": 0,
       "feedback": [
         "2026-10-06 hub: written from the founder's idea that bots can send requests/suggestions escalated to founder/integrator; modelled as decision class 'proposal', not as a role or a task type.",
-        "Maker 2026-10-07: PR https://github.com/jackyckma/orbita/pull/58 opened; tickets test + typecheck green."
+        "Maker 2026-10-07: PR https://github.com/jackyckma/orbita/pull/58 opened; tickets test + typecheck green.",
+        {
+          "at": "2026-10-07T09:05:00.000Z",
+          "by": "checker",
+          "note": "REVIEW PR #58: verify-all PASS; T-0097 acceptance PASS; CI verify + e2e-tier-a SUCCESS. Scope matches (ticket_propose/ticket_resolve REST, proposal_policy, max_open_proposals, inputs_from, isolation + untrusted markers; no MCP). Merged PR #58 to main (6c1d658)."
+        }
       ]
     },
     {
