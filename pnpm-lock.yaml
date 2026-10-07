@@ -294,6 +294,9 @@ importers:
       '@orbita/portfolio':
         specifier: workspace:*
         version: link:../lane-portfolio
+      '@orbita/tickets':
+        specifier: workspace:*
+        version: link:../lane-tickets
       zod:
         specifier: ^3.25.56
         version: 3.25.76

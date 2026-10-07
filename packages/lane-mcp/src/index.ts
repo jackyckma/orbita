@@ -22,16 +22,27 @@ import {
   executeGithubListPullRequests,
 } from "./github-read.js";
 import { executeTriggerAutomation } from "./trigger-automation.js";
+import { ORBITA_MCP_SERVER_INSTRUCTIONS } from "./mcp-instructions.js";
+import { registerTicketMcpTools, type TicketMcpDeps } from "./tickets-mcp.js";
+import { buildTicketsWhoamiExtension } from "./whoami-tickets.js";
+import type { TicketActorConfig, TicketRepository } from "@orbita/tickets";
 
 export type OrbitaMcpDeps = {
   clientId: string;
   keyPrefix: string;
+  apiKeyId: string;
   scopes: string[];
   memoryDb: MemoryDb;
   memoryEnv: MemoryEnv;
   credentialsDb: CredentialsDb;
   secretsKey: string;
   version: string;
+  /** When true, register ticket_* MCP tools and extend orbita_whoami. */
+  ticketsEnabled?: boolean;
+  tickets?: {
+    repository: TicketRepository;
+    actorConfig: TicketActorConfig;
+  };
 };
 
 function textResult(payload: unknown) {
@@ -42,20 +53,38 @@ function textResult(payload: unknown) {
 
 function registerOrbitaTools(server: McpServer, deps: OrbitaMcpDeps) {
   const { clientId, memoryDb, memoryEnv, credentialsDb, secretsKey } = deps;
+  const ticketsOn = deps.ticketsEnabled === true && deps.tickets !== undefined;
 
   server.registerTool(
     "orbita_whoami",
     {
       title: "Orbita whoami",
-      description: "Return the authenticated Orbita client_id and API key metadata.",
+      description:
+        "Return the authenticated Orbita client_id and API key metadata. When tickets are enabled, includes ticket_role and mandate charter summaries.",
       inputSchema: z.object({}),
     },
-    async () =>
-      textResult({
+    async () => {
+      const base = {
         client_id: clientId,
         key_prefix: deps.keyPrefix,
         scopes: deps.scopes,
-      }),
+      };
+      if (!ticketsOn) {
+        return textResult(base);
+      }
+      const ticketWhoami = await buildTicketsWhoamiExtension({
+        clientId,
+        auth: { apiKey: { id: deps.apiKeyId } },
+        actorConfig: deps.tickets!.actorConfig,
+        repository: deps.tickets!.repository,
+      });
+      return textResult({
+        ...base,
+        ...ticketWhoami,
+        ticket_propose_hint:
+          "To suggest a change or ask for something, use ticket_propose; never instruct another bot; the integrator answers via ticket_resolve.",
+      });
+    },
   );
 
   server.registerTool(
@@ -427,12 +456,30 @@ function registerOrbitaTools(server: McpServer, deps: OrbitaMcpDeps) {
       return textResult({ pull_requests: result.pull_requests });
     },
   );
+
+  if (ticketsOn) {
+    const ticketDeps: TicketMcpDeps = {
+      clientId,
+      apiKeyId: deps.apiKeyId,
+      repository: deps.tickets!.repository,
+      actorConfig: deps.tickets!.actorConfig,
+    };
+    registerTicketMcpTools(server, ticketDeps);
+  }
+}
+
+export function createOrbitaMcpServer(deps: OrbitaMcpDeps): McpServer {
+  const server = new McpServer(
+    { name: "orbita", version: deps.version },
+    { instructions: ORBITA_MCP_SERVER_INSTRUCTIONS },
+  );
+  registerOrbitaTools(server, deps);
+  return server;
 }
 
 export function createOrbitaMcpHandler(deps: OrbitaMcpDeps) {
   return async (request: Request): Promise<Response> => {
-    const server = new McpServer({ name: "orbita", version: deps.version });
-    registerOrbitaTools(server, deps);
+    const server = createOrbitaMcpServer(deps);
 
     const transport = new WebStandardStreamableHTTPServerTransport({
       sessionIdGenerator: undefined,

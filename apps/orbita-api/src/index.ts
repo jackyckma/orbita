@@ -87,6 +87,7 @@ import {
 } from "@orbita/oauth";
 import { createInboundEmailRoutes } from "./inbound-email.js";
 import { mountTicketRoutesIfEnabled } from "./tickets-mount.js";
+import { buildMcpTicketsDeps } from "./mcp-tickets-deps.js";
 import { registerPublicCallerOpenApiRoute } from "./openapi-public.js";
 import { runMigrations } from "./migrate.js";
 import { createE2eMockTurnRunner } from "./e2e-mock.js";
@@ -259,15 +260,19 @@ app.route(
 
 app.all("/v1/mcp", mcpAuthMiddleware, requireMcpScope("sessions:use"), async (c) => {
   const auth = getAuth(c);
+  const mcpTickets = buildMcpTicketsDeps(env, env.DATABASE_URL!);
   const handler = createOrbitaMcpHandler({
     clientId: auth.clientId,
     keyPrefix: auth.apiKey.keyPrefix,
+    apiKeyId: auth.apiKey.id,
     scopes: auth.apiKey.scopes,
     memoryDb,
     memoryEnv,
     credentialsDb,
     secretsKey: env.ORBITA_SECRETS_KEY!,
     version: VERSION,
+    ticketsEnabled: mcpTickets.ticketsEnabled,
+    tickets: mcpTickets.tickets,
   });
   return handler(c.req.raw);
 });
