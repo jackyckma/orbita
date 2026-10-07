@@ -171,6 +171,9 @@ export function buildTransitionInput(
     exception_type: row.exception_type,
     requires_review: row.requires_review,
     reviewed_at: row.reviewed_at,
+    decision_class: row.decision_class,
+    proposal_type: row.proposal_type,
+    proposer_api_key_id: row.proposer_api_key_id,
     ...extras,
   };
 }

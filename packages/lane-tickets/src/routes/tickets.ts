@@ -78,6 +78,8 @@ export const TICKET_OPENAPI_PATHS = [
   "/tickets/ticket_cancel",
   "/tickets/ticket_update_charter",
   "/tickets/ticket_review",
+  "/tickets/ticket_propose",
+  "/tickets/ticket_resolve",
 ] as const;
 
 export type TicketRoutesDeps = {
@@ -97,6 +99,7 @@ const TRANSITION_VERBS: TicketVerb[] = [
   "ticket_cancel",
   "ticket_update_charter",
   "ticket_review",
+  "ticket_resolve",
 ];
 
 export function createTicketRoutes(deps: TicketRoutesDeps): OpenAPIHono {
@@ -191,6 +194,102 @@ export function createTicketRoutes(deps: TicketRoutesDeps): OpenAPIHono {
     return c.json({ ticket: result.value.ticket }, 200);
   });
 
+  const proposeRoute = createRoute({
+    method: "post",
+    path: "/tickets/ticket_propose",
+    tags: ["Tickets"],
+    summary: "ticket_propose",
+    request: {
+      body: {
+        content: {
+          "application/json": {
+            schema: z.object({
+              parent_id: z.string().uuid(),
+              project: z.string().min(1),
+              function: z.enum([
+                "dev",
+                "infra",
+                "support",
+                "marketing",
+                "sales",
+                "ops",
+                "research",
+              ]),
+              proposal_type: z.enum([
+                "process_change",
+                "task_type_request",
+                "charter_change_request",
+                "access_or_tool_request",
+                "cross_agent_suggestion",
+                "other",
+              ]),
+              suggested_change: z.string().min(1),
+              rationale: z.string().min(1),
+              risk_tier: z.enum(["L0", "L1", "L2", "money"]).optional(),
+              target: z
+                .object({
+                  mandate_id: z.string().uuid().optional(),
+                  ticket_id: z.string().uuid().optional(),
+                })
+                .optional(),
+              title: z.string().min(1).optional(),
+              inputs_from: z
+                .array(
+                  z.object({
+                    kind: z.enum(["note", "url", "ticket", "chat"]),
+                    ref: z.string().min(1),
+                    from: z.string().optional(),
+                  }),
+                )
+                .optional(),
+              idempotency_key: z.string().min(1).max(128).optional(),
+            }),
+          },
+        },
+      },
+    },
+    responses: {
+      200: {
+        description: "Proposal decision ticket",
+        content: {
+          "application/json": { schema: TransitionResponseSchema },
+        },
+      },
+    },
+  });
+
+  app.openapi(proposeRoute, async (c) => {
+    const auth = getAuth(c);
+    const body = c.req.valid("json");
+    const actor = deriveTicketActor(auth, normalizedActorConfig);
+    const result = await repository.propose({
+      client_id: auth.clientId,
+      actor,
+      parent_id: body.parent_id,
+      project: body.project,
+      function: body.function,
+      proposal_type: body.proposal_type,
+      suggested_change: body.suggested_change,
+      rationale: body.rationale,
+      risk_tier: body.risk_tier,
+      target: body.target,
+      title: body.title,
+      inputs_from: body.inputs_from,
+      idempotency_key: body.idempotency_key,
+    });
+    if (!result.ok) {
+      throw repositoryToOrbitaError(result.error);
+    }
+    return c.json(
+      {
+        ticket: result.value.ticket,
+        event: result.value.event,
+        replayed: result.value.replayed,
+      },
+      200,
+    );
+  });
+
   const listRoute = createRoute({
     method: "get",
     path: "/tickets",
@@ -224,6 +323,21 @@ export function createTicketRoutes(deps: TicketRoutesDeps): OpenAPIHono {
           .enum(["true", "false"])
           .optional()
           .transform((v) => (v === undefined ? undefined : v === "true")),
+        decision_class: z.enum(["question", "proposal"]).optional(),
+        proposal_type: z
+          .enum([
+            "process_change",
+            "task_type_request",
+            "charter_change_request",
+            "access_or_tool_request",
+            "cross_agent_suggestion",
+            "other",
+          ])
+          .optional(),
+        mine: z
+          .enum(["true", "false"])
+          .optional()
+          .transform((v) => v === "true"),
       }),
     },
     responses: {
@@ -244,6 +358,7 @@ export function createTicketRoutes(deps: TicketRoutesDeps): OpenAPIHono {
   app.openapi(listRoute, async (c) => {
     const auth = getAuth(c);
     const query = c.req.valid("query");
+    const actor = deriveTicketActor(auth, normalizedActorConfig);
     const result = await repository.list({
       client_id: auth.clientId,
       project: query.project,
@@ -256,6 +371,10 @@ export function createTicketRoutes(deps: TicketRoutesDeps): OpenAPIHono {
       task_class: query.task_class,
       requires_review: query.requires_review,
       reviewed: query.reviewed,
+      decision_class: query.decision_class,
+      proposal_type: query.proposal_type,
+      mine: query.mine,
+      actor,
     });
     if (!result.ok) {
       throw repositoryToOrbitaError(result.error);
@@ -300,10 +419,12 @@ export function createTicketRoutes(deps: TicketRoutesDeps): OpenAPIHono {
     const auth = getAuth(c);
     const { ticket_id } = c.req.valid("param");
     const { include_events } = c.req.valid("query");
+    const actor = deriveTicketActor(auth, normalizedActorConfig);
     const result = await repository.get({
       client_id: auth.clientId,
       ticket_id,
       include_events,
+      actor,
     });
     if (!result.ok) {
       throw repositoryToOrbitaError(result.error);
@@ -381,6 +502,16 @@ export function createTicketRoutes(deps: TicketRoutesDeps): OpenAPIHono {
                   review_outcome: z
                     .enum(["accepted", "needs_changes", "cancel"])
                     .optional(),
+                  outcome: z
+                    .enum([
+                      "accepted",
+                      "declined",
+                      "needs_info",
+                      "deferred",
+                    ])
+                    .optional(),
+                  response: z.string().optional(),
+                  result_refs: z.record(z.unknown()).optional(),
                 })
                 .passthrough(),
             },
@@ -435,6 +566,9 @@ export function createTicketRoutes(deps: TicketRoutesDeps): OpenAPIHono {
         override_precheck: body.override_precheck,
         charter_patch: body.charter_patch as TransitionParams["charter_patch"],
         review_outcome: body.review_outcome as TransitionParams["review_outcome"],
+        proposal_resolve_outcome: body.outcome as TransitionParams["proposal_resolve_outcome"],
+        proposal_response: body.response,
+        result_refs: body.result_refs as TransitionParams["result_refs"],
       };
 
       const result = await repository.transition(params);

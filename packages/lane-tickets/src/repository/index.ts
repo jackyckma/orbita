@@ -1,12 +1,17 @@
 import type {
   Actor,
+  DecisionClass,
   MandateCharter,
   MandateCounters,
   MandateStatus,
+  ProposalResolveOutcome,
+  ProposalTarget,
+  ProposalType,
   ReviewOutcome,
   RiskTier,
   SoftBreachHint,
   TaskClass,
+  TicketInputRef,
   TicketKind,
   TicketSource,
   TicketStatus,
@@ -52,6 +57,16 @@ export interface TicketRecord {
   reviewed_at?: string | null;
   reviewed_by?: Actor | null;
   review_outcome?: ReviewOutcome | null;
+  decision_class?: DecisionClass;
+  proposal_type?: ProposalType;
+  target?: ProposalTarget;
+  suggested_change?: string;
+  rationale?: string;
+  proposal_outcome?: ProposalResolveOutcome;
+  proposal_response?: string;
+  result_refs?: Record<string, unknown>;
+  inputs_from?: TicketInputRef[];
+  proposer_api_key_id?: string;
   created_at: string;
   updated_at: string;
 }
@@ -101,6 +116,11 @@ export interface ListTicketsFilter {
   requires_review?: boolean;
   /** When true, only tickets with reviewed_at set; when false, only unreviewed. */
   reviewed?: boolean;
+  decision_class?: DecisionClass;
+  proposal_type?: ProposalType;
+  /** Proposer-only filter (matches proposer_api_key_id). */
+  mine?: boolean;
+  actor?: Actor;
 }
 
 export interface ListTicketsQuery extends ListTicketsFilter {
@@ -132,6 +152,7 @@ export interface CreateTicketBody {
   git_ref?: string;
   task_class?: TaskClass;
   exception_type?: string;
+  inputs_from?: TicketInputRef[];
 }
 
 export interface CreateTicketParams {
@@ -146,6 +167,7 @@ export interface GetTicketParams {
   client_id: string;
   ticket_id: string;
   include_events?: boolean;
+  actor?: Actor;
 }
 
 export interface GetTicketResult {
@@ -170,6 +192,25 @@ export interface TransitionParams {
   charter_patch?: Partial<MandateCharter>;
   override_precheck?: boolean;
   review_outcome?: ReviewOutcome;
+  proposal_resolve_outcome?: ProposalResolveOutcome;
+  proposal_response?: string;
+  result_refs?: Record<string, unknown>;
+}
+
+export interface ProposeTicketParams {
+  client_id: string;
+  actor: Actor;
+  parent_id: string;
+  project: string;
+  function: TicketFunction;
+  proposal_type: ProposalType;
+  suggested_change: string;
+  rationale: string;
+  risk_tier?: RiskTier;
+  target?: ProposalTarget;
+  title?: string;
+  inputs_from?: TicketInputRef[];
+  idempotency_key?: string;
 }
 
 export interface TransitionSuccess {
@@ -194,6 +235,8 @@ export interface TicketRepository {
   list(query: ListTicketsQuery): Promise<RepositoryResult<ListTicketsResult>>;
 
   transition(params: TransitionParams): Promise<RepositoryResult<TransitionSuccess>>;
+
+  propose(params: ProposeTicketParams): Promise<RepositoryResult<TransitionSuccess>>;
 
   /** Mandate health signal: status histogram + latest event timestamp in subtree. */
   getMandateSubtreeHealth(

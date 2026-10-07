@@ -111,6 +111,18 @@ All verbs share JSON bodies between **REST** (`/v1/tickets…`, separate from no
 | `ticket_comment` | Append-only comment event |
 | `ticket_cancel` | Cancel (human rules on proposed) |
 | `ticket_review` | Integrator/founder review queue (`review_outcome`: accepted \| needs_changes \| cancel); appends `reviewed` event |
+| `ticket_propose` | Create a `decision` with `decision_class=proposal` (status `proposed`); escalates to integrator/founder inbox |
+| `ticket_resolve` | Founder or integrator resolves a proposal (`outcome`, `response`, optional `result_refs`) |
+
+### Proposal decisions (`decision_class=proposal`)
+
+Executors (and privileged roles) submit **proposals** under their own **active mandate** via `ticket_propose`. Proposals are not claimed or executed; they wait for `ticket_resolve`. Charter fields: **`proposal_policy.founder_only_types`** (default `charter_change_request`, `access_or_tool_request`) and **`max_open_proposals`** (default 5, server-enforced). Integrators see the inbox with `ticket_list?decision_class=proposal&status=proposed`; proposers use `mine=true` to see outcomes on their submissions.
+
+**Isolation:** cross-agent suggestions are stored under the **proposer’s** mandate (`target.mandate_id` may point elsewhere). Executors only read proposals in their mandate subtree; other bots never see proposal text. Outcomes reach other agents only via integrator/founder follow-up (charter update or new tasks).
+
+**`inputs_from`:** optional provenance on proposals and exception tasks (`{kind, ref, from?}`). Marked **`untrusted_author`** when returned to founder/integrator readers. Executors cannot attach `ticket` inputs outside their readable subtree.
+
+**TODO (E-17 tier 2):** explicit read grants between mandates via charter `shares_with` — do not loosen default subtree reads until then.
 
 **Integrator review queue:** `ticket_list` filters `requires_review`, `reviewed`, and `task_class`. Queue = `requires_review=true` and unreviewed (`reviewed=false`). Executor auto-approved epics/tasks also land in this queue.
 

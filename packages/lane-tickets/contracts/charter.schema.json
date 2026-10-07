@@ -122,6 +122,16 @@
       "type": "array",
       "description": "Typed exception tasks may be created directly under an active mandate (task_class=exception).",
       "items": { "$ref": "#/definitions/exception_type" }
+    },
+    "proposal_policy": {
+      "$ref": "common.schema.json#/definitions/proposal_policy",
+      "description": "Who may resolve proposal types (founder_only_types default: charter_change_request, access_or_tool_request)."
+    },
+    "max_open_proposals": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 5,
+      "description": "Hard server cap on open proposal decisions per mandate."
     }
   },
   "definitions": {

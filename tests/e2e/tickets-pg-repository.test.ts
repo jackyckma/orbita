@@ -563,4 +563,55 @@ describe.skipIf(!runE2e)("PgTicketRepository (real Postgres, tier A)", () => {
       ).toBe(false);
     }
   });
+
+  it("proposal inbox: ticket_propose list filter decision_class=proposal status=proposed", async () => {
+    const repo = new PgTicketRepository(sql);
+    const mandate = await repo.create({
+      client_id: CLIENT_A,
+      actor: { role: "founder" },
+      ticket: {
+        project: "prop-inbox",
+        function: "dev",
+        kind: "mandate",
+        title: "M-prop",
+        charter: charter(),
+      },
+    });
+    if (!mandate.ok) throw new Error("mandate");
+    await repo.transition({
+      client_id: CLIENT_A,
+      ticket_id: mandate.value.ticket.id,
+      verb: "ticket_approve",
+      actor: { role: "founder" },
+    });
+    const proposed = await repo.propose({
+      client_id: CLIENT_A,
+      actor: {
+        role: "executor",
+        mandate_ids: [mandate.value.ticket.id],
+        api_key_id: "pg-prop-exec",
+      },
+      parent_id: mandate.value.ticket.id,
+      project: "prop-inbox",
+      function: "dev",
+      proposal_type: "process_change",
+      suggested_change: "Change cadence",
+      rationale: "Better fit",
+    });
+    expect(proposed.ok).toBe(true);
+    if (!proposed.ok) return;
+
+    const inbox = await repo.list({
+      client_id: CLIENT_A,
+      decision_class: "proposal",
+      status: "proposed",
+      actor: { role: "integrator", api_key_id: "pg-int-prop" },
+    });
+    expect(inbox.ok).toBe(true);
+    if (inbox.ok) {
+      expect(
+        inbox.value.tickets.some((t) => t.id === proposed.value.ticket.id),
+      ).toBe(true);
+    }
+  });
 });

@@ -19,6 +19,9 @@ export function sqlListTickets(params: {
   cursor_updated_at?: string;
   cursor_id?: string;
   limit: number;
+  decision_class?: string;
+  proposal_type?: string;
+  proposer_api_key_id?: string;
 }): SqlParam {
   const values: unknown[] = [params.client_id];
   const clauses = ["client_id = $1"];
@@ -35,6 +38,18 @@ export function sqlListTickets(params: {
   if (params.status) {
     clauses.push(`status = $${n++}`);
     values.push(params.status);
+  }
+  if (params.decision_class) {
+    clauses.push(`decision_class = $${n++}`);
+    values.push(params.decision_class);
+  }
+  if (params.proposal_type) {
+    clauses.push(`proposal_type = $${n++}`);
+    values.push(params.proposal_type);
+  }
+  if (params.proposer_api_key_id) {
+    clauses.push(`proposer_api_key_id = $${n++}`);
+    values.push(params.proposer_api_key_id);
   }
   if (params.owner) {
     clauses.push(`owner = $${n++}`);
