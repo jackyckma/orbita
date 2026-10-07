@@ -1495,7 +1495,7 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "ready",
+      "status": "in_progress",
       "retries": 0,
       "feedback": [
         "2026-10-07 hub: written after the GitHub token rotation incident; replaces the manual SQL delete."
