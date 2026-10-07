@@ -1468,7 +1468,7 @@
         "T-0096"
       ],
       "flag": "ORBITA_TICKETS_ENABLED",
-      "status": "ready",
+      "status": "in_progress",
       "retries": 0,
       "feedback": [
         "2026-10-06 hub: written from the founder's idea that bots can send requests/suggestions escalated to founder/integrator; modelled as decision class 'proposal', not as a role or a task type."
