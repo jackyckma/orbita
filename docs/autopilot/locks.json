@@ -4,8 +4,8 @@
     "T-0101": {
       "by": "maker",
       "since": "2026-10-07T23:06:00.000Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/t-0101-grok-mandate-seed",
+      "pr": 62
     }
   }
 }
