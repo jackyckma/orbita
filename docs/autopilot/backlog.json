@@ -1553,11 +1553,12 @@
         "T-0087"
       ],
       "flag": "ORBITA_TICKETS_ENABLED",
-      "status": "in_review",
+      "status": "done",
       "retries": 0,
       "feedback": [
         "2026-10-07 hub review of merged PR #60: MCP request handler opens a new postgres pool on every call.",
-        "2026-10-07 maker: PR https://github.com/jackyckma/orbita/pull/61 opened; acceptance green."
+        "2026-10-07 maker: PR https://github.com/jackyckma/orbita/pull/61 opened; acceptance green.",
+        "2026-10-07 checker: merged PR #61 (aa92e3c); verify-all green; lock cleared."
       ]
     },
     {
