@@ -27,6 +27,11 @@ export const PlatformEnvSchema = z.object({
   ORBITA_HUB_CLIENT_ID: z.string().min(1).optional(),
   /** E-16 tickets lane: unset or not `1` keeps DDL, REST, and MCP ticket tools off. */
   ORBITA_TICKETS_ENABLED: z.enum(["0", "1"]).optional(),
+  /**
+   * /v1/mcp access log. Unset or `1` logs method names and JSON-RPC outcomes.
+   * `0` disables. Empty string is invalid (do not set `ORBITA_MCP_ACCESS_LOG=`).
+   */
+  ORBITA_MCP_ACCESS_LOG: z.enum(["0", "1"]).optional(),
   /** Comma-separated api_keys.id values that act as human-capable ticket actors (approver gates). */
   ORBITA_TICKETS_FOUNDER_KEY_IDS: z.string().optional(),
   ORBITA_TICKETS_INTEGRATOR_KEY_IDS: z.string().optional(),
