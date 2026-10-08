@@ -26,7 +26,7 @@ Authorization: Bearer orb_...
 x-orbita-client-id: my-project
 ```
 
-Admin routes use `ORBITA_ADMIN_TOKEN` instead of API keys.
+Admin routes (`/v1/admin/*`, `/admin`) use header **`x-orbita-admin-token: <ORBITA_ADMIN_TOKEN>`** — not `Authorization: Bearer`.
 
 ## Agent profiles
 
@@ -82,13 +82,21 @@ Machine-readable spec: `GET /v1/openapi.json` (public, no auth). The document co
 
 Compare with live health version: `GET /v1/health`
 
+## MCP (`/v1/mcp`)
+
+Streamable HTTP MCP for agents. Caller auth matches REST (`Authorization` + `x-orbita-client-id`).
+
+With tickets **disabled** (default), the server exposes **16 tools**: `orbita_whoami`, `memory_*`, `note_*`, `portfolio_brief`, `trigger_automation`, and read-only `github_*` helpers. When **`ORBITA_TICKETS_ENABLED=1`**, the same 16 tools remain unchanged and **additional `ticket_*` tools** are registered (see [Ticket executors](./ticket-executors.html)).
+
+Executor safety rules and daily loop: [Ticket executors](./ticket-executors.html).
+
 ## MCP access log
 
 Every `/v1/mcp` request writes one info line, `mcp request`: HTTP method and status, JSON-RPC method names, and for each response message whether it is a result or an error (error code and message, at most 300 characters). `tools/list` results include the tool count only. GET SSE streams log status and headers and do not read the body. The line never includes `Authorization`, tokens, params, tool arguments, or result bodies. `ORBITA_MCP_ACCESS_LOG` defaults on; set it to `0` to disable without a code deploy (`1` or unset keeps it on; any other value fails startup).
 
 ## Tickets lane (optional, `ORBITA_TICKETS_ENABLED`)
 
-The ticket system (mandate → epic → task hierarchy, leases, idempotency) ships **off by default**. When `ORBITA_TICKETS_ENABLED` is unset or not `1`, the API applies only `init.sql` — no `tickets` tables and no `/v1/tickets` routes (later waves).
+The ticket system (mandate → epic → task hierarchy, leases, idempotency) ships **off by default**. When `ORBITA_TICKETS_ENABLED` is unset or not `1`, the API applies only `init.sql` — no `tickets` tables and no **`/v1/tickets`** routes.
 
 When the flag is `1` at **migration time**, startup also runs `apps/orbita-api/migrations/optional-tickets.sql` (mirrored from `packages/lane-tickets/drizzle/`). DDL is additive (`IF NOT EXISTS` only). Production enable is a founder decision ([D-005](https://github.com/jackyckma/orbita/blob/main/docs/autopilot/decisions.json)); verify with `bash scripts/e2e-tier-a.sh` (GitHub CI) before flipping Zeabur env.
 
@@ -97,6 +105,10 @@ When the flag is `1` at **migration time**, startup also runs `apps/orbita-api/m
 **Proposals (`ticket_propose` / `ticket_resolve`):** Bot suggestions escalate as `decision` tickets with `decision_class=proposal` (not a new role or task type). Charter **`proposal_policy`** and **`max_open_proposals`** gate who may resolve which `proposal_type` and how many open proposals a mandate may hold. Proposal text is returned to founder/integrator readers with an **`untrusted_author`** marker; executors only see proposals in their mandate subtree.
 
 **Roles (REST / MCP):** Orbita derives `founder`, `integrator`, or `executor` from the authenticated key (`deriveTicketActor`). `ORBITA_TICKETS_FOUNDER_KEY_IDS` and `ORBITA_TICKETS_INTEGRATOR_KEY_IDS` are comma-separated API key id lists; `ORBITA_TICKETS_APPROVER_KEY_IDS` is a deprecated alias of the founder list when founder ids are unset. All other keys are **executors**; bind them to mandates with `ORBITA_TICKETS_KEY_MANDATES` (JSON map `api_key_id` → mandate uuid array). Executors cannot create or modify mandates or charters. Epic `ticket_approve` runs structural `precheckEpic`; integrators require `precheck.ok`, founders may pass `override_precheck`. Invalid JSON for key mandates fails API startup when `ORBITA_TICKETS_ENABLED=1`. Request bodies never include `actor`.
+
+**Exception tasks:** Charter field `exception_types` allows `task_class=exception` tasks parented directly on an **active** mandate (no epic). They always require integrator **`ticket_review`** after auto-approve rules run. Caps: per-type `max_open` and mandate `hard_limits.max_open_exceptions`.
+
+**REST surface:** `GET/POST /v1/tickets`, `GET /v1/tickets/{id}`, and transition endpoints mirror MCP verbs. List filters support mandate subtree queries used by executors and integrators.
 
 ## Further reading
 
