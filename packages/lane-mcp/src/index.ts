@@ -477,6 +477,30 @@ export function createOrbitaMcpServer(deps: OrbitaMcpDeps): McpServer {
   return server;
 }
 
+/**
+ * MCP-Protocol-Version 2026-07-28 is the stateless revision current clients
+ * send on every POST, with no initialize. The v1 streamable transport
+ * rejects any value outside its legacy list with HTTP 400 before the
+ * method runs. Dropping only this known modern value lets the stateless
+ * handler answer the JSON-RPC method. Any other unknown value is left
+ * untouched so the transport still returns 400.
+ *
+ * defer: native 2026-07-28 (server/discover, resultType, cache hints).
+ * upgrade: @modelcontextprotocol/server createMcpHandler when tool
+ * registration moves to that SDK.
+ */
+const MODERN_PROTOCOL_VERSION_SERVED_AS_LEGACY = "2026-07-28";
+
+function requestForStatelessTransport(request: Request): Request {
+  const header = request.headers.get("mcp-protocol-version");
+  if (header === null || header.trim() !== MODERN_PROTOCOL_VERSION_SERVED_AS_LEGACY) {
+    return request;
+  }
+  const headers = new Headers(request.headers);
+  headers.delete("mcp-protocol-version");
+  return new Request(request, { headers });
+}
+
 export function createOrbitaMcpHandler(deps: OrbitaMcpDeps) {
   return async (request: Request): Promise<Response> => {
     const server = createOrbitaMcpServer(deps);
@@ -485,6 +509,6 @@ export function createOrbitaMcpHandler(deps: OrbitaMcpDeps) {
       sessionIdGenerator: undefined,
     });
     await server.connect(transport);
-    return transport.handleRequest(request);
+    return transport.handleRequest(requestForStatelessTransport(request));
   };
 }

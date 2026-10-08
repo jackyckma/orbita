@@ -50,6 +50,7 @@ import {
   createErrorHandler,
   createHealthRoutes,
   createLogger,
+  getRequestId,
   inputToPromptText,
   loadPlatformEnv,
   logRequest,
@@ -87,6 +88,7 @@ import {
 } from "@orbita/oauth";
 import { createInboundEmailRoutes } from "./inbound-email.js";
 import { mountTicketRoutesIfEnabled } from "./tickets-mount.js";
+import { logMcpClientError } from "./mcp-access-log.js";
 import { buildMcpTicketsDeps } from "./mcp-tickets-deps.js";
 import { registerPublicCallerOpenApiRoute } from "./openapi-public.js";
 import { runMigrations } from "./migrate.js";
@@ -275,7 +277,17 @@ app.all("/v1/mcp", mcpAuthMiddleware, requireMcpScope("sessions:use"), async (c)
     ticketsEnabled: mcpTicketsDeps.ticketsEnabled,
     tickets: mcpTicketsDeps.tickets,
   });
-  return handler(c.req.raw);
+  const raw = c.req.raw;
+  const loggedRequest = raw.clone();
+  const response = await handler(raw);
+  if (response.status >= 400 && response.status < 500) {
+    await logMcpClientError(logger, {
+      requestId: getRequestId(c),
+      request: loggedRequest,
+      response,
+    });
+  }
+  return response;
 });
 
 app.route("/v1", createHealthRoutes(VERSION));
