@@ -1649,6 +1649,29 @@
       ]
     },
     {
+      "id": "T-0105",
+      "lane": "platform",
+      "phase": "l1-hardening",
+      "title": "Auth-failure hardening: per-IP failed-auth limiter, auth-failure audit, scanner-path tripwire",
+      "description": "HUB REVIEW of main @08b7283 (2026-10-08): createRateLimitMiddleware in packages/lane-auth/src/middleware/rate-limit.ts counts requests per VALID api key and is mounted only on protectedApp (/v1 REST) in apps/orbita-api/src/index.ts. Failed auth (auth.ts createAuthMiddleware -> 401) has no counter, delay, or dedicated log. /v1/mcp (mcpAuthMiddleware), /v1/admin (adminAuthMiddleware), OAuth routes (/oauth/register, /oauth/token, /oauth/authorize), and /v1/auth device routes have no failure limiting. No per-IP logic exists in orbita-api. Implement: (1) Per-client-IP failed-auth limiter (sliding or fixed window; DB-backed or in-memory, document the trade-off) applied to /v1/* api-key auth, /v1/mcp, /v1/admin, /oauth/*, and /v1/auth/*. After N failures in a window return 429 with Retry-After. NEVER sleep or hold connections (no tarpit). Env with safe defaults: ORBITA_AUTH_FAIL_MAX=20, ORBITA_AUTH_FAIL_WINDOW_SECONDS=300. A successful auth must not be affected by other IPs' failures. (2) Client IP extraction must be safe behind Zeabur's proxy: ORBITA_TRUSTED_PROXY_HOPS (default 1, conservative); ignore client-supplied X-Forwarded-For beyond trusted hops; unit-test spoofed header cases. (3) Audit/log every auth failure and every 429 from the limiter: ip, path, key_prefix if a bearer was presented (NEVER the full token or secret), reason. Use the existing trajectory/audit mechanism or a structured logger; no secrets in logs. (4) Scanner-path tripwire: decoy paths /.env, /wp-admin, /wp-login.php, /.git/config, /phpmyadmin return plain 404 and count as ORBITA_SCANNER_TRIPWIRE_UNITS (default 5) failed-auth units for that IP, with a short temporary block ORBITA_SCANNER_BLOCK_SECONDS (default 600). Must not intercept any real route. (5) Admin token compare: verified 2026-10-08 that packages/lane-admin/src/middleware.ts, routes.ts, and device-routes.ts use === against the admin token while session.ts already uses timingSafeEqual. Replace those token comparisons with a constant-time compare and state the finding in the PR description. (6) Tests for the limiter, IP extraction, decoy paths, and no regression on valid auth for REST, MCP, and admin. Docs: short section in docs/site/security.md describing the env vars, defaults, and behaviour. Also list the env vars and defaults in the PR description and .env.example. OUT OF SCOPE: key suspension, per-key denial counters, decoy tools (those belong to E-17). Valid credentials must behave exactly as today. This repo has no separate ESLint; pnpm -r typecheck is the lint gate.",
+      "acceptance": [
+        "pnpm --filter @orbita/auth test",
+        "pnpm --filter @orbita/api test",
+        "pnpm --filter @orbita/admin test",
+        "pnpm -r typecheck",
+        "rg -n \"ORBITA_AUTH_FAIL_MAX|ORBITA_TRUSTED_PROXY_HOPS\" packages apps .env.example docs/site/security.md",
+        "rg -n \"timingSafeEqual\" packages/lane-admin/src/middleware.ts packages/lane-admin/src/routes.ts packages/lane-admin/src/device-routes.ts",
+        "test -f docs/site/security.md"
+      ],
+      "deps": [],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "2026-10-08 hub review of main @08b7283: failed auth has no per-IP limiter, audit, or scanner tripwire."
+      ]
+    },
+    {
       "id": "T-0092",
       "lane": "agent",
       "phase": "consultos-byok",
