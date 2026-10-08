@@ -15,7 +15,7 @@ export API=https://api.get-orbita.com
 export ADMIN_TOKEN=your-admin-token
 
 curl -sS -X POST "$API/v1/admin/api-keys" \
-  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -H "x-orbita-admin-token: $ADMIN_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"label":"my-agent","allowed_client_ids":["my-project"]}'
 ```

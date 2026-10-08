@@ -10,7 +10,7 @@ nav_order: 1
 
 Production API: **https://api.get-orbita.com**
 
-1. Request hosted access via the operator (invite-only during early access).
+1. **Invite-only hosted access** — there is no public self-service signup. After the operator approves you, they create an API key in the [Admin console](https://api.get-orbita.com/admin) (see [api-as-product phases](https://github.com/jackyckma/orbita/blob/main/docs/api-as-product.md)).
 2. Or **self-host** below and point your orchestrator at your own base URL.
 
 ## Self-host prerequisites

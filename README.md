@@ -29,7 +29,7 @@ TypeScript · Node 22 · Hono · Zod · Drizzle · Postgres/pgvector · pnpm mon
 
 ## MCP (`/v1/mcp`)
 
-Streamable HTTP MCP for agents (PA1). **16 tools** (see `packages/lane-mcp/src/index.ts`): `orbita_whoami`; `memory_*`; `note_*` (including `note_search`); `portfolio_brief`; `trigger_automation`; `github_get_file`, `github_list_commits`, `github_list_pull_requests`. OAuth for Claude Custom Connector: `@orbita/oauth` (PA1.5). Setup: [`docs/personal-steward/connectors-claude.md`](docs/personal-steward/connectors-claude.md).
+Streamable HTTP MCP for agents (PA1). **16 legacy tools** when tickets are off (see `packages/lane-mcp/src/index.ts`): `orbita_whoami`; `memory_*`; `note_*` (including `note_search`); `portfolio_brief`; `trigger_automation`; `github_get_file`, `github_list_commits`, `github_list_pull_requests`. With **`ORBITA_TICKETS_ENABLED=1`**, the same 16 tools stay byte-identical and **`ticket_*`** tools are added ([executor docs](https://get-orbita.com/docs/ticket-executors)). OAuth for Claude Custom Connector: `@orbita/oauth` (PA1.5). Setup: [`docs/personal-steward/connectors-claude.md`](docs/personal-steward/connectors-claude.md).
 
 ## Docs
 

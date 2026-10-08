@@ -94,7 +94,7 @@ Follow docs/personal-steward/memory-conventions.md for project slugs.
 Remote MCP at `https://api.get-orbita.com/v1/mcp` (Streamable HTTP).
 
 - Auth: same as REST — `Authorization: Bearer <api_key>` + `x-orbita-client-id: personal-jacky`
-- Tools: `memory_*`, `note_*`, `orbita_whoami` (11 total)
+- Tools: **16** legacy MCP tools (`orbita_whoami`, `memory_*`, `note_*`, `portfolio_brief`, `trigger_automation`, `github_*`) — see `packages/lane-mcp/src/index.ts`. When the server has **`ORBITA_TICKETS_ENABLED=1`**, additional **`ticket_*`** tools are registered for mandate work ([public executor guide](https://get-orbita.com/docs/ticket-executors)).
 - Cursor: add to `~/.cursor/mcp.json` or project MCP config
 - No Shell/curl needed once connected
 
