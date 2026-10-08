@@ -1600,11 +1600,16 @@
       ],
       "deps": ["T-0087"],
       "flag": null,
-      "status": "in_review",
+      "status": "done",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-07: E-16 second pass (b) — executor quickstart + public doc drift.",
-        "MAKER 2026-10-08: PR #65 opened (ticket-executors quickstart + doc drift fixes)."
+        "MAKER 2026-10-08: PR #65 opened (ticket-executors quickstart + doc drift fixes).",
+        {
+          "at": "2026-10-08T23:07:10Z",
+          "by": "checker",
+          "note": "REVIEW PR #65: verify-all PASS; task acceptance green; scope docs-only per T-0102; merged merge commit 08d26e44."
+        }
       ]
     },
     {
