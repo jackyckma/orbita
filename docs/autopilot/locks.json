@@ -4,8 +4,8 @@
     "T-0102": {
       "by": "maker",
       "since": "2026-10-08T23:03:36Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/t-0102-ticket-executors-docs",
+      "pr": 65
     }
   }
 }

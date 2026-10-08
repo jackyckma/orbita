@@ -1600,10 +1600,11 @@
       ],
       "deps": ["T-0087"],
       "flag": null,
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
       "feedback": [
-        "REPLAN 2026-10-07: E-16 second pass (b) — executor quickstart + public doc drift."
+        "REPLAN 2026-10-07: E-16 second pass (b) — executor quickstart + public doc drift.",
+        "MAKER 2026-10-08: PR #65 opened (ticket-executors quickstart + doc drift fixes)."
       ]
     },
     {
