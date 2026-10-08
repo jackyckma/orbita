@@ -82,6 +82,10 @@ Machine-readable spec: `GET /v1/openapi.json` (public, no auth). The document co
 
 Compare with live health version: `GET /v1/health`
 
+## MCP access log
+
+Every `/v1/mcp` request writes one info line, `mcp request`: HTTP method and status, JSON-RPC method names, and for each response message whether it is a result or an error (error code and message, at most 300 characters). `tools/list` results include the tool count only. GET SSE streams log status and headers and do not read the body. The line never includes `Authorization`, tokens, params, tool arguments, or result bodies. `ORBITA_MCP_ACCESS_LOG` defaults on; set it to `0` to disable without a code deploy (`1` or unset keeps it on; any other value fails startup).
+
 ## Tickets lane (optional, `ORBITA_TICKETS_ENABLED`)
 
 The ticket system (mandate → epic → task hierarchy, leases, idempotency) ships **off by default**. When `ORBITA_TICKETS_ENABLED` is unset or not `1`, the API applies only `init.sql` — no `tickets` tables and no `/v1/tickets` routes (later waves).

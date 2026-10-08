@@ -88,7 +88,7 @@ import {
 } from "@orbita/oauth";
 import { createInboundEmailRoutes } from "./inbound-email.js";
 import { mountTicketRoutesIfEnabled } from "./tickets-mount.js";
-import { logMcpClientError } from "./mcp-access-log.js";
+import { isMcpAccessLogEnabled, logMcpRequest } from "./mcp-access-log.js";
 import { buildMcpTicketsDeps } from "./mcp-tickets-deps.js";
 import { registerPublicCallerOpenApiRoute } from "./openapi-public.js";
 import { runMigrations } from "./migrate.js";
@@ -263,6 +263,7 @@ app.route(
 const mcpTicketsDeps = buildMcpTicketsDeps(env, env.DATABASE_URL!);
 
 app.all("/v1/mcp", mcpAuthMiddleware, requireMcpScope("sessions:use"), async (c) => {
+  const started = Date.now();
   const auth = getAuth(c);
   const handler = createOrbitaMcpHandler({
     clientId: auth.clientId,
@@ -278,13 +279,17 @@ app.all("/v1/mcp", mcpAuthMiddleware, requireMcpScope("sessions:use"), async (c)
     tickets: mcpTicketsDeps.tickets,
   });
   const raw = c.req.raw;
-  const loggedRequest = raw.clone();
+  const logEnabled = isMcpAccessLogEnabled(env.ORBITA_MCP_ACCESS_LOG);
+  // GET SSE stays open for the client. Clone only when we will read a finite body.
+  const loggedRequest = logEnabled && raw.method !== "GET" ? raw.clone() : raw;
   const response = await handler(raw);
-  if (response.status >= 400 && response.status < 500) {
-    await logMcpClientError(logger, {
+  if (logEnabled) {
+    await logMcpRequest(logger, {
       requestId: getRequestId(c),
       request: loggedRequest,
       response,
+      durationMs: Date.now() - started,
+      accessLog: env.ORBITA_MCP_ACCESS_LOG,
     });
   }
   return response;
