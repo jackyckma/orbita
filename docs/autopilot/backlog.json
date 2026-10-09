@@ -1627,7 +1627,7 @@
       ],
       "deps": ["T-0088", "T-0094", "T-0095"],
       "flag": "ORBITA_TICKETS_ENABLED",
-      "status": "ready",
+      "status": "in_progress",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-07: E-16 second pass (c) — synthetic executor day smoke."
