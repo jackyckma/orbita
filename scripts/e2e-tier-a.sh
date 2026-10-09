@@ -73,4 +73,7 @@ pnpm exec vitest run --config tests/e2e/vitest.config.ts tests/e2e/tickets-migra
 pnpm exec vitest run --config tests/e2e/vitest.config.ts tests/e2e/tickets-pg-repository.test.ts
 unset ORBITA_TICKETS_ENABLED
 
+echo "==> tickets bot-loop smoke (REST executor day)"
+bash scripts/tickets-bot-loop-smoke.sh
+
 echo "==> tier A E2E OK"

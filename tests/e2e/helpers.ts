@@ -6,10 +6,12 @@ export function e2eAdminToken(): string {
   return process.env.ORBITA_ADMIN_TOKEN ?? "e2e-admin-token";
 }
 
-export async function createApiKey(
+export type CreatedApiKey = { id: string; key: string };
+
+export async function createApiKeyWithId(
   clientId: string,
   options?: { rateLimitPerMinute?: number },
-): Promise<string> {
+): Promise<CreatedApiKey> {
   const body: Record<string, unknown> = { allowed_client_ids: [clientId] };
   if (options?.rateLimitPerMinute != null) {
     body.rate_limit_per_minute = options.rateLimitPerMinute;
@@ -26,8 +28,21 @@ export async function createApiKey(
   if (!res.ok) {
     throw new Error(`createApiKey failed: ${res.status} ${await res.text()}`);
   }
-  const parsed = (await res.json()) as { key: string };
-  return parsed.key;
+  const parsed = (await res.json()) as { id: string; key: string };
+  return { id: parsed.id, key: parsed.key };
+}
+
+export async function createApiKey(
+  clientId: string,
+  options?: { rateLimitPerMinute?: number },
+): Promise<string> {
+  const body: Record<string, unknown> = { allowed_client_ids: [clientId] };
+  if (options?.rateLimitPerMinute != null) {
+    body.rate_limit_per_minute = options.rateLimitPerMinute;
+  }
+
+  const created = await createApiKeyWithId(clientId, options);
+  return created.key;
 }
 
 export function authHeaders(apiKey: string, clientId: string): Record<string, string> {
