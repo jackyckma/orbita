@@ -4,8 +4,8 @@
     "T-0103": {
       "by": "maker",
       "since": "2026-10-09T23:02:30.000Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/t-0103-tickets-bot-loop-smoke",
+      "pr": 67
     }
   }
 }
