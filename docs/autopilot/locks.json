@@ -4,8 +4,8 @@
     "T-0104": {
       "by": "maker",
       "since": "2026-10-10T23:04:14Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/t-0104-grok-pilot-activation-checklist",
+      "pr": 68
     }
   }
 }

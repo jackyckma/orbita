@@ -1650,10 +1650,11 @@
       ],
       "deps": ["T-0101", "T-0103"],
       "flag": null,
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
       "feedback": [
-        "REPLAN 2026-10-07: E-16 second pass (d) — founder activation checklist for Grok pilot."
+        "REPLAN 2026-10-07: E-16 second pass (d) — founder activation checklist for Grok pilot.",
+        "2026-10-10 maker: PR https://github.com/jackyckma/orbita/pull/68 opened; acceptance + verify-all green."
       ]
     },
     {
