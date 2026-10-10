@@ -1650,7 +1650,7 @@
       ],
       "deps": ["T-0101", "T-0103"],
       "flag": null,
-      "status": "ready",
+      "status": "in_progress",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-07: E-16 second pass (d) — founder activation checklist for Grok pilot."
