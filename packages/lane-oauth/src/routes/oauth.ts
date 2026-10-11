@@ -1,5 +1,6 @@
 import { Hono } from "hono";
-import type { AuthDb } from "@orbita/auth";
+import type { AuthDb, AuthFailGuard } from "@orbita/auth";
+import { createAuthFailPrecheckMiddleware } from "@orbita/auth";
 import { OrbitaError } from "@orbita/platform";
 import type { OAuthRuntimeConfig } from "../config.js";
 import type { OAuthDb } from "../db/client.js";
@@ -15,13 +16,36 @@ import {
 } from "../services/token.js";
 import { renderConsentPage } from "./consent-html.js";
 
+function recordOAuthAuthFailure(
+  guard: AuthFailGuard | undefined,
+  c: { req: { path: string; header: (name: string) => string | undefined } },
+  err: OrbitaError,
+): void {
+  if (!guard || (err.status !== 401 && err.status !== 403)) {
+    return;
+  }
+  try {
+    guard.recordFailure(c as import("hono").Context, {
+      path: c.req.path,
+      reason: err.code,
+    });
+  } catch (limitErr) {
+    throw limitErr;
+  }
+}
+
 export function createOAuthRoutes(deps: {
   oauthDb: OAuthDb;
   authDb: AuthDb;
   config: OAuthRuntimeConfig;
+  authFailGuard?: AuthFailGuard;
 }): Hono {
   const app = new Hono();
-  const { oauthDb, authDb, config } = deps;
+  const { oauthDb, authDb, config, authFailGuard } = deps;
+
+  if (authFailGuard) {
+    app.use("/oauth/*", createAuthFailPrecheckMiddleware(authFailGuard));
+  }
 
   app.post("/oauth/register", async (c) => {
     const body = (await c.req.json().catch(() => null)) as Record<
@@ -52,6 +76,7 @@ export function createOAuthRoutes(deps: {
       return c.json(result, 201);
     } catch (err) {
       if (err instanceof OrbitaError) {
+        recordOAuthAuthFailure(authFailGuard, c, err);
         return c.json(
           { error: err.code, error_description: err.message },
           err.status as 400,
@@ -90,6 +115,7 @@ export function createOAuthRoutes(deps: {
       );
     } catch (err) {
       if (err instanceof OrbitaError) {
+        recordOAuthAuthFailure(authFailGuard, c, err);
         return c.html(
           renderConsentPage({
             clientName: "OAuth client",
@@ -131,6 +157,7 @@ export function createOAuthRoutes(deps: {
       return c.redirect(redirectUrl, 302);
     } catch (err) {
       if (err instanceof OrbitaError) {
+        recordOAuthAuthFailure(authFailGuard, c, err);
         return c.html(
           renderConsentPage({
             clientName: get("client_id") || "OAuth client",
@@ -188,6 +215,7 @@ export function createOAuthRoutes(deps: {
       return c.json(result, 200);
     } catch (err) {
       if (err instanceof OrbitaError) {
+        recordOAuthAuthFailure(authFailGuard, c, err);
         return c.json(
           { error: err.code, error_description: err.message },
           err.status as 401,

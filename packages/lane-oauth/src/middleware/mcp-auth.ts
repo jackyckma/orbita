@@ -8,6 +8,7 @@ import {
   type AuthDb,
 } from "@orbita/auth";
 import { forbidden, OrbitaError, unauthorized } from "@orbita/platform";
+import type { AuthFailGuard } from "@orbita/auth";
 import type { OAuthRuntimeConfig } from "../config.js";
 import { verifyAccessToken } from "../jwt.js";
 
@@ -30,61 +31,79 @@ function mcpUnauthorizedChallenge(config: OAuthRuntimeConfig): OrbitaError {
 export function createMcpAuthMiddleware(
   authDb: AuthDb,
   config: OAuthRuntimeConfig,
+  authFailGuard?: AuthFailGuard,
 ) {
   return createMiddleware<{ Variables: { auth: McpAuthContext } }>(
     async (c, next) => {
-      const token = extractBearerToken(c.req.header("authorization"));
-      if (!token) {
-        throw mcpUnauthorizedChallenge(config);
-      }
-
-      const oauthClaims = verifyAccessToken(
-        token,
-        config.signingSecret,
-        config.mcpResource,
-      );
-      if (oauthClaims) {
-        const scopes = oauthClaims.scope.split(/\s+/).filter(Boolean);
-        if (!scopes.includes("sessions:use")) {
-          throw forbidden("Missing required scope: sessions:use");
+      const path = c.req.path;
+      authFailGuard?.checkBlocked(c, path);
+      try {
+        const token = extractBearerToken(c.req.header("authorization"));
+        if (!token) {
+          throw mcpUnauthorizedChallenge(config);
         }
-        c.set("auth", {
-          authMethod: "oauth",
-          clientId: oauthClaims.sub,
-          apiKey: {
-            id: "oauth",
-            keyPrefix: "oauth",
-            keyHash: "",
-            allowedClientIds: [oauthClaims.sub],
-            scopes,
-            rateLimitPerMinute: null,
-            expiresAt: null,
-            revokedAt: null,
-            createdAt: new Date(),
-          },
-        });
+
+        const oauthClaims = verifyAccessToken(
+          token,
+          config.signingSecret,
+          config.mcpResource,
+        );
+        if (oauthClaims) {
+          const scopes = oauthClaims.scope.split(/\s+/).filter(Boolean);
+          if (!scopes.includes("sessions:use")) {
+            throw forbidden("Missing required scope: sessions:use");
+          }
+          c.set("auth", {
+            authMethod: "oauth",
+            clientId: oauthClaims.sub,
+            apiKey: {
+              id: "oauth",
+              keyPrefix: "oauth",
+              keyHash: "",
+              allowedClientIds: [oauthClaims.sub],
+              scopes,
+              rateLimitPerMinute: null,
+              expiresAt: null,
+              revokedAt: null,
+              createdAt: new Date(),
+            },
+          });
+          await next();
+          return;
+        }
+
+        const apiKey = await findActiveApiKeyByPlaintext(authDb, token);
+        if (!apiKey) {
+          throw mcpUnauthorizedChallenge(config);
+        }
+
+        const clientId =
+          c.req.header("x-orbita-client-id") ??
+          c.req.query("client_id") ??
+          undefined;
+        if (!clientId) {
+          throw unauthorized("Missing client_id (header x-orbita-client-id)");
+        }
+        if (!isClientIdAllowed(apiKey, clientId)) {
+          throw forbidden("client_id not allowed for this API key");
+        }
+
+        c.set("auth", { authMethod: "api_key", apiKey, clientId });
         await next();
-        return;
+      } catch (err) {
+        if (authFailGuard?.isAuthFailureError(err)) {
+          try {
+            authFailGuard.recordFailure(c, {
+              path,
+              reason: err instanceof Error ? err.message : "oauth_unauthorized",
+              bearerToken: extractBearerToken(c.req.header("authorization")),
+            });
+          } catch (limitErr) {
+            throw limitErr;
+          }
+        }
+        throw err;
       }
-
-      const apiKey = await findActiveApiKeyByPlaintext(authDb, token);
-      if (!apiKey) {
-        throw mcpUnauthorizedChallenge(config);
-      }
-
-      const clientId =
-        c.req.header("x-orbita-client-id") ??
-        c.req.query("client_id") ??
-        undefined;
-      if (!clientId) {
-        throw unauthorized("Missing client_id (header x-orbita-client-id)");
-      }
-      if (!isClientIdAllowed(apiKey, clientId)) {
-        throw forbidden("client_id not allowed for this API key");
-      }
-
-      c.set("auth", { authMethod: "api_key", apiKey, clientId });
-      await next();
     },
   );
 }

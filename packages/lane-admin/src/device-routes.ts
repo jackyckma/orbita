@@ -10,12 +10,18 @@ import { setCookie } from "hono/cookie";
 import { forbidden } from "@orbita/platform";
 import { verifyAdminSessionToken } from "./session.js";
 import { getCookie } from "hono/cookie";
+import type { AuthFailGuard } from "@orbita/auth";
+import { timingSafeEqual } from "node:crypto";
+import { secureCompareToken } from "./secure-token.js";
+
+export { timingSafeEqual };
 
 export function createDeviceAuthRoutes(
   adminDb: AdminDb,
   secretsKey: string,
   adminToken: string,
   publicBaseUrl: string,
+  authFailGuard?: AuthFailGuard,
 ): OpenAPIHono {
   const app = new OpenAPIHono();
 
@@ -113,12 +119,18 @@ export function createDeviceAuthRoutes(
   });
 
   app.openapi(approveRoute, async (c) => {
+    const path = c.req.path;
+    authFailGuard?.checkBlocked(c, path);
     const cookie = getCookie(c, ADMIN_SESSION_COOKIE);
     const header = c.req.header("x-orbita-admin-token");
     const ok =
       verifyAdminSessionToken(cookie, secretsKey) ||
-      (header !== undefined && header === adminToken);
+      secureCompareToken(header, adminToken);
     if (!ok) {
+      authFailGuard?.recordFailure(c, {
+        path,
+        reason: "invalid_admin",
+      });
       throw forbidden("Admin authentication required to approve device");
     }
     const body = c.req.valid("json");
