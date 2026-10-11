@@ -38,6 +38,15 @@ export const PlatformEnvSchema = z.object({
   ORBITA_TICKETS_APPROVER_KEY_IDS: z.string().optional(),
   /** JSON map api_keys.id → mandate uuid[] for agent ticket actors (invalid JSON fails startup when tickets enabled). */
   ORBITA_TICKETS_KEY_MANDATES: z.string().optional(),
+  /** Per-IP failed-auth attempts before 429 (fixed window). In-memory per process; see docs/site/security.md. */
+  ORBITA_AUTH_FAIL_MAX: z.coerce.number().int().positive().default(20),
+  ORBITA_AUTH_FAIL_WINDOW_SECONDS: z.coerce.number().int().positive().default(300),
+  /** Trusted reverse-proxy hops for X-Forwarded-For (Zeabur default: 1). */
+  ORBITA_TRUSTED_PROXY_HOPS: z.coerce.number().int().nonnegative().default(1),
+  /** Failed-auth units added when a scanner decoy path is hit. */
+  ORBITA_SCANNER_TRIPWIRE_UNITS: z.coerce.number().int().positive().default(5),
+  /** Temporary IP block duration after scanner tripwire. */
+  ORBITA_SCANNER_BLOCK_SECONDS: z.coerce.number().int().positive().default(600),
 });
 
 export type PlatformEnv = z.infer<typeof PlatformEnvSchema>;

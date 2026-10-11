@@ -18,10 +18,13 @@ import {
   loadAgentEnv,
 } from "@orbita/agent";
 import {
+  authFailConfigFromPlatformEnv,
   createAdminRoutes,
   createAuthDb,
+  createAuthFailGuard,
   createAuthMiddleware,
   createRateLimitMiddleware,
+  createScannerTripwireMiddleware,
   getAuth,
 } from "@orbita/auth";
 import {
@@ -136,9 +139,17 @@ const publicBaseUrl =
   env.ORBITA_PUBLIC_BASE_URL ?? `http://${env.HOST === "0.0.0.0" ? "127.0.0.1" : env.HOST}:${env.PORT}`;
 
 const oauthConfig = buildOAuthConfig(loadOAuthEnv(), publicBaseUrl);
-const mcpAuthMiddleware = createMcpAuthMiddleware(authDb, oauthConfig);
+const authFailGuard = createAuthFailGuard(
+  authFailConfigFromPlatformEnv(env),
+  logger,
+);
+const mcpAuthMiddleware = createMcpAuthMiddleware(
+  authDb,
+  oauthConfig,
+  authFailGuard,
+);
 
-const authMiddleware = createAuthMiddleware(authDb);
+const authMiddleware = createAuthMiddleware(authDb, authFailGuard);
 const rateLimitMiddleware = createRateLimitMiddleware(
   authDb,
   env.RATE_LIMIT_PER_MINUTE,
@@ -146,6 +157,7 @@ const rateLimitMiddleware = createRateLimitMiddleware(
 const adminAuthMiddleware = createAdminAuthMiddleware(
   env.ORBITA_ADMIN_TOKEN,
   env.ORBITA_SECRETS_KEY,
+  authFailGuard,
 );
 const sessionSummarizer = createSessionSummarizer(agentEnv);
 
@@ -245,6 +257,7 @@ const portfolioSystemCollectors = {
 
 const app = new OpenAPIHono();
 app.onError(createErrorHandler(logger));
+app.use("*", createScannerTripwireMiddleware(authFailGuard));
 app.use("*", requestIdMiddleware);
 app.use("*", async (c, next) => {
   const started = Date.now();
@@ -257,7 +270,12 @@ app.route("/", createAdminConsoleRoutes({ assetVersion: VERSION }));
 app.route("/", createOAuthMetadataRoutes(oauthConfig));
 app.route(
   "/",
-  createOAuthRoutes({ oauthDb, authDb, config: oauthConfig }),
+  createOAuthRoutes({
+    oauthDb,
+    authDb,
+    config: oauthConfig,
+    authFailGuard,
+  }),
 );
 
 const mcpTicketsDeps = buildMcpTicketsDeps(env, env.DATABASE_URL!);
@@ -303,6 +321,7 @@ app.route("/v1/auth", createDeviceAuthRoutes(
   env.ORBITA_SECRETS_KEY,
   env.ORBITA_ADMIN_TOKEN,
   publicBaseUrl,
+  authFailGuard,
 ));
 
 const adminApp = new OpenAPIHono();

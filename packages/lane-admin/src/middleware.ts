@@ -1,9 +1,18 @@
 import { createMiddleware } from "hono/factory";
 import { getCookie } from "hono/cookie";
 import { forbidden } from "@orbita/platform";
-import { ADMIN_SESSION_COOKIE, verifyAdminSessionToken } from "./session.js";
+import { timingSafeEqual } from "node:crypto";
+import type { AuthFailGuard } from "@orbita/auth";
 
-export function createAdminAuthMiddleware(adminToken: string, secretsKey: string) {
+export { timingSafeEqual };
+import { ADMIN_SESSION_COOKIE, verifyAdminSessionToken } from "./session.js";
+import { secureCompareToken } from "./secure-token.js";
+
+export function createAdminAuthMiddleware(
+  adminToken: string,
+  secretsKey: string,
+  authFailGuard?: AuthFailGuard,
+) {
   return createMiddleware(async (c, next) => {
     const path = c.req.path;
     if (path.includes("/session")) {
@@ -11,15 +20,30 @@ export function createAdminAuthMiddleware(adminToken: string, secretsKey: string
       return;
     }
 
-    const headerToken = c.req.header("x-orbita-admin-token");
-    const sessionCookie = getCookie(c, ADMIN_SESSION_COOKIE);
-    const sessionValid = verifyAdminSessionToken(sessionCookie, secretsKey);
+    authFailGuard?.checkBlocked(c, path);
+    try {
+      const headerToken = c.req.header("x-orbita-admin-token");
+      const sessionCookie = getCookie(c, ADMIN_SESSION_COOKIE);
+      const sessionValid = verifyAdminSessionToken(sessionCookie, secretsKey);
 
-    if (sessionValid || (headerToken && headerToken === adminToken)) {
-      await next();
-      return;
+      if (sessionValid || secureCompareToken(headerToken, adminToken)) {
+        await next();
+        return;
+      }
+
+      throw forbidden("Invalid admin credentials");
+    } catch (err) {
+      if (authFailGuard?.isAuthFailureError(err)) {
+        try {
+          authFailGuard.recordFailure(c, {
+            path,
+            reason: "invalid_admin",
+          });
+        } catch (limitErr) {
+          throw limitErr;
+        }
+      }
+      throw err;
     }
-
-    throw forbidden("Invalid admin credentials");
   });
 }

@@ -1,6 +1,10 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { setCookie, deleteCookie, getCookie } from "hono/cookie";
 import { forbidden } from "@orbita/platform";
+import { timingSafeEqual } from "node:crypto";
+import { secureCompareToken } from "./secure-token.js";
+
+export { timingSafeEqual };
 import {
   ADMIN_SESSION_COOKIE,
   createAdminSessionToken,
@@ -47,7 +51,7 @@ export function createAdminSessionRoutes(
 
   app.openapi(loginRoute, async (c) => {
     const body = c.req.valid("json");
-    if (body.admin_token !== adminToken) {
+    if (!secureCompareToken(body.admin_token, adminToken)) {
       throw forbidden("Invalid admin token");
     }
     const token = createAdminSessionToken(secretsKey);
@@ -83,7 +87,7 @@ export function createAdminSessionRoutes(
     const header = c.req.header("x-orbita-admin-token");
     const ok =
       verifyAdminSessionToken(cookie, secretsKey) ||
-      (header !== undefined && header === adminToken);
+      secureCompareToken(header, adminToken);
     return c.json({ authenticated: ok }, 200);
   });
 
