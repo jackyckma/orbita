@@ -4,8 +4,8 @@
     "T-0105": {
       "by": "maker",
       "since": "2026-10-11T23:12:00.000Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/T-0105-auth-fail-hardening",
+      "pr": 69
     }
   }
 }

@@ -1675,11 +1675,12 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
       "feedback": [
         "2026-10-08 hub review of main @08b7283: failed auth has no per-IP limiter, audit, or scanner tripwire.",
-        "Maker 2026-10-11: lease on main; implementing T-0105."
+        "Maker 2026-10-11: lease on main; implementing T-0105.",
+        "Maker 2026-10-11: PR https://github.com/jackyckma/orbita/pull/69 opened; task acceptance + agent-verify green."
       ]
     },
     {
