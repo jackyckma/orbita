@@ -235,10 +235,18 @@ async function renderDashboard() {
 
       <div class="panel">
         <h2>Create API key</h2>
+        <label for="key-label">Label (short name)</label>
+        <input id="key-label" placeholder="chatgpt-mcp-desktop" required />
+        <label for="key-purpose">Purpose (which platform or use)</label>
+        <input id="key-purpose" placeholder="ChatGPT desktop MCP connector" />
         <label for="client-ids">Allowed client IDs (comma-separated)</label>
         <input id="client-ids" value="default-client" />
         <label for="scopes">Scopes (comma-separated)</label>
         <input id="scopes" value="sessions:create, sessions:use" />
+        <label for="key-expires">Expires at (optional, ISO UTC ending in Z)</label>
+        <input id="key-expires" placeholder="2027-01-01T00:00:00.000Z" />
+        <label for="key-rpm">Rate limit per minute (optional)</label>
+        <input id="key-rpm" type="number" min="1" placeholder="60" />
         <button id="create-key">Create key</button>
         <div id="new-key" class="flash hidden"></div>
       </div>
@@ -289,6 +297,12 @@ async function renderDashboard() {
   };
 
   document.getElementById("create-key").onclick = async () => {
+    const label = document.getElementById("key-label").value.trim();
+    if (!label) {
+      flash("Label is required for new API keys.", true);
+      return;
+    }
+    const purpose = document.getElementById("key-purpose").value.trim();
     const allowed_client_ids = document
       .getElementById("client-ids")
       .value.split(",")
@@ -299,10 +313,29 @@ async function renderDashboard() {
       .value.split(",")
       .map((s) => s.trim())
       .filter(Boolean);
+    const expiresRaw = document.getElementById("key-expires").value.trim();
+    const rpmRaw = document.getElementById("key-rpm").value.trim();
+    const payload = { allowed_client_ids, scopes, label };
+    if (purpose) payload.purpose = purpose;
+    if (expiresRaw) {
+      if (!expiresRaw.endsWith("Z")) {
+        flash("expires_at must be ISO-8601 UTC ending with Z.", true);
+        return;
+      }
+      payload.expires_at = expiresRaw;
+    }
+    if (rpmRaw) {
+      const rpm = Number.parseInt(rpmRaw, 10);
+      if (!Number.isFinite(rpm) || rpm < 1) {
+        flash("Rate limit must be a positive integer.", true);
+        return;
+      }
+      payload.rate_limit_per_minute = rpm;
+    }
     try {
       const res = await api("/api-keys", {
         method: "POST",
-        body: JSON.stringify({ allowed_client_ids, scopes }),
+        body: JSON.stringify(payload),
       });
       const box = document.getElementById("new-key");
       box.classList.remove("hidden");
@@ -587,24 +620,69 @@ async function loadKeys() {
   const { keys } = await api("/api-keys");
   const rows = keys
     .map(
-      (k) => `<tr>
+      (k) => {
+        const labelCell = k.unlabelled
+          ? '<span class="hint">unlabelled</span>'
+          : esc(k.label);
+        const purposeCell = k.purpose ? esc(k.purpose) : "—";
+        const expiresCell = k.expires_at ? esc(k.expires_at) : "—";
+        const state = k.state || (k.revoked_at ? "revoked" : "active");
+        return `<tr>
+        <td>${labelCell}</td>
+        <td>${purposeCell}</td>
         <td class="mono">${esc(k.key_prefix)}…</td>
         <td class="mono">${esc(k.allowed_client_ids.join(", "))}</td>
-        <td>${k.revoked_at ? '<span style="color:var(--danger)">revoked</span>' : "active"}</td>
-        <td>${k.revoked_at ? "" : `<button class="danger" data-revoke="${esc(k.id)}">Revoke</button>`}</td>
-      </tr>`,
+        <td>${esc(k.created_at)}</td>
+        <td>${expiresCell}</td>
+        <td>${esc(state)}</td>
+        <td class="row">
+          <button class="secondary" data-edit-key="${esc(k.id)}" data-key-label="${esc(k.label || "")}" data-key-purpose="${esc(k.purpose || "")}">Edit label</button>
+          ${k.revoked_at ? "" : `<button class="danger" data-revoke="${esc(k.id)}">Revoke</button>`}
+        </td>
+      </tr>`;
+      },
     )
     .join("");
   document.getElementById("keys-table").innerHTML = `
     <table>
-      <thead><tr><th>Prefix</th><th>Client IDs</th><th>Status</th><th></th></tr></thead>
-      <tbody>${rows || '<tr><td colspan="4">No keys yet.</td></tr>'}</tbody>
+      <thead><tr><th>Label</th><th>Purpose</th><th>Prefix</th><th>Client IDs</th><th>Created</th><th>Expires</th><th>State</th><th></th></tr></thead>
+      <tbody>${rows || '<tr><td colspan="8">No keys yet.</td></tr>'}</tbody>
     </table>`;
   document.querySelectorAll("[data-revoke]").forEach((btn) => {
     btn.onclick = async () => {
       if (!confirm("Revoke this API key?")) return;
       await api(`/api-keys/${btn.dataset.revoke}`, { method: "DELETE" });
       await loadKeys();
+    };
+  });
+  document.querySelectorAll("[data-edit-key]").forEach((btn) => {
+    btn.onclick = async () => {
+      const id = btn.dataset.editKey;
+      const label = window.prompt("Label (short name):", btn.dataset.keyLabel || "");
+      if (label == null) return;
+      const trimmed = label.trim();
+      if (!trimmed) {
+        flash("Label cannot be empty.", true);
+        return;
+      }
+      const purpose = window.prompt(
+        "Purpose (optional):",
+        btn.dataset.keyPurpose || "",
+      );
+      if (purpose == null) return;
+      try {
+        const body = { label: trimmed };
+        const purposeTrim = purpose.trim();
+        if (purposeTrim) body.purpose = purposeTrim;
+        await api(`/api-keys/${id}`, {
+          method: "PATCH",
+          body: JSON.stringify(body),
+        });
+        flash("API key label updated.");
+        await loadKeys();
+      } catch (e) {
+        flash(e.message, true);
+      }
     };
   });
 }

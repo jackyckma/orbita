@@ -18,6 +18,8 @@ export const apiKeys = pgTable("api_keys", {
     .notNull()
     .default([]),
   scopes: jsonb("scopes").$type<string[]>().notNull().default([]),
+  label: text("label"),
+  purpose: text("purpose"),
   rateLimitPerMinute: integer("rate_limit_per_minute"),
   expiresAt: timestamp("expires_at", { withTimezone: true }),
   revokedAt: timestamp("revoked_at", { withTimezone: true }),

@@ -100,6 +100,8 @@ ALTER TABLE "session_jobs" ADD COLUMN IF NOT EXISTS "cron" text;
 ALTER TABLE "session_jobs" ADD COLUMN IF NOT EXISTS "next_run_at" timestamp with time zone;
 
 ALTER TABLE "api_keys" ADD COLUMN IF NOT EXISTS "rate_limit_per_minute" integer;
+ALTER TABLE "api_keys" ADD COLUMN IF NOT EXISTS "label" text;
+ALTER TABLE "api_keys" ADD COLUMN IF NOT EXISTS "purpose" text;
 
 CREATE TABLE IF NOT EXISTS "rate_limit_counters" (
   "key_id" uuid NOT NULL,

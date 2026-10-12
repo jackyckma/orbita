@@ -30,6 +30,7 @@ import type { TicketActorConfig, TicketRepository } from "@orbita/tickets";
 export type OrbitaMcpDeps = {
   clientId: string;
   keyPrefix: string;
+  keyLabel: string | null;
   apiKeyId: string;
   scopes: string[];
   memoryDb: MemoryDb;
@@ -67,6 +68,7 @@ function registerOrbitaTools(server: McpServer, deps: OrbitaMcpDeps) {
       const base = {
         client_id: clientId,
         key_prefix: deps.keyPrefix,
+        key_label: deps.keyLabel,
         scopes: deps.scopes,
       };
       if (!ticketsOn) {

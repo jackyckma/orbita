@@ -47,6 +47,7 @@ export function minimalMcpDeps(
   return {
     clientId: "tenant-a",
     keyPrefix: "test",
+    keyLabel: null,
     apiKeyId: "key-1",
     scopes: ["sessions:use"],
     memoryDb: {} as OrbitaMcpDeps["memoryDb"],
