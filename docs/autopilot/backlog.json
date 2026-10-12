@@ -1702,11 +1702,12 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "ready",
+      "status": "in_progress",
       "retries": 0,
       "feedback": [
         "2026-10-08 hub: issued keys have no name, so the console cannot show which platform a key was for. Create API already accepts expires_at and rate_limit_per_minute; the form does not send them.",
-        "2026-10-08 hub: aligned with E-19. Field is purpose, not a second name. Suspension and last_used_at stay in later E-17/E-19 tasks. PATCH is {label?, purpose?} until suspended? is added."
+        "2026-10-08 hub: aligned with E-19. Field is purpose, not a second name. Suspension and last_used_at stay in later E-17/E-19 tasks. PATCH is {label?, purpose?} until suspended? is added.",
+        "Maker 2026-10-12: lease on main; implementing T-0106."
       ]
     },
     {
