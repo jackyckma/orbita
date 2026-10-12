@@ -268,6 +268,10 @@ app.all("/v1/mcp", mcpAuthMiddleware, requireMcpScope("sessions:use"), async (c)
   const handler = createOrbitaMcpHandler({
     clientId: auth.clientId,
     keyPrefix: auth.apiKey.keyPrefix,
+    keyLabel:
+      auth.apiKey.label?.trim() && auth.apiKey.label.trim().length > 0
+        ? auth.apiKey.label.trim()
+        : null,
     apiKeyId: auth.apiKey.id,
     scopes: auth.apiKey.scopes,
     memoryDb,
@@ -353,9 +357,14 @@ protectedApp.use("*", rateLimitMiddleware);
 
 protectedApp.get("/whoami", (c) => {
   const auth = getAuth(c);
+  const label =
+    auth.apiKey.label?.trim() && auth.apiKey.label.trim().length > 0
+      ? auth.apiKey.label.trim()
+      : null;
   return c.json({
     client_id: auth.clientId,
     key_prefix: auth.apiKey.keyPrefix,
+    key_label: label,
     scopes: auth.apiKey.scopes,
   });
 });

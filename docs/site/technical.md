@@ -28,6 +28,8 @@ x-orbita-client-id: my-project
 
 Admin routes (`/v1/admin/*`, `/admin`) use header **`x-orbita-admin-token: <ORBITA_ADMIN_TOKEN>`** — not `Authorization: Bearer`.
 
+Pre-issued API keys support an optional **key label** (short name) and **purpose** in the admin console and `POST/PATCH /v1/admin/api-keys`; `GET /v1/whoami` returns `key_label` for the caller's own key.
+
 ## Agent profiles
 
 Static bundles of system prompt, skills, and allowed tools. List:

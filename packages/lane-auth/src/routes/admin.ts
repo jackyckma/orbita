@@ -6,12 +6,31 @@ import {
   notFound,
 } from "@orbita/platform";
 import type { AuthDb } from "../db/client.js";
-import { createApiKey, listApiKeys, revokeApiKey } from "../services/api-keys.js";
+import {
+  API_KEY_LABEL_MAX_LENGTH,
+  createApiKey,
+  listApiKeys,
+  patchApiKey,
+  revokeApiKey,
+} from "../services/api-keys.js";
+
+const optionalLabelSchema = z
+  .string()
+  .max(API_KEY_LABEL_MAX_LENGTH)
+  .optional()
+  .transform((v) => (v === undefined ? undefined : v.trim() === "" ? null : v.trim()));
+
+const optionalPurposeSchema = z
+  .string()
+  .optional()
+  .transform((v) => (v === undefined ? undefined : v.trim() === "" ? null : v.trim()));
 
 const CreateApiKeyBodySchema = z
   .object({
     allowed_client_ids: z.array(z.string().min(1)).min(1),
     scopes: z.array(z.string().min(1)).default(["sessions:create", "sessions:use"]),
+    label: optionalLabelSchema,
+    purpose: optionalPurposeSchema,
     expires_at: z.string().datetime().optional(),
     rate_limit_per_minute: z.number().int().positive().optional(),
   })
@@ -22,12 +41,40 @@ const CreateApiKeyResponseSchema = z
     id: z.string().uuid(),
     key: z.string(),
     key_prefix: z.string(),
+    label: z.string().nullable(),
+    purpose: z.string().nullable(),
     allowed_client_ids: z.array(z.string()),
     scopes: z.array(z.string()),
     expires_at: z.string().datetime().nullable(),
+    rate_limit_per_minute: z.number().int().positive().nullable().optional(),
     created_at: z.string().datetime(),
   })
   .openapi("CreateApiKeyResponse");
+
+const ApiKeySummarySchema = z.object({
+  id: z.string().uuid(),
+  key_prefix: z.string(),
+  label: z.string().nullable(),
+  purpose: z.string().nullable(),
+  unlabelled: z.boolean(),
+  allowed_client_ids: z.array(z.string()),
+  scopes: z.array(z.string()),
+  expires_at: z.string().datetime().nullable(),
+  rate_limit_per_minute: z.number().nullable(),
+  created_at: z.string().datetime(),
+  revoked_at: z.string().datetime().nullable(),
+  state: z.enum(["active", "expired", "revoked"]),
+});
+
+const PatchApiKeyBodySchema = z
+  .object({
+    label: optionalLabelSchema,
+    purpose: optionalPurposeSchema,
+  })
+  .refine((body) => body.label !== undefined || body.purpose !== undefined, {
+    message: "At least one of label or purpose is required",
+  })
+  .openapi("PatchApiKeyBody");
 
 const RevokeApiKeyParamsSchema = z.object({
   key_id: z.string().uuid(),
@@ -102,6 +149,9 @@ export function createAdminRoutes(
     const body = c.req.valid("json");
     let expiresAt: Date | null = null;
     if (body.expires_at) {
+      if (!body.expires_at.endsWith("Z")) {
+        throw badRequest("expires_at must be ISO-8601 UTC ending with Z");
+      }
       expiresAt = new Date(body.expires_at);
       if (Number.isNaN(expiresAt.getTime())) {
         throw badRequest("Invalid expires_at");
@@ -111,6 +161,8 @@ export function createAdminRoutes(
     const result = await createApiKey(authDb, {
       allowedClientIds: body.allowed_client_ids,
       scopes: body.scopes,
+      label: body.label ?? null,
+      purpose: body.purpose ?? null,
       expiresAt,
       rateLimitPerMinute: body.rate_limit_per_minute ?? null,
     });
@@ -120,6 +172,8 @@ export function createAdminRoutes(
         id: result.id,
         key: result.plaintextKey,
         key_prefix: result.keyPrefix,
+        label: result.label,
+        purpose: result.purpose,
         allowed_client_ids: result.allowedClientIds,
         scopes: result.scopes,
         expires_at: result.expiresAt,
@@ -128,6 +182,62 @@ export function createAdminRoutes(
       },
       201,
     );
+  });
+
+  const patchKeyRoute = createRoute({
+    method: "patch",
+    path: "/api-keys/{key_id}",
+    tags: ["Admin"],
+    summary: "Update API key label or purpose",
+    request: {
+      headers: z.object({
+        "x-orbita-admin-token": z.string().optional(),
+      }),
+      params: RevokeApiKeyParamsSchema,
+      body: {
+        content: {
+          "application/json": {
+            schema: PatchApiKeyBodySchema,
+          },
+        },
+      },
+    },
+    responses: {
+      200: {
+        description: "Updated key metadata",
+        content: {
+          "application/json": {
+            schema: ApiKeySummarySchema,
+          },
+        },
+      },
+      400: {
+        description: "Invalid request",
+        content: { "application/json": { schema: ApiErrorBodySchema } },
+      },
+      403: {
+        description: "Forbidden",
+        content: { "application/json": { schema: ApiErrorBodySchema } },
+      },
+      404: {
+        description: "Key not found",
+        content: { "application/json": { schema: ApiErrorBodySchema } },
+      },
+    },
+  });
+
+  app.openapi(patchKeyRoute, async (c) => {
+    optionalAdminGuard(guard, c.req.header("x-orbita-admin-token"));
+    const { key_id } = c.req.valid("param");
+    const body = c.req.valid("json");
+    const updated = await patchApiKey(authDb, key_id, {
+      label: body.label,
+      purpose: body.purpose,
+    });
+    if (!updated) {
+      throw notFound("API key not found");
+    }
+    return c.json(updated, 200);
   });
 
   const revokeKeyRoute = createRoute({
@@ -175,18 +285,7 @@ export function createAdminRoutes(
         content: {
           "application/json": {
             schema: z.object({
-              keys: z.array(
-                z.object({
-                  id: z.string().uuid(),
-                  key_prefix: z.string(),
-                  allowed_client_ids: z.array(z.string()),
-                  scopes: z.array(z.string()),
-                  expires_at: z.string().datetime().nullable(),
-                  rate_limit_per_minute: z.number().nullable(),
-                  created_at: z.string().datetime(),
-                  revoked_at: z.string().datetime().nullable(),
-                }),
-              ),
+              keys: z.array(ApiKeySummarySchema),
             }),
           },
         },

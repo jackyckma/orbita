@@ -1,14 +1,25 @@
 export { createAuthDb, closeAuthDb, schema } from "./db/client.js";
 export type { AuthDb } from "./db/client.js";
 export {
+  apiKeyAuditFields,
+  bearerKeyPrefix,
   createApiKey,
-  listApiKeys,
-  revokeApiKey,
+  deriveApiKeyState,
   findActiveApiKeyByPlaintext,
   hashApiKey,
+  isApiKeyUnlabelled,
   isClientIdAllowed,
+  listApiKeys,
+  patchApiKey,
+  revokeApiKey,
 } from "./services/api-keys.js";
-export type { CreateApiKeyInput, CreateApiKeyResult, ApiKeySummary } from "./services/api-keys.js";
+export type {
+  ApiKeyLifecycleState,
+  ApiKeySummary,
+  CreateApiKeyInput,
+  CreateApiKeyResult,
+  PatchApiKeyInput,
+} from "./services/api-keys.js";
 export {
   createAuthMiddleware,
   extractBearerToken,

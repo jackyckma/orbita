@@ -45,6 +45,8 @@ function mockApiKey(id: string) {
     keyHash: "hash",
     allowedClientIds: ["tenant-a"],
     scopes: [],
+    label: null,
+    purpose: null,
     rateLimitPerMinute: null,
     expiresAt: null,
     revokedAt: null,

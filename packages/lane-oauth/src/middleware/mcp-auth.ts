@@ -57,6 +57,8 @@ export function createMcpAuthMiddleware(
             keyHash: "",
             allowedClientIds: [oauthClaims.sub],
             scopes,
+            label: null,
+            purpose: null,
             rateLimitPerMinute: null,
             expiresAt: null,
             revokedAt: null,
