@@ -1702,13 +1702,14 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "in_review",
+      "status": "done",
       "retries": 0,
       "feedback": [
         "2026-10-08 hub: issued keys have no name, so the console cannot show which platform a key was for. Create API already accepts expires_at and rate_limit_per_minute; the form does not send them.",
         "2026-10-08 hub: aligned with E-19. Field is purpose, not a second name. Suspension and last_used_at stay in later E-17/E-19 tasks. PATCH is {label?, purpose?} until suspended? is added.",
         "Maker 2026-10-12: lease on main; implementing T-0106.",
-        "Maker 2026-10-12: PR https://github.com/jackyckma/orbita/pull/70 opened; acceptance + typecheck green."
+        "Maker 2026-10-12: PR https://github.com/jackyckma/orbita/pull/70 opened; acceptance + typecheck green.",
+        "Checker 2026-10-12: REVIEW PASS — merged PR #70 @16496fe. verify-all + T-0106 acceptance green; CI verify + e2e-tier-a PASS. Scope OK (label/purpose/PATCH/admin UI/whoami; no suspension or last_used_at)."
       ]
     },
     {
