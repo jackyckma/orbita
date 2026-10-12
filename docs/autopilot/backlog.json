@@ -1675,13 +1675,14 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "ready",
-      "retries": 1,
+      "status": "needs_human",
+      "retries": 2,
       "feedback": [
         "2026-10-08 hub review of main @08b7283: failed auth has no per-IP limiter, audit, or scanner tripwire.",
         "Maker 2026-10-11: lease on main; implementing T-0105.",
         "Maker 2026-10-11: PR https://github.com/jackyckma/orbita/pull/69 opened; task acceptance + agent-verify green.",
-        "Checker 2026-10-11: REVIEW FAIL — not merged. verify-all + acceptance green on PR #69 head; CI verify PASS. Scope gap: POST /v1/admin/session bypasses auth-fail guard (middleware skips /session paths; session routes have no checkBlocked/recordFailure). T-0105 requires limiter on /v1/admin/*. Bounced to ready (retries=1); PR #69 stays open for Maker."
+        "Checker 2026-10-11: REVIEW FAIL — not merged. verify-all + acceptance green on PR #69 head; CI verify PASS. Scope gap: POST /v1/admin/session bypasses auth-fail guard (middleware skips /session paths; session routes have no checkBlocked/recordFailure). T-0105 requires limiter on /v1/admin/*. Bounced to ready (retries=1); PR #69 stays open for Maker.",
+        "Checker 2026-10-12: REVIEW FAIL (2nd pass) — not merged. PR head unchanged (eb557ad). verify-all + acceptance green; CI verify + e2e-tier-a PASS. Same scope gap on POST /v1/admin/session. Escalated needs_human (retries=2). PR #69 left open. gh pr comment blocked (403)."
       ]
     },
     {
