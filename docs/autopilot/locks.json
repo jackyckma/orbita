@@ -4,8 +4,8 @@
     "T-0106": {
       "by": "maker",
       "since": "2026-10-12T23:04:08Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/t-0106-api-key-labels",
+      "pr": 70
     }
   }
 }
