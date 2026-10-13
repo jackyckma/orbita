@@ -1755,6 +1755,131 @@
         "2026-10-03 hub (claude-hub-session): written after the founder approved notes deletion as a prerequisite for storing visitor conversations.",
         "DEFERRED by hub 2026-10-06: Grok Bot pilot first; set back to ready afterwards (T-0093 must be done before any visitor or third-party personal data is stored in Orbita notes)."
       ]
+    },
+    {
+      "id": "T-0107",
+      "lane": "platform",
+      "phase": "consultos-c",
+      "title": "lane-agent-principals: INTERFACE.md + scope/principal contracts",
+      "description": "Epic E-17 task 1 (tier 1). Create packages/lane-agent-principals/ following lane rules (no imports from other lanes' src). INTERFACE.md documents principals, scopes, rollout modes, and tenancy. Under contracts/: JSON-Schema for agent_principal (kind human|claude|cursor|external-agent|internal-worker, client_id, name, bound_api_key_id, scopes[], mandate_ids[], status), agent_audit event (principal_id, surface rest|mcp, operation, decision allow|deny|would-deny, reason code, at — no payload bodies), and scope vocabulary (tickets:read, tickets:claim, tickets:write:<function>, tickets:approve, notes:read, notes:write, github:read, automation:trigger, admin, sessions:use). Document ORBITA_AGENT_PRINCIPALS_ENABLED and ORBITA_AGENT_SCOPES_MODE (off|shadow|enforce) in INTERFACE.md. Add contracts/validate-contracts.test.mjs like lane-tickets. Add .agents/skills/lane-agent-principals/SKILL.md (thin pointer). Do NOT add SQL, routes, or runtime code in this task.",
+      "acceptance": [
+        "test -f packages/lane-agent-principals/INTERFACE.md",
+        "test -f packages/lane-agent-principals/contracts/principal.schema.json",
+        "node --test packages/lane-agent-principals/contracts/validate-contracts.test.mjs",
+        "test -f .agents/skills/lane-agent-principals/SKILL.md",
+        "pnpm -r typecheck"
+      ],
+      "deps": [],
+      "flag": "ORBITA_AGENT_PRINCIPALS_ENABLED",
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "REPLAN 2026-10-13: E-17 tier 1 pass 1/6 — contracts before DDL (sequence E-16 done)."
+      ]
+    },
+    {
+      "id": "T-0108",
+      "lane": "platform",
+      "phase": "consultos-c",
+      "title": "lane-agent-principals: optional DDL + repository (fake + pg)",
+      "description": "Epic E-17 task 2. Additive optional migration (same pattern as lane-tickets): agent_principals and agent_audit tables, IF NOT EXISTS only, registered in docs/autopilot/sql-sync-allowlist.json; applied only when ORBITA_AGENT_PRINCIPALS_ENABLED=1 at API boot. Repository interface + fake implementation for unit tests; Pg implementation with client_id predicates on every query; append-only agent_audit writes. SQL text lint test (no DROP, no ALTER of existing tables). Tier-A test applies DDL twice when flag on. Wire runMigrations hook in apps/orbita-api like tickets. Flag off: no pool, no DDL, no behaviour change. Do NOT mount routes, MCP scope checks, or change auth middleware yet.",
+      "acceptance": [
+        "pnpm --filter @orbita/agent-principals test",
+        "rg -n \"agent_principals\" apps/orbita-api/migrations packages/lane-agent-principals",
+        "rg -n \"agent-principals\" docs/autopilot/sql-sync-allowlist.json",
+        "pnpm -r typecheck"
+      ],
+      "deps": ["T-0107"],
+      "flag": "ORBITA_AGENT_PRINCIPALS_ENABLED",
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "REPLAN 2026-10-13: E-17 tier 1 pass 2/6 — DDL gated like tickets."
+      ]
+    },
+    {
+      "id": "T-0109",
+      "lane": "platform",
+      "phase": "consultos-c",
+      "title": "API keys: reversible suspension (suspended_at, auth + admin UI)",
+      "description": "Epic E-17 tier 1 item (4), pulled forward from E-19. Additive nullable api_keys.suspended_at (init.sql + lane-auth schema, ADD COLUMN IF NOT EXISTS). Auth middleware (REST + MCP): if suspended_at is set, reject with 401 and body code key_suspended (distinct from revoked/expired). PATCH /v1/admin/api-keys/{key_id} accepts {suspended?: boolean} alongside existing label/purpose from T-0106; admin console Suspend/Resume per row (mirror T-0090 harness toggle UX). Never log keys. Tests: suspended key denied on REST and MCP; resume clears suspension; legacy keys unchanged. Do NOT implement principals, scopes, or last_used_at ledger (E-19). Compatible with T-0106 PATCH shape.",
+      "acceptance": [
+        "pnpm --filter @orbita/auth test",
+        "pnpm --filter @orbita/admin test",
+        "pnpm -r typecheck",
+        "rg -n \"suspended_at|key_suspended\" packages/lane-auth apps/orbita-api",
+        "rg -n \"suspended\" packages/lane-admin/public/admin.js"
+      ],
+      "deps": [],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "REPLAN 2026-10-13: E-17 emergency stop before bot keys; independent of principals DDL."
+      ]
+    },
+    {
+      "id": "T-0110",
+      "lane": "platform",
+      "phase": "consultos-c",
+      "title": "Agent principals: admin CRUD, legacy-full mapping, OAuth connection id",
+      "description": "Epic E-17 task 3. When ORBITA_AGENT_PRINCIPALS_ENABLED=1: admin routes POST/GET/PATCH /v1/admin/agent-principals (create, list, revoke, bind api_key_id, set scopes and mandate_ids). On first boot with flag on, ensure every existing API key maps to a built-in legacy-full principal with all scopes (nothing breaks). OAuth MCP: replace placeholder api key id 'oauth' with a stable per-grant identifier (document field in INTERFACE.md); orbita_whoami returns principal_id and scopes when principals enabled; warnIfOAuthInPrivilegedAllowlist must treat generic 'oauth' as never privileged — integrator mapping uses the stable grant id. Tests: legacy key gets legacy-full; created external-agent principal has least-privilege defaults; oauth grant id stable across two requests; whoami extension golden test. Do NOT enforce scopes on tool calls yet (T-0111). Founder-only: creating real bot principals in prod stays manual (D-006).",
+      "acceptance": [
+        "pnpm --filter @orbita/agent-principals test",
+        "pnpm --filter @orbita/auth test",
+        "pnpm -r typecheck",
+        "rg -n \"agent-principals\" packages/lane-admin apps/orbita-api/src",
+        "rg -n \"principal_id\" packages/lane-mcp packages/lane-auth"
+      ],
+      "deps": ["T-0108"],
+      "flag": "ORBITA_AGENT_PRINCIPALS_ENABLED",
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "REPLAN 2026-10-13: E-17 tier 1 pass 3/6 — identity + OAuth grant id."
+      ]
+    },
+    {
+      "id": "T-0111",
+      "lane": "platform",
+      "phase": "consultos-c",
+      "title": "MCP/REST scope registry + shadow/enforce gate",
+      "description": "Epic E-17 task 4. Single table mapping every MCP tool name and sensitive REST route template to required scope(s). Test FAILS if any registered MCP tool lacks a mapping (packages/lane-mcp). ORBITA_AGENT_SCOPES_MODE: off = no checks (current behaviour); shadow = evaluate, append agent_audit would-deny, still allow; enforce = 403 scope_denied with stable code. Legacy-full principals always pass. Applies to MCP tool dispatch and ticket/note/github/automation routes when principals flag on. Golden test: mode off → tool list and sample call unchanged vs committed baseline. Do NOT implement external-agent bot subtree rules yet (T-0112).",
+      "acceptance": [
+        "pnpm --filter @orbita/mcp test",
+        "pnpm --filter @orbita/agent-principals test",
+        "pnpm -r typecheck",
+        "rg -n \"ORBITA_AGENT_SCOPES_MODE\" packages apps",
+        "rg -n \"scope_denied|would-deny\" packages/lane-agent-principals"
+      ],
+      "deps": ["T-0110"],
+      "flag": "ORBITA_AGENT_PRINCIPALS_ENABLED",
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "REPLAN 2026-10-13: E-17 tier 1 pass 4/6 — scope map + shadow mode."
+      ]
+    },
+    {
+      "id": "T-0112",
+      "lane": "platform",
+      "phase": "consultos-c",
+      "title": "External-agent ENFORCE: mandate subtree, note types, untrusted_author",
+      "description": "Epic E-17 task 5 (tier 1 completion). For principals kind=external-agent with ORBITA_AGENT_SCOPES_MODE=enforce: deny ticket/note/github/admin/automation outside bound mandate subtree and allowed note types/projects; allow proposed epics and tasks under approved epics of own mandate only; deny ticket_approve and integrator actions. Persist author_principal_id + trust_level on ticket_events and notes created by bot principals. Every ticket_get/list and note_get/list/MCP read includes untrusted_author: true when author is external-agent (golden test). Tier-A or pg test: bot fixture key gets 403 on github_get_file, note_put outside namespace, and ticket in another mandate; allowed path succeeds. Replace ORBITA_TICKETS_KEY_MANDATES stopgap for bot keys when principal has mandate_ids (keep env fallback when principals flag off). Add docs/personal-steward/agent-principals-pilot.md summarizing bot charter limits (no prod flag flip). Do NOT auto-switch prod to enforce (D-006 founder-only).",
+      "acceptance": [
+        "pnpm --filter @orbita/tickets test",
+        "pnpm --filter @orbita/memory test",
+        "pnpm --filter @orbita/agent-principals test",
+        "rg -n \"untrusted_author\" packages",
+        "pnpm -r typecheck"
+      ],
+      "deps": ["T-0111"],
+      "flag": "ORBITA_AGENT_PRINCIPALS_ENABLED",
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "REPLAN 2026-10-13: E-17 tier 1 pass 5/6 — bot deny paths + untrusted marker."
+      ]
     }
   ]
 }
