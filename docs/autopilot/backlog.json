@@ -1771,7 +1771,7 @@
       ],
       "deps": [],
       "flag": "ORBITA_AGENT_PRINCIPALS_ENABLED",
-      "status": "ready",
+      "status": "in_progress",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-13: E-17 tier 1 pass 1/6 — contracts before DDL (sequence E-16 done)."
