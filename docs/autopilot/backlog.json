@@ -1771,11 +1771,12 @@
       ],
       "deps": [],
       "flag": "ORBITA_AGENT_PRINCIPALS_ENABLED",
-      "status": "in_review",
+      "status": "done",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-13: E-17 tier 1 pass 1/6 — contracts before DDL (sequence E-16 done).",
-        "MAKER 2026-10-14: PR https://github.com/jackyckma/orbita/pull/71; contract tests + pnpm -r typecheck green."
+        "MAKER 2026-10-14: PR https://github.com/jackyckma/orbita/pull/71; contract tests + pnpm -r typecheck green.",
+        "CHECKER 2026-10-14: merged PR #71; verify-all green; scope matches contracts-only slice."
       ]
     },
     {
