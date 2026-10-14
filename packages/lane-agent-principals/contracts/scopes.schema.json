@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://orbita.dev/schemas/lane-agent-principals/scopes.schema.json",
+  "title": "Agent scope vocabulary",
+  "description": "Canonical scope strings for ORBITA_AGENT_SCOPES_MODE enforcement. MCP tools and REST routes map to one or more of these scopes at runtime (T-0111+).",
+  "definitions": {
+    "scope_literal": {
+      "type": "string",
+      "enum": [
+        "tickets:read",
+        "tickets:claim",
+        "tickets:approve",
+        "notes:read",
+        "notes:write",
+        "github:read",
+        "automation:trigger",
+        "admin",
+        "sessions:use"
+      ]
+    },
+    "tickets_write_scope": {
+      "type": "string",
+      "pattern": "^tickets:write:(dev|infra|support|marketing|sales|ops|research)$"
+    },
+    "agent_scope": {
+      "oneOf": [
+        { "$ref": "#/definitions/scope_literal" },
+        { "$ref": "#/definitions/tickets_write_scope" }
+      ]
+    },
+    "scope_list": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/agent_scope" },
+      "uniqueItems": true
+    }
+  },
+  "$ref": "#/definitions/agent_scope"
+}

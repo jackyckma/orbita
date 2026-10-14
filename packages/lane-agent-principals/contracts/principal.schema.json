@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://orbita.dev/schemas/lane-agent-principals/principal.schema.json",
+  "title": "agent_principal",
+  "description": "Per-caller identity bound to an API key (or OAuth grant id) within a client_id tenant.",
+  "type": "object",
+  "required": [
+    "id",
+    "client_id",
+    "kind",
+    "name",
+    "bound_api_key_id",
+    "scopes",
+    "mandate_ids",
+    "status",
+    "created_at"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "$ref": "common.schema.json#/definitions/uuid" },
+    "client_id": { "$ref": "common.schema.json#/definitions/client_id" },
+    "kind": { "$ref": "common.schema.json#/definitions/principal_kind" },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "Human-readable label (e.g. grok-market-research). Not a secret."
+    },
+    "bound_api_key_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "api_keys.id for orb_ keys, or a stable per-grant identifier for OAuth MCP (replaces the privileged 'oauth' placeholder)."
+    },
+    "scopes": { "$ref": "scopes.schema.json#/definitions/scope_list" },
+    "mandate_ids": {
+      "type": "array",
+      "items": { "$ref": "common.schema.json#/definitions/uuid" },
+      "uniqueItems": true,
+      "description": "Ticket mandate subtree this principal may act within when ticket scopes apply."
+    },
+    "status": { "$ref": "common.schema.json#/definitions/principal_status" },
+    "created_at": { "$ref": "common.schema.json#/definitions/iso_date_time" },
+    "updated_at": { "$ref": "common.schema.json#/definitions/iso_date_time" }
+  }
+}
