@@ -4,8 +4,8 @@
     "T-0107": {
       "by": "maker",
       "since": "2026-10-14T23:05:00.000Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/t-0107-lane-agent-principals-contracts",
+      "pr": 71
     }
   }
 }
