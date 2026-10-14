@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://orbita.dev/schemas/lane-agent-principals/agent-audit-event.schema.json",
+  "title": "agent_audit event",
+  "description": "Append-only scope decision row. Never stores request/response bodies, note text, or secrets.",
+  "type": "object",
+  "required": ["principal_id", "client_id", "surface", "operation", "decision", "reason_code", "at"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "$ref": "common.schema.json#/definitions/uuid" },
+    "principal_id": { "$ref": "common.schema.json#/definitions/uuid" },
+    "client_id": { "$ref": "common.schema.json#/definitions/client_id" },
+    "surface": { "$ref": "common.schema.json#/definitions/audit_surface" },
+    "operation": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "REST route template (e.g. GET /v1/tickets/{id}) or MCP tool name (e.g. ticket_claim)."
+    },
+    "decision": { "$ref": "common.schema.json#/definitions/audit_decision" },
+    "reason_code": { "$ref": "common.schema.json#/definitions/audit_reason_code" },
+    "at": { "$ref": "common.schema.json#/definitions/iso_date_time" }
+  }
+}

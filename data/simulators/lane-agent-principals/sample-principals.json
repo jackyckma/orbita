@@ -1,0 +1,59 @@
+{
+  "principals": [
+    {
+      "id": "a1111111-1111-4111-8111-111111111111",
+      "client_id": "personal-jacky",
+      "kind": "human",
+      "name": "legacy-full",
+      "bound_api_key_id": "key_legacy_full",
+      "scopes": [
+        "tickets:read",
+        "tickets:claim",
+        "tickets:write:dev",
+        "tickets:approve",
+        "notes:read",
+        "notes:write",
+        "github:read",
+        "automation:trigger",
+        "admin",
+        "sessions:use"
+      ],
+      "mandate_ids": [],
+      "status": "active",
+      "created_at": "2026-10-14T00:00:00.000Z"
+    },
+    {
+      "id": "b2222222-2222-4222-8222-222222222222",
+      "client_id": "personal-jacky",
+      "kind": "external-agent",
+      "name": "grok-market-research",
+      "bound_api_key_id": "key_grok_mr",
+      "scopes": ["tickets:read", "tickets:claim", "tickets:write:research", "notes:read", "sessions:use"],
+      "mandate_ids": ["c3333333-3333-4333-8333-333333333333"],
+      "status": "active",
+      "created_at": "2026-10-14T00:00:00.000Z"
+    }
+  ],
+  "audit_events": [
+    {
+      "id": "d4444444-4444-4444-8444-444444444444",
+      "principal_id": "b2222222-2222-4222-8222-222222222222",
+      "client_id": "personal-jacky",
+      "surface": "mcp",
+      "operation": "github_get_file",
+      "decision": "would-deny",
+      "reason_code": "SCOPE_DENIED",
+      "at": "2026-10-14T12:00:00.000Z"
+    },
+    {
+      "principal_id": "b2222222-2222-4222-8222-222222222222",
+      "client_id": "personal-jacky",
+      "surface": "rest",
+      "operation": "GET /v1/tickets",
+      "decision": "allow",
+      "reason_code": "SCOPE_OK",
+      "at": "2026-10-14T12:01:00.000Z"
+    }
+  ],
+  "sample_scopes": ["tickets:read", "tickets:write:ops", "sessions:use"]
+}

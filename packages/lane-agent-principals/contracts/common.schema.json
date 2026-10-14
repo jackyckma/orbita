@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://orbita.dev/schemas/lane-agent-principals/common.schema.json",
+  "title": "Lane agent principals — shared definitions",
+  "definitions": {
+    "uuid": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "client_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Tenant id from auth context only — never from request bodies alone."
+    },
+    "iso_date_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "principal_kind": {
+      "type": "string",
+      "enum": ["human", "claude", "cursor", "external-agent", "internal-worker"]
+    },
+    "principal_status": {
+      "type": "string",
+      "enum": ["active", "revoked", "suspended"],
+      "description": "revoked is terminal; suspended is reversible (pairs with api_keys.suspended_at in E-17/E-19)."
+    },
+    "audit_surface": {
+      "type": "string",
+      "enum": ["rest", "mcp"]
+    },
+    "audit_decision": {
+      "type": "string",
+      "enum": ["allow", "deny", "would-deny"],
+      "description": "would-deny is written in shadow mode without blocking the request."
+    },
+    "audit_reason_code": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[A-Z][A-Z0-9_]*$",
+      "description": "Stable machine reason (e.g. SCOPE_DENIED, PRINCIPAL_REVOKED). Never a payload body or secret."
+    },
+    "ticket_function": {
+      "type": "string",
+      "enum": ["dev", "infra", "support", "marketing", "sales", "ops", "research"]
+    }
+  }
+}
