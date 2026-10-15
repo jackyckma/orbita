@@ -73,6 +73,12 @@ pnpm exec vitest run --config tests/e2e/vitest.config.ts tests/e2e/tickets-migra
 pnpm exec vitest run --config tests/e2e/vitest.config.ts tests/e2e/tickets-pg-repository.test.ts
 unset ORBITA_TICKETS_ENABLED
 
+echo "==> agent principals migration + pg repo (ORBITA_AGENT_PRINCIPALS_ENABLED=1, apply twice)"
+export ORBITA_AGENT_PRINCIPALS_ENABLED=1
+pnpm exec vitest run --config tests/e2e/vitest.config.ts tests/e2e/agent-principals-migration.test.ts
+pnpm exec vitest run --config tests/e2e/vitest.config.ts tests/e2e/agent-principals-pg-repository.test.ts
+unset ORBITA_AGENT_PRINCIPALS_ENABLED
+
 echo "==> tickets bot-loop smoke (REST executor day)"
 bash scripts/tickets-bot-loop-smoke.sh
 
