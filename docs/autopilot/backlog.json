@@ -1793,10 +1793,11 @@
       ],
       "deps": ["T-0107"],
       "flag": "ORBITA_AGENT_PRINCIPALS_ENABLED",
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
       "feedback": [
-        "REPLAN 2026-10-13: E-17 tier 1 pass 2/6 — DDL gated like tickets."
+        "REPLAN 2026-10-13: E-17 tier 1 pass 2/6 — DDL gated like tickets.",
+        "MAKER 2026-10-15: PR https://github.com/jackyckma/orbita/pull/72; acceptance + typecheck + check:sql-sync green."
       ]
     },
     {

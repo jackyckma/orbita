@@ -4,8 +4,8 @@
     "T-0108": {
       "by": "maker",
       "since": "2026-10-15T23:02:34.000Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/t-0108-agent-principals-ddl-repo",
+      "pr": 72
     }
   }
 }
