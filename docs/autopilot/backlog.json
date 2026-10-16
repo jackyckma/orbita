@@ -1821,10 +1821,11 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "ready",
+      "status": "in_progress",
       "retries": 0,
       "feedback": [
-        "REPLAN 2026-10-13: E-17 emergency stop before bot keys; independent of principals DDL."
+        "REPLAN 2026-10-13: E-17 emergency stop before bot keys; independent of principals DDL.",
+        "Maker 2026-10-16: lease on main; implementing T-0109."
       ]
     },
     {
