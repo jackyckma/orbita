@@ -1574,7 +1574,9 @@
         "rg -n \"grok-market-research|grok-bizdev\" scripts docs/personal-steward",
         "node --test packages/lane-tickets/contracts/validate-contracts.test.mjs"
       ],
-      "deps": ["T-0100"],
+      "deps": [
+        "T-0100"
+      ],
       "flag": "ORBITA_TICKETS_ENABLED",
       "status": "done",
       "retries": 0,
@@ -1598,7 +1600,9 @@
         "bash scripts/build-web-docs.sh",
         "test -f apps/orbita-web/public/docs/ticket-executors.html"
       ],
-      "deps": ["T-0087"],
+      "deps": [
+        "T-0087"
+      ],
       "flag": null,
       "status": "done",
       "retries": 0,
@@ -1625,7 +1629,11 @@
         "rg -n \"tickets-bot-loop\" scripts tests docs/personal-steward",
         "pnpm -r typecheck"
       ],
-      "deps": ["T-0088", "T-0094", "T-0095"],
+      "deps": [
+        "T-0088",
+        "T-0094",
+        "T-0095"
+      ],
       "flag": "ORBITA_TICKETS_ENABLED",
       "status": "done",
       "retries": 0,
@@ -1648,7 +1656,10 @@
         "rg -n \"trust.domain|untrusted\" docs/personal-steward/grok-bot-pilot-activation.md",
         "rg -n \"tickets-seed-grok-mandates\" docs/personal-steward/grok-bot-pilot-activation.md"
       ],
-      "deps": ["T-0101", "T-0103"],
+      "deps": [
+        "T-0101",
+        "T-0103"
+      ],
       "flag": null,
       "status": "done",
       "retries": 0,
@@ -1791,7 +1802,9 @@
         "rg -n \"agent-principals\" docs/autopilot/sql-sync-allowlist.json",
         "pnpm -r typecheck"
       ],
-      "deps": ["T-0107"],
+      "deps": [
+        "T-0107"
+      ],
       "flag": "ORBITA_AGENT_PRINCIPALS_ENABLED",
       "status": "needs_human",
       "retries": 2,
@@ -1821,11 +1834,12 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-13: E-17 emergency stop before bot keys; independent of principals DDL.",
-        "Maker 2026-10-16: lease on main; implementing T-0109."
+        "Maker 2026-10-16: lease on main; implementing T-0109.",
+        "Maker 2026-10-16: PR https://github.com/jackyckma/orbita/pull/73; acceptance + typecheck + check:sql-sync green."
       ]
     },
     {
@@ -1841,7 +1855,9 @@
         "rg -n \"agent-principals\" packages/lane-admin apps/orbita-api/src",
         "rg -n \"principal_id\" packages/lane-mcp packages/lane-auth"
       ],
-      "deps": ["T-0108"],
+      "deps": [
+        "T-0108"
+      ],
       "flag": "ORBITA_AGENT_PRINCIPALS_ENABLED",
       "status": "ready",
       "retries": 0,
@@ -1862,7 +1878,9 @@
         "rg -n \"ORBITA_AGENT_SCOPES_MODE\" packages apps",
         "rg -n \"scope_denied|would-deny\" packages/lane-agent-principals"
       ],
-      "deps": ["T-0110"],
+      "deps": [
+        "T-0110"
+      ],
       "flag": "ORBITA_AGENT_PRINCIPALS_ENABLED",
       "status": "ready",
       "retries": 0,
@@ -1883,7 +1901,9 @@
         "rg -n \"untrusted_author\" packages",
         "pnpm -r typecheck"
       ],
-      "deps": ["T-0111"],
+      "deps": [
+        "T-0111"
+      ],
       "flag": "ORBITA_AGENT_PRINCIPALS_ENABLED",
       "status": "ready",
       "retries": 0,
