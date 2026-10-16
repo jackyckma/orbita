@@ -616,6 +616,14 @@ async function loadSettings() {
     <p class="hint">${esc(s.llm_keys.note)}</p>`;
 }
 
+function apiKeySuspended(k) {
+  return k.state === "suspended" || Boolean(k.suspended_at);
+}
+
+function apiKeySuspendToggleLabel(suspended) {
+  return suspended ? "Resume" : "Suspend";
+}
+
 async function loadKeys() {
   const { keys } = await api("/api-keys");
   const rows = keys
@@ -627,6 +635,8 @@ async function loadKeys() {
         const purposeCell = k.purpose ? esc(k.purpose) : "—";
         const expiresCell = k.expires_at ? esc(k.expires_at) : "—";
         const state = k.state || (k.revoked_at ? "revoked" : "active");
+        const suspended = apiKeySuspended(k);
+        const suspendAction = apiKeySuspendToggleLabel(suspended);
         return `<tr>
         <td>${labelCell}</td>
         <td>${purposeCell}</td>
@@ -637,6 +647,7 @@ async function loadKeys() {
         <td>${esc(state)}</td>
         <td class="row">
           <button class="secondary" data-edit-key="${esc(k.id)}" data-key-label="${esc(k.label || "")}" data-key-purpose="${esc(k.purpose || "")}">Edit label</button>
+          ${k.revoked_at ? "" : `<button class="secondary" data-key-suspend="${esc(k.id)}" data-suspended="${suspended ? "1" : "0"}">${esc(suspendAction)}</button>`}
           ${k.revoked_at ? "" : `<button class="danger" data-revoke="${esc(k.id)}">Revoke</button>`}
         </td>
       </tr>`;
@@ -648,6 +659,25 @@ async function loadKeys() {
       <thead><tr><th>Label</th><th>Purpose</th><th>Prefix</th><th>Client IDs</th><th>Created</th><th>Expires</th><th>State</th><th></th></tr></thead>
       <tbody>${rows || '<tr><td colspan="8">No keys yet.</td></tr>'}</tbody>
     </table>`;
+  document.querySelectorAll("[data-key-suspend]").forEach((btn) => {
+    btn.onclick = async () => {
+      const id = btn.dataset.keySuspend;
+      const currentlySuspended = btn.dataset.suspended === "1";
+      const nextSuspended = !currentlySuspended;
+      const verb = apiKeySuspendToggleLabel(currentlySuspended);
+      if (!confirm(`${verb} this API key?`)) return;
+      try {
+        await api(`/api-keys/${id}`, {
+          method: "PATCH",
+          body: JSON.stringify({ suspended: nextSuspended }),
+        });
+        flash(`API key ${verb.toLowerCase()}ed.`);
+        await loadKeys();
+      } catch (e) {
+        flash(e.message, true);
+      }
+    };
+  });
   document.querySelectorAll("[data-revoke]").forEach((btn) => {
     btn.onclick = async () => {
       if (!confirm("Revoke this API key?")) return;

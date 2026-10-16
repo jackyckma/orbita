@@ -6,8 +6,8 @@ import {
 } from "@orbita/platform";
 import type { AuthDb } from "../db/client.js";
 import {
-  findActiveApiKeyByPlaintext,
   isClientIdAllowed,
+  resolveApiKeyBearerToken,
 } from "../services/api-keys.js";
 import type { ApiKeyRow } from "../db/schema.js";
 
@@ -36,7 +36,7 @@ export function createAuthMiddleware(authDb: AuthDb) {
         throw unauthorized("Missing or invalid Authorization header");
       }
 
-      const apiKey = await findActiveApiKeyByPlaintext(authDb, token);
+      const apiKey = await resolveApiKeyBearerToken(authDb, token);
       if (!apiKey) {
         throw unauthorized("Invalid or expired API key");
       }

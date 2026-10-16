@@ -34,6 +34,7 @@ const sampleSummary = {
   rate_limit_per_minute: null,
   created_at: "2026-10-01T00:00:00.000Z",
   revoked_at: null,
+  suspended_at: null,
   state: "active" as const,
 };
 
@@ -119,6 +120,31 @@ describe("admin api-keys routes", () => {
       expect.anything(),
       sampleSummary.id,
       expect.objectContaining({ label: "renamed", purpose: "Grok bot" }),
+    );
+  });
+
+  it("PATCH suspends and resumes a key", async () => {
+    const patch = vi.spyOn(apiKeysService, "patchApiKey").mockResolvedValue({
+      ...sampleSummary,
+      suspended_at: "2026-10-16T00:00:00.000Z",
+      state: "suspended",
+    });
+    const res = await adminApp().request(
+      `http://localhost/api-keys/${sampleSummary.id}`,
+      {
+        method: "PATCH",
+        headers: {
+          "x-orbita-admin-token": adminToken,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ suspended: true }),
+      },
+    );
+    expect(res.status).toBe(200);
+    expect(patch).toHaveBeenCalledWith(
+      expect.anything(),
+      sampleSummary.id,
+      expect.objectContaining({ suspended: true }),
     );
   });
 });

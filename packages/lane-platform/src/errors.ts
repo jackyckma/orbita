@@ -9,6 +9,7 @@ export const ErrorCodeSchema = z.enum([
   "rate_limited",
   "quota_exceeded",
   "internal_error",
+  "key_suspended",
 ]);
 
 export type ErrorCode = z.infer<typeof ErrorCodeSchema>;
@@ -60,6 +61,10 @@ export function badRequest(
 
 export function unauthorized(message = "Unauthorized"): OrbitaError {
   return new OrbitaError("unauthorized", message, 401);
+}
+
+export function keySuspended(message = "API key is suspended"): OrbitaError {
+  return new OrbitaError("key_suspended", message, 401);
 }
 
 export function forbidden(message = "Forbidden"): OrbitaError {

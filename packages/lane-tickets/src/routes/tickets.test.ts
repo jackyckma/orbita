@@ -49,6 +49,7 @@ function mockApiKey(id: string) {
     purpose: null,
     rateLimitPerMinute: null,
     expiresAt: null,
+    suspendedAt: null,
     revokedAt: null,
     createdAt: new Date(),
   };
