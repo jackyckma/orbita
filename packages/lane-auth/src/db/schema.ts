@@ -22,6 +22,7 @@ export const apiKeys = pgTable("api_keys", {
   purpose: text("purpose"),
   rateLimitPerMinute: integer("rate_limit_per_minute"),
   expiresAt: timestamp("expires_at", { withTimezone: true }),
+  suspendedAt: timestamp("suspended_at", { withTimezone: true }),
   revokedAt: timestamp("revoked_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()

@@ -42,6 +42,12 @@ describe("api-keys", () => {
       } as ApiKeyRow),
     ).toBe("revoked");
     expect(
+      deriveApiKeyState({
+        ...base,
+        suspendedAt: new Date("2026-01-01"),
+      } as ApiKeyRow),
+    ).toBe("suspended");
+    expect(
       deriveApiKeyState(
         {
           ...base,

@@ -63,17 +63,25 @@ const ApiKeySummarySchema = z.object({
   rate_limit_per_minute: z.number().nullable(),
   created_at: z.string().datetime(),
   revoked_at: z.string().datetime().nullable(),
-  state: z.enum(["active", "expired", "revoked"]),
+  suspended_at: z.string().datetime().nullable(),
+  state: z.enum(["active", "expired", "revoked", "suspended"]),
 });
 
 const PatchApiKeyBodySchema = z
   .object({
     label: optionalLabelSchema,
     purpose: optionalPurposeSchema,
+    suspended: z.boolean().optional(),
   })
-  .refine((body) => body.label !== undefined || body.purpose !== undefined, {
-    message: "At least one of label or purpose is required",
-  })
+  .refine(
+    (body) =>
+      body.label !== undefined ||
+      body.purpose !== undefined ||
+      body.suspended !== undefined,
+    {
+      message: "At least one of label, purpose, or suspended is required",
+    },
+  )
   .openapi("PatchApiKeyBody");
 
 const RevokeApiKeyParamsSchema = z.object({
@@ -233,6 +241,7 @@ export function createAdminRoutes(
     const updated = await patchApiKey(authDb, key_id, {
       label: body.label,
       purpose: body.purpose,
+      suspended: body.suspended,
     });
     if (!updated) {
       throw notFound("API key not found");

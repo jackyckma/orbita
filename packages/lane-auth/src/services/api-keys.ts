@@ -1,12 +1,17 @@
 import { createHash, randomBytes } from "node:crypto";
 import { and, desc, eq, isNull } from "drizzle-orm";
+import { keySuspended } from "@orbita/platform";
 import type { AuthDb } from "../db/client.js";
 import { apiKeys, type ApiKeyRow } from "../db/schema.js";
 
 const KEY_PREFIX = "orb_";
 export const API_KEY_LABEL_MAX_LENGTH = 80;
 
-export type ApiKeyLifecycleState = "active" | "expired" | "revoked";
+export type ApiKeyLifecycleState =
+  | "active"
+  | "expired"
+  | "revoked"
+  | "suspended";
 
 export type CreateApiKeyInput = {
   allowedClientIds: string[];
@@ -66,10 +71,17 @@ export function deriveApiKeyState(row: ApiKeyRow, now = new Date()): ApiKeyLifec
   if (row.revokedAt) {
     return "revoked";
   }
+  if (row.suspendedAt) {
+    return "suspended";
+  }
   if (row.expiresAt && row.expiresAt.getTime() <= now.getTime()) {
     return "expired";
   }
   return "active";
+}
+
+function isApiKeyExpired(row: ApiKeyRow, now = new Date()): boolean {
+  return Boolean(row.expiresAt && row.expiresAt.getTime() <= now.getTime());
 }
 
 /** Prefix for audit logs when only a bearer token is available (never log the full token). */
@@ -142,6 +154,7 @@ export async function revokeApiKey(
 export type PatchApiKeyInput = {
   label?: string | null;
   purpose?: string | null;
+  suspended?: boolean;
 };
 
 export async function patchApiKey(
@@ -149,12 +162,16 @@ export async function patchApiKey(
   keyId: string,
   input: PatchApiKeyInput,
 ): Promise<ApiKeySummary | null> {
-  const updates: Partial<Pick<ApiKeyRow, "label" | "purpose">> = {};
+  const updates: Partial<Pick<ApiKeyRow, "label" | "purpose" | "suspendedAt">> =
+    {};
   if (input.label !== undefined) {
     updates.label = validateApiKeyLabel(input.label);
   }
   if (input.purpose !== undefined) {
     updates.purpose = normalizeApiKeyPurpose(input.purpose);
+  }
+  if (input.suspended !== undefined) {
+    updates.suspendedAt = input.suspended ? new Date() : null;
   }
   if (Object.keys(updates).length === 0) {
     const [existing] = await authDb.db
@@ -186,6 +203,7 @@ export type ApiKeySummary = {
   rate_limit_per_minute: number | null;
   created_at: string;
   revoked_at: string | null;
+  suspended_at: string | null;
   state: ApiKeyLifecycleState;
 };
 
@@ -194,7 +212,7 @@ export async function listApiKeys(authDb: AuthDb): Promise<ApiKeySummary[]> {
   return rows.map((row) => toSummary(row));
 }
 
-export async function findActiveApiKeyByPlaintext(
+export async function findApiKeyByPlaintextNotRevoked(
   authDb: AuthDb,
   plaintext: string,
 ): Promise<ApiKeyRow | null> {
@@ -204,16 +222,33 @@ export async function findActiveApiKeyByPlaintext(
     .from(apiKeys)
     .where(and(eq(apiKeys.keyHash, keyHash), isNull(apiKeys.revokedAt)))
     .limit(1);
+  return row ?? null;
+}
 
+/** Shared REST + MCP bearer resolution; throws key_suspended when suspended. */
+export async function resolveApiKeyBearerToken(
+  authDb: AuthDb,
+  plaintext: string,
+  now = new Date(),
+): Promise<ApiKeyRow | null> {
+  const row = await findApiKeyByPlaintextNotRevoked(authDb, plaintext);
   if (!row) {
     return null;
   }
-
-  if (row.expiresAt && row.expiresAt.getTime() <= Date.now()) {
+  if (row.suspendedAt) {
+    throw keySuspended();
+  }
+  if (isApiKeyExpired(row, now)) {
     return null;
   }
-
   return row;
+}
+
+export async function findActiveApiKeyByPlaintext(
+  authDb: AuthDb,
+  plaintext: string,
+): Promise<ApiKeyRow | null> {
+  return resolveApiKeyBearerToken(authDb, plaintext);
 }
 
 export function isClientIdAllowed(
@@ -237,6 +272,7 @@ function toSummary(row: ApiKeyRow): ApiKeySummary {
     rate_limit_per_minute: row.rateLimitPerMinute,
     created_at: row.createdAt.toISOString(),
     revoked_at: row.revokedAt?.toISOString() ?? null,
+    suspended_at: row.suspendedAt?.toISOString() ?? null,
     state: deriveApiKeyState(row),
   };
 }

@@ -16,4 +16,11 @@ describe("admin API keys UI", () => {
     expect(adminJs).toContain("PATCH");
     expect(adminJs).toContain("rate_limit_per_minute");
   });
+
+  it("includes suspend and resume controls", () => {
+    expect(adminJs).toContain("suspended");
+    expect(adminJs).toContain("data-key-suspend");
+    expect(adminJs).toContain("Suspend");
+    expect(adminJs).toContain("Resume");
+  });
 });

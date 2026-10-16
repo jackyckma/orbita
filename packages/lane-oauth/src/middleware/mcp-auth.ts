@@ -1,9 +1,9 @@
 import { createMiddleware } from "hono/factory";
 import {
   extractBearerToken,
-  findActiveApiKeyByPlaintext,
   getAuth,
   isClientIdAllowed,
+  resolveApiKeyBearerToken,
   type AuthContext,
   type AuthDb,
 } from "@orbita/auth";
@@ -61,6 +61,7 @@ export function createMcpAuthMiddleware(
             purpose: null,
             rateLimitPerMinute: null,
             expiresAt: null,
+            suspendedAt: null,
             revokedAt: null,
             createdAt: new Date(),
           },
@@ -69,7 +70,7 @@ export function createMcpAuthMiddleware(
         return;
       }
 
-      const apiKey = await findActiveApiKeyByPlaintext(authDb, token);
+      const apiKey = await resolveApiKeyBearerToken(authDb, token);
       if (!apiKey) {
         throw mcpUnauthorizedChallenge(config);
       }

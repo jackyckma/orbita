@@ -6,6 +6,8 @@ export {
   createApiKey,
   deriveApiKeyState,
   findActiveApiKeyByPlaintext,
+  findApiKeyByPlaintextNotRevoked,
+  resolveApiKeyBearerToken,
   hashApiKey,
   isApiKeyUnlabelled,
   isClientIdAllowed,
