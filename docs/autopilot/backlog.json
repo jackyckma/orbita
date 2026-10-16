@@ -1834,12 +1834,17 @@
       ],
       "deps": [],
       "flag": null,
-      "status": "in_review",
+      "status": "done",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-13: E-17 emergency stop before bot keys; independent of principals DDL.",
         "Maker 2026-10-16: lease on main; implementing T-0109.",
-        "Maker 2026-10-16: PR https://github.com/jackyckma/orbita/pull/73; acceptance + typecheck + check:sql-sync green."
+        "Maker 2026-10-16: PR https://github.com/jackyckma/orbita/pull/73; acceptance + typecheck + check:sql-sync green.",
+        {
+          "at": "2026-10-16T23:09:30.000Z",
+          "by": "checker",
+          "note": "REVIEW PASS — merged PR #73 (merge sha 26a46f4). verify-all + task acceptance green; scope matches T-0109 (suspended_at, key_suspended on REST/MCP, admin PATCH + Suspend/Resume UI)."
+        }
       ]
     },
     {
