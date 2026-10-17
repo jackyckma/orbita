@@ -1806,7 +1806,7 @@
         "T-0107"
       ],
       "flag": "ORBITA_AGENT_PRINCIPALS_ENABLED",
-      "status": "needs_human",
+      "status": "ready",
       "retries": 2,
       "feedback": [
         "REPLAN 2026-10-13: E-17 tier 1 pass 2/6 — DDL gated like tickets.",
@@ -1816,7 +1816,8 @@
           "at": "2026-10-16T06:00:00.000Z",
           "by": "checker",
           "note": "REVIEW PR #72 (2nd pass): verify-all FAIL — same @orbita/agent-principals typecheck errors (missing zod; config.test.ts empty env). Did not merge. Escalated needs_human (retries=2). PR #72 left open (draft). gh pr comment blocked (403)."
-        }
+        },
+        "REPLAN 2026-10-17: mechanical bounce needs_human→ready — add zod (and any peer deps) to packages/lane-agent-principals/package.json like other lanes; fix config.test.ts empty-env typing (mirror packages/lane-tickets config tests); rebase/update PR #72 or fresh branch from main; run pnpm --filter @orbita/agent-principals test && pnpm -r typecheck before in_review."
       ]
     },
     {
@@ -1914,6 +1915,28 @@
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-13: E-17 tier 1 pass 5/6 — bot deny paths + untrusted marker."
+      ]
+    },
+    {
+      "id": "T-0113",
+      "lane": "platform",
+      "phase": "consultos-c",
+      "title": "Author agent-principals local verify script (bash -n only)",
+      "description": "Epic E-17 tier 1 pass 6/6 (runtime-activation prep, script-only). Add scripts/agent-principals-verify-local.sh: documents how to prove ORBITA_AGENT_PRINCIPALS_ENABLED=1 DDL + repository work after T-0108 lands. Script must: source optional ~/.orbita-personal.env / .env without printing secrets; when ORBITA_E2E_MOCK=1 and a local API base is set, call GET /v1/health and exit 0 with a clear skip message if principals flag is off on the server; when flag is on, GET /v1/admin/agent-principals (admin token) and assert JSON list shape (may be empty). DRY_RUN=1 prints intended curl targets and exits 0 without network. SCRIPT AUTHORING ONLY — acceptance is file presence + bash -n + DRY_RUN, not a live prod run (full flag-on proof stays in T-0108/T-0110 acceptance). Cross-link from packages/lane-agent-principals/INTERFACE.md one line. Do not flip prod flags.",
+      "acceptance": [
+        "test -f scripts/agent-principals-verify-local.sh",
+        "bash -n scripts/agent-principals-verify-local.sh",
+        "DRY_RUN=1 bash scripts/agent-principals-verify-local.sh",
+        "rg -n \"agent-principals-verify-local\" packages/lane-agent-principals/INTERFACE.md"
+      ],
+      "deps": [
+        "T-0107"
+      ],
+      "flag": "ORBITA_AGENT_PRINCIPALS_ENABLED",
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "REPLAN 2026-10-17: refill ready queue parallel to T-0108 mechanical fix; split verify from prod activation per planner-preferences runtime-activation pattern."
       ]
     }
   ]
