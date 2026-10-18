@@ -4,8 +4,8 @@
     "T-0113": {
       "by": "maker",
       "since": "2026-10-18T23:04:00Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/T-0113-agent-principals-verify-local",
+      "pr": 74
     }
   }
 }

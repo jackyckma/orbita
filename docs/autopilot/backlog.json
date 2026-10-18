@@ -1938,10 +1938,11 @@
         "T-0107"
       ],
       "flag": "ORBITA_AGENT_PRINCIPALS_ENABLED",
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
       "feedback": [
-        "REPLAN 2026-10-17: refill ready queue parallel to T-0108 mechanical fix; split verify from prod activation per planner-preferences runtime-activation pattern."
+        "REPLAN 2026-10-17: refill ready queue parallel to T-0108 mechanical fix; split verify from prod activation per planner-preferences runtime-activation pattern.",
+        "Maker 2026-10-18: PR https://github.com/jackyckma/orbita/pull/74; acceptance + agent-verify green."
       ]
     }
   ]
