@@ -113,3 +113,5 @@ Golden fixture: `data/simulators/lane-agent-principals/sample-principals.json`
 ```bash
 pnpm --filter @orbita/agent-principals test
 ```
+
+Local tier-A smoke (script only; `DRY_RUN=1` or `ORBITA_E2E_MOCK=1`): `./scripts/agent-principals-verify-local.sh` — see `scripts/agent-principals-verify-local.sh`.
