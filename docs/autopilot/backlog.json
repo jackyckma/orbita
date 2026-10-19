@@ -1795,7 +1795,7 @@
       "lane": "platform",
       "phase": "consultos-c",
       "title": "lane-agent-principals: optional DDL + repository (fake + pg)",
-      "description": "Epic E-17 task 2. Additive optional migration (same pattern as lane-tickets): agent_principals and agent_audit tables, IF NOT EXISTS only, registered in docs/autopilot/sql-sync-allowlist.json; applied only when ORBITA_AGENT_PRINCIPALS_ENABLED=1 at API boot. Repository interface + fake implementation for unit tests; Pg implementation with client_id predicates on every query; append-only agent_audit writes. SQL text lint test (no DROP, no ALTER of existing tables). Tier-A test applies DDL twice when flag on. Wire runMigrations hook in apps/orbita-api like tickets. Flag off: no pool, no DDL, no behaviour change. Do NOT mount routes, MCP scope checks, or change auth middleware yet.",
+      "description": "Epic E-17 task 2. Additive optional migration (same pattern as lane-tickets): agent_principals and agent_audit tables, IF NOT EXISTS only, registered in docs/autopilot/sql-sync-allowlist.json; applied only when ORBITA_AGENT_PRINCIPALS_ENABLED=1 at API boot. Repository interface + fake implementation for unit tests; Pg implementation with client_id predicates on every query; append-only agent_audit writes. SQL text lint test (no DROP, no ALTER of existing tables). Tier-A test applies DDL twice when flag on. Wire runMigrations hook in apps/orbita-api like tickets. Flag off: no pool, no DDL, no behaviour change. Do NOT mount routes, MCP scope checks, or change auth middleware yet. UNBLOCK (REPLAN 2026-10-19): land T-0114 on main first if missing; add zod to packages/lane-agent-principals/package.json (mirror lane-tickets); fix config.test.ts empty-env typing; rebase draft PR #72 or open a fresh branch; run pnpm --filter @orbita/agent-principals test, pnpm -r typecheck, pnpm check:sql-sync, and ./scripts/agent-verify.sh before in_review.",
       "acceptance": [
         "pnpm --filter @orbita/agent-principals test",
         "rg -n \"agent_principals\" apps/orbita-api/migrations packages/lane-agent-principals",
@@ -1806,8 +1806,8 @@
         "T-0107"
       ],
       "flag": "ORBITA_AGENT_PRINCIPALS_ENABLED",
-      "status": "needs_human",
-      "retries": 2,
+      "status": "ready",
+      "retries": 0,
       "feedback": [
         "REPLAN 2026-10-13: E-17 tier 1 pass 2/6 \u2014 DDL gated like tickets.",
         "MAKER 2026-10-15: PR https://github.com/jackyckma/orbita/pull/72; acceptance + typecheck + check:sql-sync green.",
@@ -1822,7 +1822,8 @@
           "at": "2026-10-18T06:07:00.000Z",
           "by": "checker",
           "note": "REVIEW PR #72 (3rd pass): verify-all FAIL \u2014 pnpm test cannot load packages/lane-agent-principals/dist/pg-repository.js because root pnpm typecheck omits `pnpm --filter @orbita/agent-principals build` (tickets lane included). Escalated needs_human (retries exhausted). PR #72 draft left open; gh pr comment 403."
-        }
+        },
+        "REPLAN 2026-10-19: mechanical bounce needs_human\u2192ready (explicit fix path). Prefer landing T-0114 first; then rebase PR #72 or fresh branch: add zod dep, fix config.test.ts typing, run pnpm --filter @orbita/agent-principals test && pnpm -r typecheck && pnpm check:sql-sync && ./scripts/agent-verify.sh; close draft #72 if superseded."
       ]
     },
     {
@@ -1944,6 +1945,27 @@
         "REPLAN 2026-10-17: refill ready queue parallel to T-0108 mechanical fix; split verify from prod activation per planner-preferences runtime-activation pattern.",
         "Maker 2026-10-18: PR https://github.com/jackyckma/orbita/pull/74; acceptance + agent-verify green.",
         "Checker 2026-10-18: merged PR #74; verify-all + acceptance green."
+      ]
+    },
+    {
+      "id": "T-0114",
+      "lane": "platform",
+      "phase": "consultos-c",
+      "title": "Monorepo: build @orbita/agent-principals in root typecheck/build",
+      "description": "CHECKER 2026-10-18 on T-0108 PR #72: verify-all FAIL because `pnpm -r test` loads packages/lane-agent-principals/dist/*.js while root package.json `typecheck`/`build` compile @orbita/tickets but omit @orbita/agent-principals. Add `pnpm --filter @orbita/agent-principals build` to root `typecheck` and `build` scripts immediately before or after the @orbita/tickets build step (keep ordering consistent with API import graph). No DDL, routes, or lane runtime code in this task \u2014 package.json only. Do NOT modify framework-owned autopilot scripts.",
+      "acceptance": [
+        "rg -n \"@orbita/agent-principals build\" package.json",
+        "pnpm -r typecheck",
+        "./scripts/agent-verify.sh"
+      ],
+      "deps": [
+        "T-0107"
+      ],
+      "flag": "ORBITA_AGENT_PRINCIPALS_ENABLED",
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "REPLAN 2026-10-19: E-17 unblock \u2014 monorepo graph before T-0108 DDL slice re-attempt; split from checker 3rd-pass failure on PR #72."
       ]
     }
   ]
