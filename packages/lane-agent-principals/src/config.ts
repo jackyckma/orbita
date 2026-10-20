@@ -13,8 +13,6 @@ export function loadAgentPrincipalsEnv(
   return AgentPrincipalsEnvSchema.parse(source);
 }
 
-export function agentPrincipalsFeatureEnabled(
-  env: Pick<AgentPrincipalsEnv, "ORBITA_AGENT_PRINCIPALS_ENABLED">,
-): boolean {
+export function agentPrincipalsFeatureEnabled(env: AgentPrincipalsEnv): boolean {
   return env.ORBITA_AGENT_PRINCIPALS_ENABLED === "1";
 }
