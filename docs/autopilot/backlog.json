@@ -1807,7 +1807,7 @@
       ],
       "flag": "ORBITA_AGENT_PRINCIPALS_ENABLED",
       "status": "ready",
-      "retries": 0,
+      "retries": 1,
       "feedback": [
         "REPLAN 2026-10-13: E-17 tier 1 pass 2/6 \u2014 DDL gated like tickets.",
         "MAKER 2026-10-15: PR https://github.com/jackyckma/orbita/pull/72; acceptance + typecheck + check:sql-sync green.",
@@ -1823,7 +1823,12 @@
           "by": "checker",
           "note": "REVIEW PR #72 (3rd pass): verify-all FAIL \u2014 pnpm test cannot load packages/lane-agent-principals/dist/pg-repository.js because root pnpm typecheck omits `pnpm --filter @orbita/agent-principals build` (tickets lane included). Escalated needs_human (retries exhausted). PR #72 draft left open; gh pr comment 403."
         },
-        "REPLAN 2026-10-19: mechanical bounce needs_human\u2192ready (explicit fix path). Prefer landing T-0114 first; then rebase PR #72 or fresh branch: add zod dep, fix config.test.ts typing, run pnpm --filter @orbita/agent-principals test && pnpm -r typecheck && pnpm check:sql-sync && ./scripts/agent-verify.sh; close draft #72 if superseded."
+        "REPLAN 2026-10-19: mechanical bounce needs_human\u2192ready (explicit fix path). Prefer landing T-0114 first; then rebase PR #72 or fresh branch: add zod dep, fix config.test.ts typing, run pnpm --filter @orbita/agent-principals test && pnpm -r typecheck && pnpm check:sql-sync && ./scripts/agent-verify.sh; close draft #72 if superseded.",
+        {
+          "at": "2026-10-20T06:10:00.000Z",
+          "by": "checker",
+          "note": "REVIEW PR #72 (4th pass): verify-all FAIL \u2014 @orbita/agent-principals typecheck: missing zod (TS2307); config.test.ts empty-env TS2345. Did not merge. Bounced to ready (retries=1); lock already clear. gh pr comment blocked (403)."
+        }
       ]
     },
     {
