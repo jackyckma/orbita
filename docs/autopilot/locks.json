@@ -4,8 +4,8 @@
     "T-0114": {
       "by": "maker",
       "since": "2026-10-21T23:05:00.000Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/t-0114-agent-principals-root-build",
+      "pr": 76
     }
   }
 }
