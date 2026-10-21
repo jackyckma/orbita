@@ -1973,7 +1973,7 @@
         "T-0107"
       ],
       "flag": "ORBITA_AGENT_PRINCIPALS_ENABLED",
-      "status": "ready",
+      "status": "in_progress",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-19: E-17 unblock \u2014 monorepo graph before T-0108 DDL slice re-attempt; split from checker 3rd-pass failure on PR #72."
