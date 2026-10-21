@@ -1973,11 +1973,12 @@
         "T-0107"
       ],
       "flag": "ORBITA_AGENT_PRINCIPALS_ENABLED",
-      "status": "in_review",
+      "status": "done",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-19: E-17 unblock \u2014 monorepo graph before T-0108 DDL slice re-attempt; split from checker 3rd-pass failure on PR #72.",
-        "Maker 2026-10-21: PR https://github.com/jackyckma/orbita/pull/76; acceptance + agent-verify green."
+        "Maker 2026-10-21: PR https://github.com/jackyckma/orbita/pull/76; acceptance + agent-verify green.",
+        "Checker 2026-10-21: merged PR #76; verify-all green; scope package.json only."
       ]
     }
   ]
