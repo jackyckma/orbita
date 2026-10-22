@@ -1806,7 +1806,7 @@
         "T-0107"
       ],
       "flag": "ORBITA_AGENT_PRINCIPALS_ENABLED",
-      "status": "needs_human",
+      "status": "ready",
       "retries": 1,
       "feedback": [
         "REPLAN 2026-10-13: E-17 tier 1 pass 2/6 \u2014 DDL gated like tickets.",
@@ -1834,7 +1834,8 @@
           "at": "2026-10-21T06:00:09.000Z",
           "by": "checker",
           "note": "FORCE_NEEDS_HUMAN: lock held ~6.9h with task still in_review \u2014 REVIEW kept failing to complete before it could bounce the task itself. Auto-escalated; PR #75 left open and unmerged for manual inspection."
-        }
+        },
+        "REPLAN 2026-10-22: mechanical bounce needs_human\u2192ready \u2014 PR #75 still open (draft); CI verify + e2e-tier-a SUCCESS on head; escalation was stale-lock only, not verify failure. Maker: rebase onto main if needed, run task acceptance + ./scripts/agent-verify.sh, gh pr ready, then lease in_review on main."
       ]
     },
     {
@@ -1979,6 +1980,92 @@
         "REPLAN 2026-10-19: E-17 unblock \u2014 monorepo graph before T-0108 DDL slice re-attempt; split from checker 3rd-pass failure on PR #72.",
         "Maker 2026-10-21: PR https://github.com/jackyckma/orbita/pull/76; acceptance + agent-verify green.",
         "Checker 2026-10-21: merged PR #76; verify-all green; scope package.json only."
+      ]
+    },
+    {
+      "id": "T-0115",
+      "lane": "platform",
+      "phase": "consultos-c",
+      "title": "Mandate charter shares_with contract (cross-mandate read grants)",
+      "description": "Epic E-17 tier 2 pass 1/4. Extend packages/lane-tickets mandate charter contracts: add optional shares_with[] describing which other mandate ids may read which report types or ticket subsets from this mandate. Document semantics in INTERFACE.md (read-only grants; never write; always returned with untrusted_author when reader is external-agent). JSON-Schema under contracts/ with validate-contracts.test.mjs update. No runtime enforcement in this task. Do NOT change existing charter required fields or state machines.",
+      "acceptance": [
+        "test -f packages/lane-tickets/contracts/charter.schema.json",
+        "rg -n \"shares_with\" packages/lane-tickets/INTERFACE.md packages/lane-tickets/contracts",
+        "node --test packages/lane-tickets/contracts/validate-contracts.test.mjs",
+        "pnpm -r typecheck"
+      ],
+      "deps": [
+        "T-0112"
+      ],
+      "flag": "ORBITA_TICKETS_ENABLED",
+      "status": "blocked",
+      "retries": 0,
+      "feedback": [
+        "REPLAN 2026-10-22: E-17 tier 2 pass 1/4 — contracts before enforcement (blocked until tier 1 T-0112 ships)."
+      ]
+    },
+    {
+      "id": "T-0116",
+      "lane": "platform",
+      "phase": "consultos-c",
+      "title": "Enforce shares_with read paths for agent principals",
+      "description": "Epic E-17 tier 2 pass 2/4. When ORBITA_AGENT_PRINCIPALS_ENABLED=1 and ORBITA_AGENT_SCOPES_MODE is shadow or enforce: allow ticket_list/get and note read MCP/REST across mandate boundaries only when the target mandate's charter shares_with explicitly grants the caller's mandate the needed report type or ticket scope. Deny otherwise with scope_denied (enforce) or would-deny audit (shadow). Reads across shares still include untrusted_author when content was authored by external-agent. Unit tests: grant allows read; missing grant denies; wrong report type denies; legacy-full unchanged when mode off. Do NOT implement write paths across mandates.",
+      "acceptance": [
+        "pnpm --filter @orbita/tickets test",
+        "pnpm --filter @orbita/agent-principals test",
+        "pnpm -r typecheck",
+        "rg -n \"shares_with\" packages/lane-tickets packages/lane-agent-principals"
+      ],
+      "deps": [
+        "T-0115"
+      ],
+      "flag": "ORBITA_AGENT_PRINCIPALS_ENABLED",
+      "status": "blocked",
+      "retries": 0,
+      "feedback": [
+        "REPLAN 2026-10-22: E-17 tier 2 pass 2/4 — server enforcement after T-0115 contract."
+      ]
+    },
+    {
+      "id": "T-0117",
+      "lane": "docs",
+      "phase": "consultos-c",
+      "title": "Document shared-computer trust domain for Grok executors",
+      "description": "Epic E-17 tier 2 pass 3/4. Add docs/personal-steward/shared-computer-trust.md: Grok bots on one virtual computer share filesystem/browser sessions; design permissions as union-of-keys acceptable; keep spending/founder-identity/credentials off that computer; link to agent-principals-pilot.md and ticket-executors.md. Include founder checklist bullets (one principal per bot, suspend before revoke, no secrets on shared disk). Docs only; no code or flags.",
+      "acceptance": [
+        "test -f docs/personal-steward/shared-computer-trust.md",
+        "rg -n \"trust domain|shared computer\" docs/personal-steward/shared-computer-trust.md",
+        "rg -n \"shared-computer-trust\" docs/personal-steward/agent-principals-pilot.md docs/site/ticket-executors.md"
+      ],
+      "deps": [
+        "T-0112"
+      ],
+      "flag": null,
+      "status": "blocked",
+      "retries": 0,
+      "feedback": [
+        "REPLAN 2026-10-22: E-17 tier 2 pass 3/4 — founder-facing trust-domain doc after tier 1 bot rules land."
+      ]
+    },
+    {
+      "id": "T-0118",
+      "lane": "platform",
+      "phase": "consultos-c",
+      "title": "Per-principal soft daily caps in agent_audit (record-only)",
+      "description": "Epic E-17 tier 2 pass 4/4. When principals enabled: track per-principal UTC-day counters for MCP tool calls and ticket/note writes in memory, flush summary rows to agent_audit (new event kind soft_cap_observed with counts only — no payload bodies). Config ORBITA_AGENT_SOFT_CAP_DAILY_CALLS default 0 (disabled). When set >0, crossing the cap records an audit row but does NOT block (blocking is a later epic). Tests with fake clock: under cap silent; at cap one audit row; legacy mode off unchanged. Do NOT auto-suspend keys.",
+      "acceptance": [
+        "pnpm --filter @orbita/agent-principals test",
+        "pnpm -r typecheck",
+        "rg -n \"ORBITA_AGENT_SOFT_CAP_DAILY_CALLS|soft_cap_observed\" packages/lane-agent-principals"
+      ],
+      "deps": [
+        "T-0111"
+      ],
+      "flag": "ORBITA_AGENT_PRINCIPALS_ENABLED",
+      "status": "blocked",
+      "retries": 0,
+      "feedback": [
+        "REPLAN 2026-10-22: E-17 tier 2 pass 4/4 — observability before any auto-suspend candidates in later epics."
       ]
     }
   ]
