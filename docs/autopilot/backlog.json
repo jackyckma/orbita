@@ -1806,9 +1806,10 @@
         "T-0107"
       ],
       "flag": "ORBITA_AGENT_PRINCIPALS_ENABLED",
-      "status": "ready",
+      "status": "in_progress",
       "retries": 1,
       "feedback": [
+        "MAKER 2026-10-24: lease on main; rebase PR #75 onto main, run acceptance + agent-verify.",
         "REPLAN 2026-10-13: E-17 tier 1 pass 2/6 \u2014 DDL gated like tickets.",
         "MAKER 2026-10-15: PR https://github.com/jackyckma/orbita/pull/72; acceptance + typecheck + check:sql-sync green.",
         "CHECKER 2026-10-15: verify-all FAIL on PR #72 head \u2014 @orbita/agent-principals typecheck: missing zod module; config.test.ts empty env type error. Bounced to ready (retries=1); lock cleared.",
