@@ -2059,12 +2059,13 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "in_review",
+      "status": "done",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-22: E-17 tier 2 pass 3/4 — founder-facing trust-domain doc after tier 1 bot rules land.",
         "REPLAN 2026-10-23: parallelize docs-only slice — deps T-0107 only; cross-link grok-bot-pilot-activation.md (agent-principals-pilot.md link added when T-0112 ships).",
-        "MAKER 2026-10-25: PR https://github.com/jackyckma/orbita/pull/77; acceptance + agent-verify green."
+        "MAKER 2026-10-25: PR https://github.com/jackyckma/orbita/pull/77; acceptance + agent-verify green.",
+        "CHECKER 2026-10-25: merged PR #77; verify-all + acceptance green; scope docs-only."
       ]
     },
     {
