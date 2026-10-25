@@ -4,8 +4,8 @@
     "T-0117": {
       "by": "maker",
       "since": "2026-10-25T23:01:00.000Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/T-0117-shared-computer-trust",
+      "pr": 77
     }
   }
 }
