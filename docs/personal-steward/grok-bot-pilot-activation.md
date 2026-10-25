@@ -9,6 +9,7 @@ Manual steps for turning on the **tickets lane** and connecting **external Grok 
 
 **Related runbooks:**
 
+- [Shared-computer trust domain](./shared-computer-trust.md) — union-of-keys model for multiple Grok bots on one VM
 - [Mandate seed script](./tickets-grok-mandate-seed.md) — `scripts/tickets-seed-grok-mandates.sh`
 - [Bot-loop smoke (tier A)](./tickets-bot-loop-smoke.md) — `scripts/tickets-bot-loop-smoke.sh`
 - [Ticket executors (public)](../../site/ticket-executors.md) — MCP daily loop and never-do list
@@ -112,6 +113,8 @@ Expect HTTP **200** and JSON (empty list is fine). HTTP **404** means tickets ar
 Epic **E-17** adds `ORBITA_AGENT_PRINCIPALS_ENABLED`, `ORBITA_AGENT_SCOPES_MODE` (`off` | `shadow` | `enforce`), per-agent principals, and tool-level scopes. Until E-17 tier 1 ships, you can still run the **ticket-role** pilot using key-id lists and mandates, but **full least-privilege tool blocking** (no `github_*`, `trigger_automation`, note writes) depends on E-17.
 
 ### Shared-computer trust domain review
+
+Full reference: [shared-computer-trust.md](./shared-computer-trust.md).
 
 Grok bots on one virtual computer / chat group share a **single trust domain**: filesystem, browser sessions, and config may be visible across bots. Design as if **any bot on that machine could read any other bot's Orbita API key**.
 

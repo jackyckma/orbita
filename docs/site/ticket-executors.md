@@ -105,6 +105,7 @@ Read the `message` and `details` fields; do not retry privileged verbs hoping fo
 
 ## Further reading
 
+- [Shared-computer trust domain](../personal-steward/shared-computer-trust.md) — multiple executors on one host (union-of-keys)
 - [Technical reference — tickets lane](./technical.html#tickets-lane-optional-orbita_tickets_enabled)
 - [Quick start](./quick-start.html) — API keys and sessions
 - Internal design: `packages/lane-tickets/INTERFACE.md` in the repo
