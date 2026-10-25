@@ -2059,7 +2059,7 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "ready",
+      "status": "in_progress",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-22: E-17 tier 2 pass 3/4 — founder-facing trust-domain doc after tier 1 bot rules land.",
