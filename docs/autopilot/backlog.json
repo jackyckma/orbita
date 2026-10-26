@@ -1806,7 +1806,7 @@
         "T-0107"
       ],
       "flag": "ORBITA_AGENT_PRINCIPALS_ENABLED",
-      "status": "needs_human",
+      "status": "ready",
       "retries": 1,
       "feedback": [
         "MAKER 2026-10-24: rebased PR #75 onto main; acceptance + agent-verify + check:sql-sync green; PR ready for checker.",
@@ -1853,7 +1853,8 @@
           "at": "2026-10-25T06:05:00.000Z",
           "by": "checker",
           "note": "FORCE_NEEDS_HUMAN: lock held ~7.1h with task still in_review \u2014 REVIEW kept failing to complete before it could bounce the task itself. Auto-escalated; PR #75 left open and unmerged for manual inspection."
-        }
+        },
+        "REPLAN 2026-10-26: mechanical bounce needs_human\u2192ready \u2014 T-0114 on main; PR #75 CI green (verify + e2e-tier-a SUCCESS). Maker: merge path via PR #75 (no duplicate DDL); lease on main before branch work."
       ]
     },
     {
@@ -2087,6 +2088,27 @@
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-22: E-17 tier 2 pass 4/4 — observability before any auto-suspend candidates in later epics."
+      ]
+    },
+    {
+      "id": "T-0119",
+      "lane": "docs",
+      "phase": "consultos-c",
+      "title": "agent-principals-pilot.md — Grok bot charter limits (docs-only)",
+      "description": "Epic E-17 tier 1 parallel doc (deps T-0107 only). Add docs/personal-steward/agent-principals-pilot.md summarizing external-agent principal limits for the Grok pilot: allowed ticket/note actions inside bound mandate subtree; proposed epics and tasks under approved epics; explicit deny list (no ticket_approve, github_*, trigger_automation, admin, credentials, other mandates/clients); untrusted_author expectation on reads; D-006 founder-only for prod enforce mode. Cross-link docs/personal-steward/shared-computer-trust.md and docs/site/ticket-executors.md. Docs only — no code, routes, or prod flag changes. T-0112 may add enforcement cross-references later; do not block on T-0108.",
+      "acceptance": [
+        "test -f docs/personal-steward/agent-principals-pilot.md",
+        "rg -n \"external-agent|D-006\" docs/personal-steward/agent-principals-pilot.md",
+        "rg -n \"shared-computer-trust|ticket-executors\" docs/personal-steward/agent-principals-pilot.md"
+      ],
+      "deps": [
+        "T-0107"
+      ],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "REPLAN 2026-10-26: refill actionable queue parallel to T-0108 PR #75 Checker backlog; split pilot doc from T-0112 implementation."
       ]
     }
   ]
