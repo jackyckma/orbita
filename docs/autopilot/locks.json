@@ -10,8 +10,8 @@
     "T-0119": {
       "by": "maker",
       "since": "2026-10-27T23:05:00.000Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/t-0119-agent-principals-pilot-doc",
+      "pr": 78
     }
   }
 }
