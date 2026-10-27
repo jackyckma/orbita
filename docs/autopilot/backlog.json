@@ -1806,7 +1806,7 @@
         "T-0107"
       ],
       "flag": "ORBITA_AGENT_PRINCIPALS_ENABLED",
-      "status": "in_review",
+      "status": "needs_human",
       "retries": 1,
       "feedback": [
         "MAKER 2026-10-24: rebased PR #75 onto main; acceptance + agent-verify + check:sql-sync green; PR ready for checker.",
@@ -1859,6 +1859,11 @@
           "at": "2026-10-27T06:10:00.000Z",
           "by": "checker",
           "note": "REVIEW PR #72 (7th pass): verify-all FAIL \u2014 @orbita/agent-principals typecheck missing zod (TS2307); config.test.ts empty-env TS2345 (stale vs PR #75). Did not merge. Repointed lease to PR #75 on main so next tick can CLOSE_STALE #72; gh pr close/comment blocked (403)."
+        },
+        {
+          "at": "2026-10-27T23:06:00.000Z",
+          "by": "checker",
+          "note": "FORCE_NEEDS_HUMAN: lock held ~16.9h with task still in_review \u2014 REVIEW kept failing to complete before it could bounce the task itself. Auto-escalated; PR #75 left open and unmerged for manual inspection."
         }
       ]
     },
