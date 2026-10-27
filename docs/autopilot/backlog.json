@@ -2110,7 +2110,7 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "ready",
+      "status": "in_progress",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-26: refill actionable queue parallel to T-0108 PR #75 Checker backlog; split pilot doc from T-0112 implementation."
