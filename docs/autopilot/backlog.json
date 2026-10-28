@@ -1806,7 +1806,7 @@
         "T-0107"
       ],
       "flag": "ORBITA_AGENT_PRINCIPALS_ENABLED",
-      "status": "needs_human",
+      "status": "in_review",
       "retries": 1,
       "feedback": [
         "MAKER 2026-10-24: rebased PR #75 onto main; acceptance + agent-verify + check:sql-sync green; PR ready for checker.",
@@ -1864,7 +1864,8 @@
           "at": "2026-10-27T23:06:00.000Z",
           "by": "checker",
           "note": "FORCE_NEEDS_HUMAN: lock held ~16.9h with task still in_review \u2014 REVIEW kept failing to complete before it could bounce the task itself. Auto-escalated; PR #75 left open and unmerged for manual inspection."
-        }
+        },
+        "REPLAN 2026-10-28: bounce needs_human\u2192in_review after stale-lock escalation (not judgment). PR #75 CI green; T-0114 on main; Checker merge PR #75 \u2014 unblocks T-0110..T-0112."
       ]
     },
     {
@@ -2115,7 +2116,7 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "needs_human",
+      "status": "in_review",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-26: refill actionable queue parallel to T-0108 PR #75 Checker backlog; split pilot doc from T-0112 implementation.",
@@ -2124,7 +2125,8 @@
           "at": "2026-10-28T06:04:39.852Z",
           "by": "checker",
           "note": "FORCE_NEEDS_HUMAN: lock held ~7.0h with task still in_review — REVIEW kept failing before it could bounce the task; auto-escalated. PR #78 left open for manual inspection."
-        }
+        },
+        "REPLAN 2026-10-28: bounce needs_human→in_review after stale-lock escalation (not judgment). PR #78 CI green; Checker lane merge PR #78."
       ]
     }
   ]
