@@ -1806,7 +1806,7 @@
         "T-0107"
       ],
       "flag": "ORBITA_AGENT_PRINCIPALS_ENABLED",
-      "status": "needs_human",
+      "status": "in_review",
       "retries": 1,
       "feedback": [
         "MAKER 2026-10-24: rebased PR #75 onto main; acceptance + agent-verify + check:sql-sync green; PR ready for checker.",
@@ -1870,7 +1870,8 @@
           "at": "2026-10-29T06:02:03.190Z",
           "by": "checker",
           "note": "FORCE_NEEDS_HUMAN: lock held ~7.0h with task still in_review \u2014 REVIEW kept failing to complete before it could bounce the task itself. Auto-escalated; PR #75 left open and unmerged for manual inspection."
-        }
+        },
+        "REPLAN 2026-10-30: bounce needs_human\u2192in_review after stale-lock escalation (not judgment). PR #75 CI green (verify + e2e-tier-a); Checker merge PR #75 \u2014 unblocks T-0110..T-0112."
       ]
     },
     {
@@ -2131,7 +2132,50 @@
           "by": "checker",
           "note": "FORCE_NEEDS_HUMAN: lock held ~7.0h with task still in_review — REVIEW kept failing before it could bounce the task; auto-escalated. PR #78 left open for manual inspection."
         },
-        "REPLAN 2026-10-28: bounce needs_human→in_review after stale-lock escalation (not judgment). PR #78 CI green; Checker lane merge PR #78."
+        "REPLAN 2026-10-28: bounce needs_human→in_review after stale-lock escalation (not judgment). PR #78 CI green; Checker lane merge PR #78.",
+        "REPLAN 2026-10-30: PR #78 still draft \u2014 Checker should gh pr ready then merge when verify-all green."
+      ]
+    },
+    {
+      "id": "T-0120",
+      "lane": "docs",
+      "phase": "consultos-c",
+      "title": "Founder activation checklist for agent principals (D-006)",
+      "description": "Epic E-17 parallel refill (deps T-0107 only). Add docs/personal-steward/agent-principals-activation.md: step-by-step for enabling ORBITA_AGENT_PRINCIPALS_ENABLED=1 in Zeabur (founder-only), verifying DDL via scripts/agent-principals-verify-local.sh, creating external-agent principals for Grok bots (admin API, no secrets in doc), keeping ORBITA_AGENT_SCOPES_MODE=shadow until D-006 decided, and switching to enforce only after checklist sign-off. Cross-link agent-principals-pilot.md, shared-computer-trust.md, grok-bot-pilot-activation.md. Docs only \u2014 Maker must not flip prod flags or create credentials.",
+      "acceptance": [
+        "test -f docs/personal-steward/agent-principals-activation.md",
+        "rg -n \"D-006|ORBITA_AGENT_SCOPES_MODE\" docs/personal-steward/agent-principals-activation.md",
+        "rg -n \"agent-principals-pilot|shared-computer-trust\" docs/personal-steward/agent-principals-activation.md"
+      ],
+      "deps": [
+        "T-0107"
+      ],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "REPLAN 2026-10-30: refill actionable queue while T-0108 awaits Checker merge on PR #75; founder-only steps for D-006."
+      ]
+    },
+    {
+      "id": "T-0121",
+      "lane": "docs",
+      "phase": "consultos-c",
+      "title": "Document ORBITA_AGENT_* env vars in .env.example",
+      "description": "Epic E-17 parallel refill. Add commented entries to .env.example for ORBITA_AGENT_PRINCIPALS_ENABLED (default off), ORBITA_AGENT_SCOPES_MODE (off|shadow|enforce), ORBITA_AGENT_SOFT_CAP_DAILY_CALLS (0=disabled) with one-line comments pointing to packages/lane-agent-principals/INTERFACE.md. Do not set default-on values or real secrets. No runtime code changes beyond .env.example.",
+      "acceptance": [
+        "rg -n \"ORBITA_AGENT_PRINCIPALS_ENABLED\" .env.example",
+        "rg -n \"ORBITA_AGENT_SCOPES_MODE\" .env.example",
+        "rg -n \"ORBITA_AGENT_SOFT_CAP_DAILY_CALLS\" .env.example"
+      ],
+      "deps": [
+        "T-0107"
+      ],
+      "flag": "ORBITA_AGENT_PRINCIPALS_ENABLED",
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "REPLAN 2026-10-30: actionable docs slice parallel to T-0108 PR #75 review queue."
       ]
     }
   ]
