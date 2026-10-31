@@ -2156,7 +2156,7 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "ready",
+      "status": "in_progress",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-30: refill actionable queue while T-0108 awaits Checker merge on PR #75; founder-only steps for D-006."

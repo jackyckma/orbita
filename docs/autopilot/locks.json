@@ -6,6 +6,12 @@
       "since": "2026-10-30T23:04:00.000Z",
       "branch": "cursor/t-0108-agent-principals-ddl-repo-v2",
       "pr": 75
+    },
+    "T-0120": {
+      "by": "maker",
+      "since": "2026-10-31T23:04:00.781Z",
+      "branch": null,
+      "pr": null
     }
   }
 }
