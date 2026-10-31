@@ -10,8 +10,8 @@
     "T-0120": {
       "by": "maker",
       "since": "2026-10-31T23:04:00.781Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/t-0120-agent-principals-activation",
+      "pr": 79
     }
   }
 }

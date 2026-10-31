@@ -2156,10 +2156,15 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
       "feedback": [
-        "REPLAN 2026-10-30: refill actionable queue while T-0108 awaits Checker merge on PR #75; founder-only steps for D-006."
+        "REPLAN 2026-10-30: refill actionable queue while T-0108 awaits Checker merge on PR #75; founder-only steps for D-006.",
+        {
+          "at": "2026-10-31T23:04:00.781Z",
+          "by": "maker",
+          "note": "PR #79 opened; docs-only agent-principals-activation.md"
+        }
       ]
     },
     {
