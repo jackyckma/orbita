@@ -2122,7 +2122,7 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "in_review",
+      "status": "needs_human",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-26: refill actionable queue parallel to T-0108 PR #75 Checker backlog; split pilot doc from T-0112 implementation.",
@@ -2133,7 +2133,12 @@
           "note": "FORCE_NEEDS_HUMAN: lock held ~7.0h with task still in_review — REVIEW kept failing before it could bounce the task; auto-escalated. PR #78 left open for manual inspection."
         },
         "REPLAN 2026-10-28: bounce needs_human→in_review after stale-lock escalation (not judgment). PR #78 CI green; Checker lane merge PR #78.",
-        "REPLAN 2026-10-30: PR #78 still draft \u2014 Checker should gh pr ready then merge when verify-all green."
+        "REPLAN 2026-10-30: PR #78 still draft \u2014 Checker should gh pr ready then merge when verify-all green.",
+        {
+          "at": "2026-10-31T06:01:00.000Z",
+          "by": "checker",
+          "note": "FORCE_NEEDS_HUMAN: lock held ~55.0h with task still in_review — REVIEW kept failing before it could bounce the task; auto-escalated. PR #78 left open for manual inspection."
+        }
       ]
     },
     {
