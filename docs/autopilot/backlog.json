@@ -2161,7 +2161,7 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "in_review",
+      "status": "needs_human",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-30: refill actionable queue while T-0108 awaits Checker merge on PR #75; founder-only steps for D-006.",
@@ -2169,6 +2169,11 @@
           "at": "2026-10-31T23:04:00.781Z",
           "by": "maker",
           "note": "PR #79 opened; docs-only agent-principals-activation.md"
+        },
+        {
+          "at": "2026-11-01T06:01:32.952Z",
+          "by": "checker",
+          "note": "FORCE_NEEDS_HUMAN: lock held ~7.0h with task still in_review — REVIEW kept failing to complete before it could bounce the task itself. Auto-escalated; PR #79 left open and unmerged for manual inspection."
         }
       ]
     },
