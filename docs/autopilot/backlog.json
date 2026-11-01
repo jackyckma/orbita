@@ -2192,10 +2192,15 @@
         "T-0107"
       ],
       "flag": "ORBITA_AGENT_PRINCIPALS_ENABLED",
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
       "feedback": [
-        "REPLAN 2026-10-30: actionable docs slice parallel to T-0108 PR #75 review queue."
+        "REPLAN 2026-10-30: actionable docs slice parallel to T-0108 PR #75 review queue.",
+        {
+          "at": "2026-11-01T23:06:00.000Z",
+          "by": "maker",
+          "note": "PR #80 opened; .env.example ORBITA_AGENT_* comments"
+        }
       ]
     }
   ]
