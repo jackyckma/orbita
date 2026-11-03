@@ -2232,7 +2232,7 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "ready",
+      "status": "in_progress",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-11-02: refill actionable queue (READY_MIN) while Checker merges PR #75/#78/#79; E-19 decomposition deferred until E-17 tier 1 ships."
