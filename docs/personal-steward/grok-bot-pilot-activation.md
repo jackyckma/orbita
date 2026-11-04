@@ -10,6 +10,7 @@ Manual steps for turning on the **tickets lane** and connecting **external Grok 
 **Related runbooks:**
 
 - [Shared-computer trust domain](./shared-computer-trust.md) — union-of-keys model for multiple Grok bots on one VM
+- [Agent principals activation (D-006)](./agent-principals-activation.md) — founder Zeabur steps for principals and `ORBITA_AGENT_SCOPES_MODE`
 - [Mandate seed script](./tickets-grok-mandate-seed.md) — `scripts/tickets-seed-grok-mandates.sh`
 - [Bot-loop smoke (tier A)](./tickets-bot-loop-smoke.md) — `scripts/tickets-bot-loop-smoke.sh`
 - [Ticket executors (public)](../../site/ticket-executors.md) — MCP daily loop and never-do list
