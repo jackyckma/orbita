@@ -6,6 +6,12 @@
       "since": "2026-11-03T23:01:02.000Z",
       "branch": "cursor/t-0122-public-docs-agent-principals",
       "pr": 81
+    },
+    "T-0123": {
+      "by": "maker",
+      "since": "2026-11-04T23:04:46.000Z",
+      "branch": null,
+      "pr": null
     }
   }
 }

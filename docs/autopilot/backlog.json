@@ -2267,7 +2267,7 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "ready",
+      "status": "in_progress",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-11-02: actionable docs slice parallel to in_review PR queue; link target lands with T-0120 merge."
