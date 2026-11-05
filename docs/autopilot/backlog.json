@@ -2272,7 +2272,7 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "in_review",
+      "status": "needs_human",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-11-02: actionable docs slice parallel to in_review PR queue; link target lands with T-0120 merge.",
@@ -2280,6 +2280,11 @@
           "at": "2026-11-04T23:04:46.000Z",
           "by": "maker",
           "note": "PR #82 opened; Related runbooks cross-link to agent-principals-activation.md"
+        },
+        {
+          "at": "2026-11-05T06:04:11.768Z",
+          "by": "checker",
+          "note": "FORCE_NEEDS_HUMAN: lock held ~7.0h with task still in_review — REVIEW kept failing to complete before bounce; auto-escalated. PR #82 left open for manual inspection."
         }
       ]
     }
