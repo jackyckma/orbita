@@ -22,8 +22,8 @@
     "T-0122": {
       "by": "maker",
       "since": "2026-11-06T23:03:21.000Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/t-0122-public-docs-agent-principals",
+      "pr": 81
     }
   }
 }
