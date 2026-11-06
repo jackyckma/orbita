@@ -18,6 +18,12 @@
       "since": "2026-11-05T23:01:09.593Z",
       "branch": "cursor/t-0120-agent-principals-activation",
       "pr": 79
+    },
+    "T-0122": {
+      "by": "maker",
+      "since": "2026-11-06T23:03:21.000Z",
+      "branch": null,
+      "pr": null
     }
   }
 }

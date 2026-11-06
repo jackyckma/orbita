@@ -2245,10 +2245,15 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "ready",
+      "status": "in_progress",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-11-02: refill actionable queue (READY_MIN) while Checker merges PR #75/#78/#79; E-19 decomposition deferred until E-17 tier 1 ships.",
+        {
+          "at": "2026-11-06T23:03:21.000Z",
+          "by": "maker",
+          "note": "Lease on main: in_progress before branch/rebase of PR #81"
+        },
         {
           "at": "2026-11-03T23:01:02.000Z",
           "by": "maker",
