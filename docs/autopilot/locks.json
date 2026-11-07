@@ -22,8 +22,8 @@
     "T-0123": {
       "by": "maker",
       "since": "2026-11-07T23:02:56.424Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/t-0123-grok-bot-crosslink-agent-principals",
+      "pr": 82
     }
   }
 }

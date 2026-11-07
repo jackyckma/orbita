@@ -2291,7 +2291,7 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-11-02: actionable docs slice parallel to in_review PR queue; link target lands with T-0120 merge.",
@@ -2305,7 +2305,12 @@
           "by": "checker",
           "note": "FORCE_NEEDS_HUMAN: lock held ~7.0h with task still in_review — REVIEW kept failing to complete before bounce; auto-escalated. PR #82 left open for manual inspection."
         },
-        "REPLAN 2026-11-05: bounce needs_human→ready — PR #82 draft; Maker: rebase onto main (may need T-0120 doc on branch for acceptance), gh pr ready, acceptance + agent-verify, in_review with lock pr=82."
+        "REPLAN 2026-11-05: bounce needs_human→ready — PR #82 draft; Maker: rebase onto main (may need T-0120 doc on branch for acceptance), gh pr ready, acceptance + agent-verify, in_review with lock pr=82.",
+        {
+          "at": "2026-11-07T23:05:00.000Z",
+          "by": "maker",
+          "note": "Rebased PR #82 onto main; gh pr ready; acceptance + agent-verify green; awaiting Checker REVIEW."
+        }
       ]
     }
   ]
