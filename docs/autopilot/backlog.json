@@ -1806,7 +1806,7 @@
         "T-0107"
       ],
       "flag": "ORBITA_AGENT_PRINCIPALS_ENABLED",
-      "status": "needs_human",
+      "status": "ready",
       "retries": 1,
       "feedback": [
         "MAKER 2026-10-24: rebased PR #75 onto main; acceptance + agent-verify + check:sql-sync green; PR ready for checker.",
@@ -1888,7 +1888,8 @@
           "at": "2026-11-07T06:00:27.176Z",
           "by": "checker",
           "note": "FORCE_NEEDS_HUMAN: lock held ~31.0h with task still in_review \u2014 REVIEW kept failing to complete before it could bounce the task itself. Auto-escalated; PR #75 left open and unmerged for manual inspection."
-        }
+        },
+        "REPLAN 2026-11-08: bounce needs_human\u2192ready (stale-lock escalation, not judgment). T-0114 on main; PR #75 non-draft and open. Maker: lease on main; rebase PR #75 onto main if behind; run task acceptance + ./scripts/agent-verify.sh + pnpm check:sql-sync; gh pr ready if needed; in_review on main with lock pr=75. Checker: merge PR #75 \u2014 unblocks T-0110..T-0112. CLOSE_STALE PR #72 when #75 merges."
       ]
     },
     {
@@ -2139,7 +2140,7 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "needs_human",
+      "status": "ready",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-26: refill actionable queue parallel to T-0108 PR #75 Checker backlog; split pilot doc from T-0112 implementation.",
@@ -2167,7 +2168,8 @@
           "at": "2026-11-08T06:01:00.000Z",
           "by": "checker",
           "note": "FORCE_NEEDS_HUMAN: lock held ~55.0h with task still in_review — REVIEW kept failing to complete before it could bounce the task itself. Auto-escalated; PR #78 left open and unmerged for manual inspection."
-        }
+        },
+        "REPLAN 2026-11-08: bounce needs_human→ready (stale-lock, not judgment). PR #78 draft — Maker: rebase #78 onto main, run acceptance + ./scripts/agent-verify.sh, gh pr ready, lease in_review on main with lock pr=78."
       ]
     },
     {
@@ -2316,6 +2318,28 @@
           "by": "maker",
           "note": "Rebased PR #82 onto main; gh pr ready; acceptance + agent-verify green; awaiting Checker REVIEW."
         }
+      ]
+    },
+    {
+      "id": "T-0124",
+      "lane": "docs",
+      "phase": "consultos-c",
+      "title": "ticket-executors.md: cross-link agent principals runbooks",
+      "description": "Epic E-17 parallel refill (deps T-0107 only). In docs/site/ticket-executors.md add a short Related runbooks section linking to ../personal-steward/agent-principals-pilot.md, shared-computer-trust.md, and grok-bot-pilot-activation.md (match existing site doc link style). One paragraph max intro. Docs only — no routes or flags. Run ./scripts/build-web-docs.sh.",
+      "acceptance": [
+        "rg -n \"agent-principals-pilot\" docs/site/ticket-executors.md",
+        "rg -n \"shared-computer-trust\" docs/site/ticket-executors.md",
+        "rg -n \"grok-bot-pilot-activation\" docs/site/ticket-executors.md",
+        "./scripts/build-web-docs.sh"
+      ],
+      "deps": [
+        "T-0107"
+      ],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "REPLAN 2026-11-08: refill actionable queue while T-0108/T-0119 blocked on Checker stale-lock; docs-only parallel to in_review T-0120..T-0123."
       ]
     }
   ]
