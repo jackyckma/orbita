@@ -7,12 +7,6 @@
       "branch": "cursor/t-0108-agent-principals-ddl-repo-v2",
       "pr": 75
     },
-    "T-0122": {
-      "by": "maker",
-      "since": "2026-11-06T23:03:21.000Z",
-      "branch": "cursor/t-0122-public-docs-agent-principals",
-      "pr": 81
-    },
     "T-0123": {
       "by": "maker",
       "since": "2026-11-07T23:02:56.424Z",

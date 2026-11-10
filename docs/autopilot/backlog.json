@@ -2264,7 +2264,7 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "in_review",
+      "status": "needs_human",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-11-02: refill actionable queue (READY_MIN) while Checker merges PR #75/#78/#79; E-19 decomposition deferred until E-17 tier 1 ships.",
@@ -2288,7 +2288,12 @@
           "by": "checker",
           "note": "FORCE_NEEDS_HUMAN: lock held ~24.1h with task still in_review — REVIEW kept failing to complete before bounce; auto-escalated. PR #81 left open for manual inspection."
         },
-        "REPLAN 2026-11-05: bounce needs_human→ready — PR #81 draft exists; Maker: rebase #81 onto main, gh pr ready, run task acceptance + ./scripts/agent-verify.sh, then in_review on main with lock pr=81."
+        "REPLAN 2026-11-05: bounce needs_human→ready — PR #81 draft exists; Maker: rebase #81 onto main, gh pr ready, run task acceptance + ./scripts/agent-verify.sh, then in_review on main with lock pr=81.",
+        {
+          "at": "2026-11-10T06:00:09.272Z",
+          "by": "checker",
+          "note": "FORCE_NEEDS_HUMAN: lock held ~79.0h with task still in_review — REVIEW has been failing before it can bounce itself. Escalating; PR #81 left open and unmerged for manual inspection."
+        }
       ]
     },
     {
