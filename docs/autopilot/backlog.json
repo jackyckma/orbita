@@ -2142,7 +2142,7 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-10-26: refill actionable queue parallel to T-0108 PR #75 Checker backlog; split pilot doc from T-0112 implementation.",
@@ -2171,7 +2171,8 @@
           "by": "checker",
           "note": "FORCE_NEEDS_HUMAN: lock held ~55.0h with task still in_review — REVIEW kept failing to complete before it could bounce the task itself. Auto-escalated; PR #78 left open and unmerged for manual inspection."
         },
-        "REPLAN 2026-11-08: bounce needs_human→ready (stale-lock, not judgment). PR #78 draft — Maker: rebase #78 onto main, run acceptance + ./scripts/agent-verify.sh, gh pr ready, lease in_review on main with lock pr=78."
+        "REPLAN 2026-11-08: bounce needs_human→ready (stale-lock, not judgment). PR #78 draft — Maker: rebase #78 onto main, run acceptance + ./scripts/agent-verify.sh, gh pr ready, lease in_review on main with lock pr=78.",
+        "MAKER 2026-11-10: rebased PR #78 onto main; acceptance + ./scripts/agent-verify.sh green; gh pr ready."
       ]
     },
     {
