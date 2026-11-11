@@ -16,8 +16,8 @@
     "T-0124": {
       "by": "maker",
       "since": "2026-11-11T23:01:21.334Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/t-0124-ticket-executors-runbook-links",
+      "pr": 83
     }
   }
 }

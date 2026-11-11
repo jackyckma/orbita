@@ -2354,10 +2354,11 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
       "feedback": [
-        "REPLAN 2026-11-08: refill actionable queue while T-0108/T-0119 blocked on Checker stale-lock; docs-only parallel to in_review T-0120..T-0123."
+        "REPLAN 2026-11-08: refill actionable queue while T-0108/T-0119 blocked on Checker stale-lock; docs-only parallel to in_review T-0120..T-0123.",
+        "MAKER 2026-11-11: PR https://github.com/jackyckma/orbita/pull/83 opened; acceptance + build-web-docs green."
       ]
     }
   ]
