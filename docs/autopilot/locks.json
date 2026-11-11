@@ -12,6 +12,12 @@
       "since": "2026-11-10T23:05:00.000Z",
       "branch": "cursor/t-0119-agent-principals-pilot-doc",
       "pr": 78
+    },
+    "T-0124": {
+      "by": "maker",
+      "since": "2026-11-11T23:01:21.334Z",
+      "branch": null,
+      "pr": null
     }
   }
 }

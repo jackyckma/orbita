@@ -2354,7 +2354,7 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "ready",
+      "status": "in_progress",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-11-08: refill actionable queue while T-0108/T-0119 blocked on Checker stale-lock; docs-only parallel to in_review T-0120..T-0123."
