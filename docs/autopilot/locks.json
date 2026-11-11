@@ -7,12 +7,6 @@
       "branch": "cursor/t-0108-agent-principals-ddl-repo-v2",
       "pr": 75
     },
-    "T-0123": {
-      "by": "maker",
-      "since": "2026-11-07T23:02:56.424Z",
-      "branch": "cursor/t-0123-grok-bot-crosslink-agent-principals",
-      "pr": 82
-    },
     "T-0119": {
       "by": "maker",
       "since": "2026-11-10T23:05:00.000Z",

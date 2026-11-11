@@ -2311,7 +2311,7 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "in_review",
+      "status": "needs_human",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-11-02: actionable docs slice parallel to in_review PR queue; link target lands with T-0120 merge.",
@@ -2330,6 +2330,11 @@
           "at": "2026-11-07T23:05:00.000Z",
           "by": "maker",
           "note": "Rebased PR #82 onto main; gh pr ready; acceptance + agent-verify green; awaiting Checker REVIEW."
+        },
+        {
+          "at": "2026-11-11T06:00:27.434Z",
+          "by": "checker",
+          "note": "FORCE_NEEDS_HUMAN: lock held ~79.0h with task still in_review — REVIEW has been failing before it can bounce itself. Escalating; PR #82 left open and unmerged for manual inspection."
         }
       ]
     },
