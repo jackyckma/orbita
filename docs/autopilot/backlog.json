@@ -1806,9 +1806,10 @@
         "T-0107"
       ],
       "flag": "ORBITA_AGENT_PRINCIPALS_ENABLED",
-      "status": "needs_human",
+      "status": "in_review",
       "retries": 1,
       "feedback": [
+        "REPLAN 2026-11-12: bounce needs_human→in_review (stale-lock FORCE_NEEDS_HUMAN, not judgment). PR #75 non-draft; rebase onto main if behind; Checker merge PR #75 and CLOSE_STALE #72 — unblocks T-0110..T-0112.",
         {
           "at": "2026-11-12T06:00:35.061Z",
           "by": "checker",
@@ -2195,9 +2196,10 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "needs_human",
+      "status": "in_review",
       "retries": 0,
       "feedback": [
+        "REPLAN 2026-11-12: bounce needs_human→in_review (stale-lock). PR #79 draft — Maker next pass: gh pr ready + rebase onto main if needed; Checker verify-all and merge.",
         "REPLAN 2026-10-30: refill actionable queue while T-0108 awaits Checker merge on PR #75; founder-only steps for D-006.",
         {
           "at": "2026-10-31T23:04:00.781Z",
@@ -2270,9 +2272,10 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "needs_human",
+      "status": "ready",
       "retries": 0,
       "feedback": [
+        "REPLAN 2026-11-12: bounce needs_human→ready (stale-lock, not judgment). PR #81 non-draft — Maker: rebase onto main if behind, run acceptance + ./scripts/build-web-docs.sh + ./scripts/agent-verify.sh, gh pr ready if needed, in_review on main.",
         "REPLAN 2026-11-02: refill actionable queue (READY_MIN) while Checker merges PR #75/#78/#79; E-19 decomposition deferred until E-17 tier 1 ships.",
         {
           "at": "2026-11-06T23:03:21.000Z",
@@ -2316,9 +2319,10 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "needs_human",
+      "status": "ready",
       "retries": 0,
       "feedback": [
+        "REPLAN 2026-11-12: bounce needs_human→ready (stale-lock). PR #82 non-draft — Maker: rebase onto main, acceptance + ./scripts/agent-verify.sh, in_review on main.",
         "REPLAN 2026-11-02: actionable docs slice parallel to in_review PR queue; link target lands with T-0120 merge.",
         {
           "at": "2026-11-04T23:04:46.000Z",
