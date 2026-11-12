@@ -1806,9 +1806,14 @@
         "T-0107"
       ],
       "flag": "ORBITA_AGENT_PRINCIPALS_ENABLED",
-      "status": "in_review",
+      "status": "needs_human",
       "retries": 1,
       "feedback": [
+        {
+          "at": "2026-11-12T06:00:35.061Z",
+          "by": "checker",
+          "note": "FORCE_NEEDS_HUMAN: lock held ~54.9h with task still in_review — REVIEW kept failing to complete before it could bounce the task itself. Auto-escalated; PR #75 left open and unmerged for manual inspection."
+        },
         "MAKER 2026-11-09: rebased PR #75 onto main; acceptance + agent-verify + check:sql-sync green; in_review for checker.",
         "MAKER 2026-11-09: lease on main; rebase PR #75 onto main, run acceptance + agent-verify + check:sql-sync.",
         "MAKER 2026-10-24: rebased PR #75 onto main; acceptance + agent-verify + check:sql-sync green; PR ready for checker.",
