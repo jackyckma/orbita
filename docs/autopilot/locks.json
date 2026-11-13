@@ -18,6 +18,12 @@
       "since": "2026-11-11T23:01:21.334Z",
       "branch": "cursor/t-0124-ticket-executors-runbook-links",
       "pr": 83
+    },
+    "T-0122": {
+      "by": "maker",
+      "since": "2026-11-13T23:02:00.000Z",
+      "branch": null,
+      "pr": null
     }
   }
 }

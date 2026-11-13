@@ -2277,9 +2277,14 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "ready",
+      "status": "in_progress",
       "retries": 0,
       "feedback": [
+        {
+          "at": "2026-11-13T23:02:00.000Z",
+          "by": "maker",
+          "note": "Lease on main: in_progress before branch/rebase of PR #81"
+        },
         "REPLAN 2026-11-12: bounce needs_human→ready (stale-lock, not judgment). PR #81 non-draft — Maker: rebase onto main if behind, run acceptance + ./scripts/build-web-docs.sh + ./scripts/agent-verify.sh, gh pr ready if needed, in_review on main.",
         "REPLAN 2026-11-02: refill actionable queue (READY_MIN) while Checker merges PR #75/#78/#79; E-19 decomposition deferred until E-17 tier 1 ships.",
         {
