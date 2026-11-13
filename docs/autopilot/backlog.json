@@ -2277,9 +2277,14 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
       "feedback": [
+        {
+          "at": "2026-11-13T23:05:00.000Z",
+          "by": "maker",
+          "note": "PR #81 rebased onto current main; acceptance rg + ./scripts/build-web-docs.sh + ./scripts/agent-verify.sh green"
+        },
         {
           "at": "2026-11-13T23:02:00.000Z",
           "by": "maker",
