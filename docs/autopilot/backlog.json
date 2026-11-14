@@ -2334,9 +2334,14 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
       "feedback": [
+        {
+          "at": "2026-11-14T23:06:00.000Z",
+          "by": "maker",
+          "note": "Rebased PR #82 onto main; acceptance + agent-verify green; awaiting Checker REVIEW."
+        },
         "REPLAN 2026-11-12: bounce needs_human→ready (stale-lock). PR #82 non-draft — Maker: rebase onto main, acceptance + ./scripts/agent-verify.sh, in_review on main.",
         "REPLAN 2026-11-02: actionable docs slice parallel to in_review PR queue; link target lands with T-0120 merge.",
         {
