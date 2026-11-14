@@ -2378,11 +2378,16 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "in_review",
+      "status": "needs_human",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-11-08: refill actionable queue while T-0108/T-0119 blocked on Checker stale-lock; docs-only parallel to in_review T-0120..T-0123.",
-        "MAKER 2026-11-11: PR https://github.com/jackyckma/orbita/pull/83 opened; acceptance + build-web-docs green."
+        "MAKER 2026-11-11: PR https://github.com/jackyckma/orbita/pull/83 opened; acceptance + build-web-docs green.",
+        {
+          "at": "2026-11-14T06:02:33.270Z",
+          "by": "checker",
+          "note": "FORCE_NEEDS_HUMAN: lock held ~55.0h with task still in_review — REVIEW kept failing to complete before it could bounce the task itself. Auto-escalated; PR #83 left open for manual inspection."
+        }
       ]
     }
   ]
