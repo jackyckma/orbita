@@ -1806,9 +1806,14 @@
         "T-0107"
       ],
       "flag": "ORBITA_AGENT_PRINCIPALS_ENABLED",
-      "status": "in_review",
+      "status": "needs_human",
       "retries": 1,
       "feedback": [
+        {
+          "at": "2026-11-15T06:00:46.774Z",
+          "by": "checker",
+          "note": "FORCE_NEEDS_HUMAN: lock held ~54.9h with task still in_review — REVIEW has been failing before it can bounce itself. Escalating; PR #75 left open and unmerged for manual inspection."
+        },
         "REPLAN 2026-11-12: bounce needs_human→in_review (stale-lock FORCE_NEEDS_HUMAN, not judgment). PR #75 non-draft; rebase onto main if behind; Checker merge PR #75 and CLOSE_STALE #72 — unblocks T-0110..T-0112.",
         {
           "at": "2026-11-12T06:00:35.061Z",
