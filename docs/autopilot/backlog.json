@@ -2066,7 +2066,7 @@
         "T-0107"
       ],
       "flag": "ORBITA_TICKETS_ENABLED",
-      "status": "ready",
+      "status": "in_progress",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-11-15: parallelize contracts-only slice (deps T-0107); enforcement stays in T-0116 after T-0115 lands.",
