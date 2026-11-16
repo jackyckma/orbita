@@ -2209,7 +2209,7 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "in_review",
+      "status": "needs_human",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-11-12: bounce needs_human→in_review (stale-lock). PR #79 draft — Maker next pass: gh pr ready + rebase onto main if needed; Checker verify-all and merge.",
@@ -2235,6 +2235,11 @@
           "at": "2026-11-09T06:05:00.059Z",
           "by": "checker",
           "note": "FORCE_NEEDS_HUMAN: lock held ~79.1h with task still in_review — REVIEW has been failing before it can bounce itself. Escalating; PR #79 left open and unmerged for manual inspection."
+        },
+        {
+          "at": "2026-11-16T06:03:42.925Z",
+          "by": "checker",
+          "note": "FORCE_NEEDS_HUMAN: lock held ~79.0h with task still in_review — REVIEW has been failing before it can bounce itself. Escalating; PR #79 left open and unmerged for manual inspection."
         }
       ]
     },
