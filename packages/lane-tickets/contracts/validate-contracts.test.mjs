@@ -111,3 +111,62 @@ test("golden simulator fixture validates against ticket and breach schemas", asy
   assert.ok(breachValidate(fixture.sample_soft_breach));
   assert.ok(gitErrValidate(fixture.sample_git_read_only_error));
 });
+
+test("charter shares_with grant validates as optional charter field", async () => {
+  const ajv = new Ajv({ allErrors: true, strict: false });
+  addFormats(ajv);
+
+  const files = await collectSchemaFiles(contractsDir);
+  for (const file of files) {
+    const schema = JSON.parse(await readFile(file, "utf8"));
+    const id = schema.$id ?? path.relative(contractsDir, file);
+    ajv.addSchema(schema, id);
+  }
+
+  const validate = ajv.getSchema("https://orbita.dev/schemas/lane-tickets/charter.schema.json");
+  assert.ok(validate, "charter validator missing");
+
+  const peerUuid = "11111111-2222-3333-4444-555555555555";
+
+  const withShares = {
+    purpose: "Cross-share pilot",
+    principles: ["Least privilege"],
+    guardrails: {
+      allowed_action_categories: ["L0", "L1"],
+      forbidden_action_categories: ["money"],
+    },
+    cadence: { description: "Daily" },
+    reporting: { expectations: "Weekly brief" },
+    success_measures: ["Coverage"],
+    review_date: "2026-12-01",
+    assigned_principals: ["founder"],
+    hard_limits: [
+      {
+        id: "subtree_only",
+        description: "Own subtree",
+        enforcement: "server",
+      },
+    ],
+    soft_constraints: [],
+    shares_with: [
+      {
+        mandate_id: peerUuid,
+        report_types: ["weekly_synthesis"],
+        ticket_scope: { kinds: ["task"], statuses: ["done"] },
+        notes: "Bizdev may read completed task summaries",
+      },
+    ],
+  };
+
+  assert.ok(validate(withShares), JSON.stringify(validate.errors, null, 2));
+
+  const invalidShares = {
+    ...withShares,
+    shares_with: [{ mandate_id: peerUuid }],
+  };
+  assert.equal(
+    validate(invalidShares),
+    false,
+    "share_grant requires report_types or ticket_scope",
+  );
+});
