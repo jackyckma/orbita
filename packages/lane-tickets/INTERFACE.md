@@ -34,6 +34,7 @@ Charter field **`exception_types`**: `{ type, description, auto_approve?, risk_t
 - **`approval_policy`**: `epics` (`integrator` default | `auto_within_tier`) and `tasks` (`auto` default | `integrator`). Works with **`guardrails.max_auto_risk_tier`** for agent auto-approve on create (see `initialStatusOnCreate` in the pure engine).
 - **`soft_constraints`**: **warn_threshold** only records **`soft_breach`**; **block_threshold** denies transitions with **`SOFT_BLOCK_THRESHOLD_EXCEEDED`** when observed ≥ threshold (constraints without `block_threshold` never block).
 - **`exception_types`**: typed exception tasks (see above).
+- **`shares_with`** (optional): cross-mandate **read-only** grants (E-17 tier 2). Each entry `{ mandate_id, report_types?, ticket_scope?, notes? }` names another mandate id allowed to read selected content from **this** mandate's subtree. At least one of `report_types` or `ticket_scope` must be present. `report_types` are note slugs in this mandate's project namespace; `ticket_scope` may filter `kinds` (`epic` \| `task` \| `decision`), optional `task_class`, `decision_class`, or `statuses`. Grants never imply write, approve, claim, or charter change on the sharer's mandate. Runtime enforcement lives in T-0116 (`ORBITA_AGENT_SCOPES_MODE`); until then, default subtree rules stay fail-closed across mandate boundaries.
 
 Charter changes are audited; changing **hard_limits** or loosening hard → soft requires a human-approved principal.
 
@@ -122,7 +123,13 @@ Executors (and privileged roles) submit **proposals** under their own **active m
 
 **`inputs_from`:** optional provenance on proposals and exception tasks (`{kind, ref, from?}`). Marked **`untrusted_author`** when returned to founder/integrator readers. Executors cannot attach `ticket` inputs outside their readable subtree.
 
-**TODO (E-17 tier 2):** explicit read grants between mandates via charter `shares_with` — do not loosen default subtree reads until then.
+### Cross-mandate read grants (`shares_with`)
+
+Optional charter field **`shares_with`** lists explicit read grants from this mandate to other mandate ids (typically another bot's home mandate). Grants are **read-only**: ticket_list/get and note read for the named scopes only; no writes, approvals, or subtree mutation on the sharer's mandate.
+
+When a grantee principal reads tickets or notes via a grant (enforced in T-0116), payloads that were authored by an **`external-agent`** principal still include the **`untrusted_author`** marker on every read response (REST and MCP), same as subtree reads — grants do not increase trust in foreign-authored text.
+
+Founder or integrator may set `shares_with` via `ticket_update_charter` once runtime patching allows the field (enforcement task may extend the patch allowlist). Until `ORBITA_AGENT_SCOPES_MODE` enforces grants, executors without subtree access must not rely on cross-mandate reads.
 
 **Integrator review queue:** `ticket_list` filters `requires_review`, `reviewed`, and `task_class`. Queue = `requires_review=true` and unreviewed (`reviewed=false`). Executor auto-approved epics/tasks also land in this queue.
 
