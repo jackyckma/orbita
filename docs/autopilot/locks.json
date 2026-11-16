@@ -16,8 +16,8 @@
     "T-0115": {
       "by": "maker",
       "since": "2026-11-16T23:03:04.680Z",
-      "branch": null,
-      "pr": null
+      "branch": "cursor/t-0115-shares-with-charter-contract",
+      "pr": 84
     }
   }
 }

@@ -2066,11 +2066,12 @@
         "T-0107"
       ],
       "flag": "ORBITA_TICKETS_ENABLED",
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-11-15: parallelize contracts-only slice (deps T-0107); enforcement stays in T-0116 after T-0115 lands.",
-        "REPLAN 2026-10-22: E-17 tier 2 pass 1/4 — contracts before enforcement (blocked until tier 1 T-0112 ships)."
+        "REPLAN 2026-10-22: E-17 tier 2 pass 1/4 — contracts before enforcement (blocked until tier 1 T-0112 ships).",
+        "Maker 2026-11-16: PR https://github.com/jackyckma/orbita/pull/84; acceptance green (contract tests + typecheck after pnpm -r build)."
       ]
     },
     {
