@@ -2402,7 +2402,7 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-11-15: bounce needs_human→ready (stale-lock). PR #83 — Maker: rebase onto main, acceptance + ./scripts/build-web-docs.sh + ./scripts/agent-verify.sh, in_review on main.",
@@ -2412,7 +2412,8 @@
           "at": "2026-11-14T06:02:33.270Z",
           "by": "checker",
           "note": "FORCE_NEEDS_HUMAN: lock held ~55.0h with task still in_review — REVIEW kept failing to complete before it could bounce the task itself. Auto-escalated; PR #83 left open for manual inspection."
-        }
+        },
+        "MAKER 2026-11-17: PR https://github.com/jackyckma/orbita/pull/83 rebased onto main; acceptance rg + build-web-docs + agent-verify green."
       ]
     },
     {
