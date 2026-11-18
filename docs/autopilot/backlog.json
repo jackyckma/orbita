@@ -2436,7 +2436,7 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "ready",
+      "status": "in_progress",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-11-15: refill actionable queue (READY_MIN); parallel steward doc cross-links."
