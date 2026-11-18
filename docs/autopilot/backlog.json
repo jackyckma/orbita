@@ -2436,10 +2436,11 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
       "feedback": [
-        "REPLAN 2026-11-15: refill actionable queue (READY_MIN); parallel steward doc cross-links."
+        "REPLAN 2026-11-15: refill actionable queue (READY_MIN); parallel steward doc cross-links.",
+        "MAKER 2026-11-18: PR https://github.com/jackyckma/orbita/pull/85 opened; acceptance rg green."
       ]
     },
     {
