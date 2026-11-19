@@ -6,6 +6,12 @@
       "since": "2026-11-18T23:05:00.000Z",
       "branch": "cursor/t-0125-lane-agent-principals-skill-runbooks",
       "pr": 85
+    },
+    "T-0126": {
+      "by": "maker",
+      "since": "2026-11-19T23:05:00.000Z",
+      "branch": null,
+      "pr": null
     }
   }
 }

@@ -2464,10 +2464,11 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "ready",
+      "status": "in_progress",
       "retries": 0,
       "feedback": [
-        "REPLAN 2026-11-15: setup.md gap while T-0122 technical.md section awaits Checker merge."
+        "REPLAN 2026-11-15: setup.md gap while T-0122 technical.md section awaits Checker merge.",
+        "MAKER 2026-11-19: lease on main before branch."
       ]
     }
   ]
