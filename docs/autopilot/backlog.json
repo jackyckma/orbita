@@ -2442,11 +2442,16 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "in_review",
+      "status": "needs_human",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-11-15: refill actionable queue (READY_MIN); parallel steward doc cross-links.",
-        "MAKER 2026-11-18: PR https://github.com/jackyckma/orbita/pull/85 opened; acceptance rg green."
+        "MAKER 2026-11-18: PR https://github.com/jackyckma/orbita/pull/85 opened; acceptance rg green.",
+        {
+          "at": "2026-11-19T23:05:00.000Z",
+          "by": "checker",
+          "note": "FORCE_NEEDS_HUMAN: lock held ~24.0h with task still in_review — REVIEW has been failing before it can bounce itself. Escalating; PR #85 left open and unmerged for manual inspection."
+        }
       ]
     },
     {
