@@ -2066,13 +2066,14 @@
         "T-0107"
       ],
       "flag": "ORBITA_TICKETS_ENABLED",
-      "status": "needs_human",
+      "status": "ready",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-11-15: parallelize contracts-only slice (deps T-0107); enforcement stays in T-0116 after T-0115 lands.",
         "REPLAN 2026-10-22: E-17 tier 2 pass 1/4 — contracts before enforcement (blocked until tier 1 T-0112 ships).",
         "Maker 2026-11-16: PR https://github.com/jackyckma/orbita/pull/84; acceptance green (contract tests + typecheck after pnpm -r build).",
-        "FORCE_NEEDS_HUMAN: lock held 48.0h with task still in_review — REVIEW has been failing before it can bounce itself. Escalating; PR #84 left open and unmerged for manual inspection."
+        "FORCE_NEEDS_HUMAN: lock held 48.0h with task still in_review — REVIEW has been failing before it can bounce itself. Escalating; PR #84 left open and unmerged for manual inspection.",
+        "REPLAN 2026-11-20: bounce needs_human→ready (stale-lock, not judgment). PR #84 — Maker: rebase onto main, run acceptance + ./scripts/agent-verify.sh, in_review on main with lock pr=84."
       ]
     },
     {
@@ -2157,7 +2158,7 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "in_review",
+      "status": "ready",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-11-15: bounce needs_human→in_review (stale-lock). PR #78 — Checker: gh pr ready if draft, verify-all, merge.",
@@ -2193,7 +2194,8 @@
           "at": "2026-11-13T06:02:09.227Z",
           "by": "checker",
           "note": "FORCE_NEEDS_HUMAN: lock held ~55.0h with task still in_review — REVIEW kept failing to complete before it could bounce the task itself. Auto-escalated; PR #78 left open and unmerged for manual inspection."
-        }
+        },
+        "REPLAN 2026-11-20: bounce in_review→ready (stale-lock). PR #78 — Maker: gh pr ready if draft, rebase onto main, acceptance + ./scripts/agent-verify.sh, in_review on main with lock pr=78."
       ]
     },
     {
@@ -2211,7 +2213,7 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "needs_human",
+      "status": "ready",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-11-12: bounce needs_human→in_review (stale-lock). PR #79 draft — Maker next pass: gh pr ready + rebase onto main if needed; Checker verify-all and merge.",
@@ -2242,7 +2244,8 @@
           "at": "2026-11-16T06:03:42.925Z",
           "by": "checker",
           "note": "FORCE_NEEDS_HUMAN: lock held ~79.0h with task still in_review — REVIEW has been failing before it can bounce itself. Escalating; PR #79 left open and unmerged for manual inspection."
-        }
+        },
+        "REPLAN 2026-11-20: bounce needs_human→ready (stale-lock). PR #79 — Maker: gh pr ready if draft, rebase onto main, acceptance + ./scripts/agent-verify.sh, in_review on main with lock pr=79."
       ]
     },
     {
@@ -2292,7 +2295,7 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "needs_human",
+      "status": "ready",
       "retries": 0,
       "feedback": [
         {
@@ -2337,7 +2340,8 @@
           "at": "2026-11-10T06:00:09.272Z",
           "by": "checker",
           "note": "FORCE_NEEDS_HUMAN: lock held ~79.0h with task still in_review — REVIEW has been failing before it can bounce itself. Escalating; PR #81 left open and unmerged for manual inspection."
-        }
+        },
+        "REPLAN 2026-11-20: bounce needs_human→ready (stale-lock). PR #81 — Maker: rebase onto main, acceptance + ./scripts/build-web-docs.sh + ./scripts/agent-verify.sh, in_review on main with lock pr=81."
       ]
     },
     {
@@ -2354,7 +2358,7 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "needs_human",
+      "status": "ready",
       "retries": 0,
       "feedback": [
         {
@@ -2389,7 +2393,8 @@
           "at": "2026-11-11T06:00:27.434Z",
           "by": "checker",
           "note": "FORCE_NEEDS_HUMAN: lock held ~79.0h with task still in_review — REVIEW has been failing before it can bounce itself. Escalating; PR #82 left open and unmerged for manual inspection."
-        }
+        },
+        "REPLAN 2026-11-20: bounce needs_human→ready (stale-lock). PR #82 — Maker: rebase onto main (include agent-principals-activation.md from #79 if missing on main for rg), acceptance + ./scripts/agent-verify.sh, in_review on main with lock pr=82."
       ]
     },
     {
@@ -2408,7 +2413,7 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "needs_human",
+      "status": "ready",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-11-15: bounce needs_human→ready (stale-lock). PR #83 — Maker: rebase onto main, acceptance + ./scripts/build-web-docs.sh + ./scripts/agent-verify.sh, in_review on main.",
@@ -2424,7 +2429,8 @@
           "at": "2026-11-19T06:04:45.076Z",
           "by": "checker",
           "note": "FORCE_NEEDS_HUMAN: lock held ~31.0h with task still in_review — REVIEW kept failing to complete before it could bounce the task itself. Auto-escalated; PR #83 left open and unmerged for manual inspection."
-        }
+        },
+        "REPLAN 2026-11-20: bounce needs_human→ready (stale-lock). PR #83 — Maker: rebase onto main, acceptance + ./scripts/build-web-docs.sh + ./scripts/agent-verify.sh, in_review on main with lock pr=83."
       ]
     },
     {
@@ -2442,7 +2448,7 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "needs_human",
+      "status": "ready",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-11-15: refill actionable queue (READY_MIN); parallel steward doc cross-links.",
@@ -2451,7 +2457,8 @@
           "at": "2026-11-19T23:05:00.000Z",
           "by": "checker",
           "note": "FORCE_NEEDS_HUMAN: lock held ~24.0h with task still in_review — REVIEW has been failing before it can bounce itself. Escalating; PR #85 left open and unmerged for manual inspection."
-        }
+        },
+        "REPLAN 2026-11-20: bounce needs_human→ready (stale-lock). PR #85 — Maker: rebase onto main, acceptance + ./scripts/agent-verify.sh, in_review on main with lock pr=85."
       ]
     },
     {
@@ -2480,6 +2487,26 @@
           "by": "checker",
           "note": "FORCE_NEEDS_HUMAN: lock held ~6.9h with task still in_review — REVIEW kept failing to complete before it could bounce the task itself. Auto-escalated; PR #86 left open and unmerged for manual inspection."
         }
+      ]
+    },
+    {
+      "id": "T-0127",
+      "lane": "docs",
+      "phase": "consultos-c",
+      "title": "CURRENT_STATUS.md: E-17 agent principals progress",
+      "description": "Epic E-17 parallel refill (deps T-0107 only). In docs/CURRENT_STATUS.md add a short bullet noting E-17 agent principals: packages/lane-agent-principals, flags ORBITA_AGENT_PRINCIPALS_ENABLED and ORBITA_AGENT_SCOPES_MODE default off, shipped slices (T-0107 contracts, T-0109 key suspension, T-0114 monorepo build) and in-flight tier-1 (T-0108..T-0112). Link packages/lane-agent-principals/INTERFACE.md and docs/personal-steward/grok-bot-pilot-activation.md. Do not claim prod flags are enabled. Docs only.",
+      "acceptance": [
+        "rg -n \"lane-agent-principals|E-17\" docs/CURRENT_STATUS.md",
+        "rg -n \"ORBITA_AGENT_PRINCIPALS_ENABLED\" docs/CURRENT_STATUS.md"
+      ],
+      "deps": [
+        "T-0107"
+      ],
+      "flag": null,
+      "status": "ready",
+      "retries": 0,
+      "feedback": [
+        "REPLAN 2026-11-20: new actionable docs slice; refill READY_MIN while Checker review lane clears stale doc PRs."
       ]
     }
   ]
