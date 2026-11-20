@@ -2469,12 +2469,17 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "in_review",
+      "status": "needs_human",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-11-15: setup.md gap while T-0122 technical.md section awaits Checker merge.",
         "MAKER 2026-11-19: lease on main before branch.",
-        "MAKER 2026-11-19: PR https://github.com/jackyckma/orbita/pull/86 opened; acceptance rg + build-web-docs green."
+        "MAKER 2026-11-19: PR https://github.com/jackyckma/orbita/pull/86 opened; acceptance rg + build-web-docs green.",
+        {
+          "at": "2026-11-20T06:01:25.000Z",
+          "by": "checker",
+          "note": "FORCE_NEEDS_HUMAN: lock held ~6.9h with task still in_review — REVIEW kept failing to complete before it could bounce the task itself. Auto-escalated; PR #86 left open and unmerged for manual inspection."
+        }
       ]
     }
   ]
