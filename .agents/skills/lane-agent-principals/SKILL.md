@@ -20,4 +20,4 @@ node --test packages/lane-agent-principals/contracts/validate-contracts.test.mjs
 
 - Flip `ORBITA_AGENT_SCOPES_MODE` to `enforce` in production (founder decision D-006)
 - Log request bodies, note text, or secrets in audit rows
-- Add runtime TypeScript under `src/` beyond the contracts-only stub until T-0108
+- Mount HTTP routes or auth middleware unless a backlog task explicitly says so

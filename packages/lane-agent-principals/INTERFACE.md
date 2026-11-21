@@ -12,7 +12,7 @@ related: docs/autopilot/roadmap.json (E-17), docs/autopilot/decisions.json (D-00
 
 This lane owns **`packages/lane-agent-principals/`** only. It answers: **which agent** called Orbita, **what it was allowed to do**, and an **append-only audit** of allow/deny decisions — without logging payload bodies.
 
-Runtime persistence, auth wiring, and enforcement land in later E-17 tasks (T-0108+). This slice is **contracts + INTERFACE only**.
+Runtime persistence lands in T-0108 (DDL + repository). Auth wiring, admin CRUD, and enforcement land in later E-17 tasks (T-0109+).
 
 ## Feature flags
 
@@ -102,9 +102,8 @@ node --test packages/lane-agent-principals/contracts/validate-contracts.test.mjs
 
 Golden fixture: `data/simulators/lane-agent-principals/sample-principals.json`
 
-## Does not (this slice)
+## Does not (repository slice)
 
-- No SQL / DDL (T-0108)
 - No HTTP routes or MCP scope checks (T-0110–T-0112)
 - No changes to `api_keys` format or existing keys
 
