@@ -1806,9 +1806,14 @@
         "T-0107"
       ],
       "flag": "ORBITA_AGENT_PRINCIPALS_ENABLED",
-      "status": "in_review",
-      "retries": 1,
+      "status": "ready",
+      "retries": 2,
       "feedback": [
+        {
+          "at": "2026-11-21T06:00:58.769Z",
+          "by": "checker",
+          "note": "REVIEW PR #72: verify-all FAIL — @orbita/agent-principals typecheck: missing zod (TS2307); config.test.ts empty env TS2345. Did not merge. Bounced to ready (retries=2); lock cleared. Close draft #72 if superseded by #75; fix zod + config.test.ts on active branch."
+        },
         "REPLAN 2026-11-15: bounce needs_human→in_review (stale-lock). PR #75 — Checker: verify-all on head, gh pr ready if needed, merge; CLOSE_STALE #72; unblocks T-0110..T-0112.",
         {
           "at": "2026-11-15T06:00:46.774Z",
