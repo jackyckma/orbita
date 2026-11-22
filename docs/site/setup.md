@@ -51,6 +51,17 @@ Optional:
 
 Full list: `.env.example` in the repo.
 
+### Optional feature flags (agent principals)
+
+Per-agent identity and tool-level scopes (E-17) stay **disabled** unless you opt in:
+
+| Variable | Default | Notes |
+|----------|---------|--------|
+| `ORBITA_AGENT_PRINCIPALS_ENABLED` | `0` | Set `1` to run optional principal DDL and repository at API boot |
+| `ORBITA_AGENT_SCOPES_MODE` | `off` | `shadow` logs would-deny audit events without blocking; `enforce` denies out-of-scope calls |
+
+See [technical.md](technical.md) for rollout behaviour and links to the lane contract.
+
 ## Admin console
 
 Open `http://127.0.0.1:3000/admin` (or production `/admin`).
