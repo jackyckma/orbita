@@ -2077,7 +2077,7 @@
         "T-0107"
       ],
       "flag": "ORBITA_TICKETS_ENABLED",
-      "status": "in_review",
+      "status": "needs_human",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-11-15: parallelize contracts-only slice (deps T-0107); enforcement stays in T-0116 after T-0115 lands.",
@@ -2085,7 +2085,8 @@
         "Maker 2026-11-16: PR https://github.com/jackyckma/orbita/pull/84; acceptance green (contract tests + typecheck after pnpm -r build).",
         "FORCE_NEEDS_HUMAN: lock held 48.0h with task still in_review — REVIEW has been failing before it can bounce itself. Escalating; PR #84 left open and unmerged for manual inspection.",
         "REPLAN 2026-11-20: bounce needs_human→ready (stale-lock, not judgment). PR #84 — Maker: rebase onto main, run acceptance + ./scripts/agent-verify.sh, in_review on main with lock pr=84.",
-        "Maker 2026-11-22: rebased PR #84 onto main; acceptance + agent-verify green; awaiting Checker REVIEW."
+        "Maker 2026-11-22: rebased PR #84 onto main; acceptance + agent-verify green; awaiting Checker REVIEW.",
+        "FORCE_NEEDS_HUMAN: lock held ~6.9h with task still in_review — REVIEW kept failing to complete before it could bounce the task itself. Auto-escalated; PR #84 left open and unmerged for manual inspection."
       ]
     },
     {
