@@ -44,7 +44,7 @@ Local folder **`marketing-agent/`** (gitignored except `README.md`) holds brand 
 - Prefer Autopilot Maker/Checker over ad-hoc orchestrate sprawl; when using orchestrate, poll regularly, merge when workers complete, report status, then advance.
 - Prefer a single monorepo for API and marketing web (`apps/orbita-api`, `apps/orbita-web`, shared `packages/*`).
 - Always respond in 繁體中文 for user-facing communication (English for code/commits unless asked otherwise).
-- Prefer Zeabur ZSend (`api.zeabur.com`) over Resend for outbound instance email.
+- Outbound instance email uses SMTP2GO (`api.smtp2go.com`); see docs/instance-email.md.
 - Marketing beyond X; evaluate skills catalog vs plugins; dogfood **ai-transformation.org** first — proof batch then ramp (~5/day max), not weekly 1+1 steady state; MA brand: **AI Business Life** next, **Agent Mindset** when book ships (~2–3 weeks); apprenticeship under Powerhouse + AT.org.
 - Handoff/inbox polls: **`~/Orbiter-AT-dogfood/` on demand only** (skill `orbiter-handoff-check` or explicit user request); **do NOT** auto-read each turn; **do NOT POST probe drafts** to AT on auth checks (avoids `/editorial` noise).
 - Social posting: meaningful draft→approve only (prior X spam ban); MA depth via per-project workspaces + shared/tested skills catalog — not plugins.
@@ -62,7 +62,7 @@ Local folder **`marketing-agent/`** (gitignored except `README.md`) holds brand 
 - API-as-product phased launch: Phase 1 invite-only hosted access before billing SaaS; see `docs/api-as-product.md`.
 - Marketing Agent track (MA0–MAn) parallel to W waves; gitignored `marketing-agent/` (`docs/marketing-agent-plan.md`); **`at-agent/`** for ai-transformation.org dogfood — **AT1a ✅** (proof E2E, 2 knowledge articles live), **AT1b harness-only** (Migration A: legacy `session_jobs` disabled; agent-initiated supply harness **07:00 UTC** + poll harness **18:00 UTC**, ~5 drafts/run; `at1b-*.sh` scripts are bootstrap/fallback only); AT prod SQLite on Zeabur volume (`SQLITE_PATH=/data/app.db`); writes via `POST /api/v1/objects/drafts` + vault `atx_write_org`; Wave 19 dedup via AT `GET /objects/catalog`; editorial feedback loop **application-layer** (`editorial/feedback` + `at1b-ingest-feedback.sh` or H1.5 `POST /v1/harnesses/{id}/feedback`—not Orbita Loop 4 auto-improve; AT editorial-review agent is **AT-side**, separate from Orbita Loop 2); cross-project handoff `~/Orbiter-AT-dogfood/`; caller secrets in gitignored `.env.local`.
 - Public docs: single source `docs/site/` → `./scripts/build-web-docs.sh` → `get-orbita.com/docs`.
-- Instance email: Cloudflare Worker inbound to `POST /v1/inbound/email`; outbound via Zeabur ZSend (vault `zsend` on `orbita-instance`); not email-as-command-channel.
+- Instance email: Cloudflare Worker inbound to `POST /v1/inbound/email`; outbound via SMTP2GO (vault `smtp2go` on `orbita-instance`); not email-as-command-channel.
 - Daily quota placeholder defaults: 200 sessions / 1000 messages per `client_id` (W17/W26 hard-stop).
 - Admin UI: API keys, credentials, HTTP domain allow-list, scheduler job enable/disable (w29 PATCH)—no session list, trajectory, or inbound mail viewer.
 - LLM stack: MiniMax-M3 primary, Anthropic fallback; disclose failover in `execution_meta`; all session/memory state externalized (no in-process session state).
