@@ -2232,7 +2232,7 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "ready",
+      "status": "in_progress",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-11-12: bounce needs_human→in_review (stale-lock). PR #79 draft — Maker next pass: gh pr ready + rebase onto main if needed; Checker verify-all and merge.",
