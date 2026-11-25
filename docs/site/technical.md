@@ -112,6 +112,14 @@ When the flag is `1` at **migration time**, startup also runs `apps/orbita-api/m
 
 **REST surface:** `GET/POST /v1/tickets`, `GET /v1/tickets/{id}`, and transition endpoints mirror MCP verbs. List filters support mandate subtree queries used by executors and integrators.
 
+## Agent principals (optional, `ORBITA_AGENT_PRINCIPALS_ENABLED`)
+
+Per-agent identity and tool-level scopes ship **off by default**. When `ORBITA_AGENT_PRINCIPALS_ENABLED` is unset or not `1`, the API does not apply agent-principals DDL, does not persist principal rows, and behaviour matches pre–E-17 builds.
+
+When the flag is `1` at **migration time**, startup runs optional migrations from `packages/lane-agent-principals/` (additive `IF NOT EXISTS` only). Contract, scope vocabulary, and rollout modes are documented in [`packages/lane-agent-principals/INTERFACE.md`](https://github.com/jackyckma/orbita/blob/main/packages/lane-agent-principals/INTERFACE.md).
+
+**Scope mode:** `ORBITA_AGENT_SCOPES_MODE` defaults to **`off`** (`off` | `shadow` | `enforce`). **`off`** skips scope checks. **`shadow`** evaluates scopes, writes **`would-deny`** audit rows, and still allows the call. **`enforce`** denies with stable error codes when a required scope is missing. Enabling principals in production and switching from `shadow` to **`enforce`** are founder decisions ([D-006](https://github.com/jackyckma/orbita/blob/main/docs/autopilot/decisions.json)); see the checklist in [`docs/personal-steward/grok-bot-pilot-activation.md`](https://github.com/jackyckma/orbita/blob/main/docs/personal-steward/grok-bot-pilot-activation.md).
+
 ## Further reading
 
 - [product-architecture.md](https://github.com/jackyckma/orbita/blob/main/docs/product-architecture.md)
