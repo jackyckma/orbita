@@ -2324,9 +2324,14 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "ready",
+      "status": "in_progress",
       "retries": 0,
       "feedback": [
+        {
+          "at": "2026-11-25T23:02:00.000Z",
+          "by": "maker",
+          "note": "Lease on main: in_progress before branch/rebase of PR #81"
+        },
         {
           "at": "2026-11-17T06:00:47.801Z",
           "by": "checker",
