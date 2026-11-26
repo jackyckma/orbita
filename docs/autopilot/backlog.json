@@ -2324,9 +2324,14 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "in_review",
+      "status": "needs_human",
       "retries": 0,
       "feedback": [
+        {
+          "at": "2026-11-26T06:00:17.753Z",
+          "by": "checker",
+          "note": "FORCE_NEEDS_HUMAN: lock held 6.9h with task still in_review — REVIEW has been failing before it can bounce itself. Escalating; PR #81 left open and unmerged for manual inspection."
+        },
         {
           "at": "2026-11-25T23:04:00.000Z",
           "by": "maker",
