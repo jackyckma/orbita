@@ -2402,9 +2402,14 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "in_progress",
+      "status": "in_review",
       "retries": 0,
       "feedback": [
+        {
+          "at": "2026-11-26T23:03:30.000Z",
+          "by": "maker",
+          "note": "Rebased PR #82 onto main; acceptance + agent-verify green; awaiting Checker REVIEW."
+        },
         {
           "at": "2026-11-26T23:01:30.000Z",
           "by": "maker",
