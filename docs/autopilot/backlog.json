@@ -2472,7 +2472,7 @@
         "T-0107"
       ],
       "flag": null,
-      "status": "ready",
+      "status": "in_progress",
       "retries": 0,
       "feedback": [
         "REPLAN 2026-11-15: bounce needs_human→ready (stale-lock). PR #83 — Maker: rebase onto main, acceptance + ./scripts/build-web-docs.sh + ./scripts/agent-verify.sh, in_review on main.",
